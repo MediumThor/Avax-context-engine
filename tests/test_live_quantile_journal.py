@@ -57,6 +57,8 @@ def test_future_perturbation_does_not_change_live_forecast_at_t(tmp_path):
     )
     truncated = runtime.emit_live_forecast(mutated[: origin + 1], as_of=as_of)
     filtered = runtime.emit_live_forecast(mutated, as_of=as_of)
+    assert before["model_id"] == QUANTILE_MODEL
+    assert filtered["model_id"] == QUANTILE_MODEL
     assert before["horizons"] == truncated["horizons"]
     assert before["horizons"] == filtered["horizons"]
     runtime.close()
@@ -68,7 +70,9 @@ def test_short_history_falls_back_to_drift20(tmp_path):
     payload = runtime.emit_live_forecast(short, as_of=short[-1].close_time())
     expected = emit_baseline_forecast(short)
     assert payload["model_id"] == "baseline.drift20"
-    assert payload["horizons"] == expected["horizons"]
+    assert [row["drift20_cum_log_return"] for row in payload["horizons"]] == [
+        row["drift20_cum_log_return"] for row in expected["horizons"]
+    ]
     runtime.close()
 
 

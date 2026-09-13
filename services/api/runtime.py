@@ -160,14 +160,15 @@ class PrototypeRuntime:
 
     def emit_live_forecast(self, candles, as_of: datetime | None = None) -> dict[str, Any]:
         """Prefer leakage-safe empirical quantiles; fall back to honest drift20."""
-        window = candles[-QUANTILE_LOOKBACK:] if len(candles) > QUANTILE_LOOKBACK else list(candles)
+        visible = _visible_closed(candles, as_of)
+        window = visible[-QUANTILE_LOOKBACK:] if len(visible) > QUANTILE_LOOKBACK else list(visible)
         backend = os.environ.get("AVAX_QUANTILE_BACKEND", "python")
         if backend not in _QUANTILE_BACKENDS:
             backend = "python"
         try:
             payload = emit_quantile_forecast(window, as_of=as_of, backend=backend)  # type: ignore[arg-type]
         except InsufficientHistory:
-            payload = emit_baseline_forecast(list(candles))
+            payload = emit_baseline_forecast(window if len(window) >= 21 else visible)
         return attach_simple_return_aliases_payload(payload)
 
     def _attach_mtf_feature_snapshot(
@@ -271,6 +272,14 @@ class PrototypeRuntime:
             "execution_enabled": False,
         }
         return payload
+
+
+def _visible_closed(candles, as_of: datetime | None) -> list:
+    """Bars whose close is known at as_of. Lookback must use this tail, not the series end."""
+    closed = [c for c in candles if getattr(c, "is_closed", True)]
+    if as_of is None:
+        return closed
+    return [c for c in closed if c.close_time() <= as_of]
 
 
 _RUNTIME: dict[tuple[str, str, bool], PrototypeRuntime] = {}
