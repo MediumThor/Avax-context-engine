@@ -1,6 +1,6 @@
 # avax-2026-09-failed-8
 
-Permanent regression. Exact prices come from the benchmark data dump, not from this note.
+Permanent regression. Exact prices come from the sealed `candles.jsonl` dump (see `manifest.json` sha256), not from this note.
 
 Expected process:
 

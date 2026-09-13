@@ -116,7 +116,8 @@
     "benchmarks/rlh/avax-2026-09-failed-8/manifest.json",
     "benchmarks/rlh/avax-2026-09-failed-8/expected_invariants.json",
     "benchmarks/rlh/avax-2026-09-failed-8/notes.md",
+    "benchmarks/rlh/avax-2026-09-failed-8/candles.jsonl",
     "benchmarks/rlh/README.md"
   ],
-  "notes": "Constitution §18 and wiki/Home.md declare this episode permanent. The RLH fixture is still a stub (manifest status=stub). This draft is a pointer so forecast work cannot drop or redefine the founding regression. Exact prices come from the benchmark data dump when it exists, not from this file."
+  "notes": "Constitution §18 and wiki/Home.md declare this episode permanent. The RLH candle dump is now sealed (manifest status=sealed, sha256 on candles.jsonl). This registry entry stays draft: it is a pointer, not a scored forecast gate, and does not invent outcomes."
 }

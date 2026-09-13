@@ -13,4 +13,4 @@ Each fixture directory should eventually contain:
 - `expected_invariants.json`
 - `notes.md`
 
-Stubs below lock the IDs and expected invariants so implementation agents do not invent new goalposts.
+`avax-2026-09-failed-8/candles.jsonl` is sealed (`manifest.json` status=`sealed`, sha256 recorded). Future candles stay in the dump and must stay hidden at `as_of`. Other fixture IDs may still be stubs. Do not invent new goalposts.

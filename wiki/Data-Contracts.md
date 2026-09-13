@@ -57,7 +57,18 @@ No feature pipeline may treat a record with `is_closed=false` as closed. Any fea
   "transition_ids": [],
   "context_fingerprint_id": "...",
   "health": "valid",
-  "built_at": "..."
+  "built_at": "...",
+  "analogs": [
+    {
+      "origin_close_time": "...",
+      "distance": 0.0,
+      "realized_h10_log_return": 0.0,
+      "known_at": "...",
+      "note": "Analog outcome known at T. Not a forecast and not confidence."
+    }
+  ],
+  "pattern_hypotheses": [],
+  "fib_levels": []
 }
 ```
 

@@ -187,11 +187,26 @@ At each eligible closed `5m` candle, process context in a deterministic order:
 
 The engine may optimize this pipeline, but deterministic replay must preserve the same accepted outputs and ordering semantics.
 
+## Analog retrieval
+
+`ContextEngine.build_snapshot` attaches leakage-safe analog matches on `MarketSnapshot.analogs`.
+
+Rules:
+
+- a candidate origin is eligible only when its h=10 close is already known at snapshot `as_of`;
+- the fingerprint uses only the prefix visible at that origin (recent log-returns and realized vol);
+- the realized h=10 log-return is attached only because that close is `<= T`;
+- analog distance is fingerprint proximity, not a calibrated confidence percentage and not a forecast.
+
+Empty analog lists are valid when history is too short. The UI must label these as historical matches known at T.
+
 ## Context fingerprint
 
 A context fingerprint is a versioned, machine-readable projection of the snapshot used for historical analog search and forecasting. It includes regime, structure, zone distance/state, volatility, cross-market alignment, and active-hypothesis features with their availability timestamps.
 
 The fingerprint must reference its source snapshot and schema version. It may not include mutable prose, future outcomes, or values that were not known at the snapshot's `as_of` time.
+
+Live snapshots also carry compact `pattern_hypotheses` (`score_provenance=evidence_count_v1`) and candidate `fib_levels` derived from confirmed pivots known at T. Those fields are hypotheses/features, not privileged structure.
 
 ## Acceptance criteria
 
