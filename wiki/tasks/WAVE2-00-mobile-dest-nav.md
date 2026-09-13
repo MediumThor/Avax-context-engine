@@ -2,7 +2,7 @@
 
 **Agent:** 00 Watcher (lane 17)
 **Branch:** `cursor/mobile-dest-nav-8771`
-**Status:** implementing
+**Status:** implemented — PR 59
 
 ## Scope
 
