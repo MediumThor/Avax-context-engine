@@ -201,14 +201,24 @@ export default function App() {
           </section>
           <section className="card">
             <h2>Thesis</h2>
-            <div className="thesis bear">
-              <b>Higher-timeframe {market?.snapshot.timeframes['4h']?.regime ?? 'unknown'}</b>
-              <p>{market?.interpretation || 'Invalidation is not a 5m bounce.'}</p>
-            </div>
-            <div className="thesis bull">
-              <b>5m {market?.snapshot.timeframes['5m']?.regime ?? 'unknown'}</b>
-              <p>Countertrend only unless a higher-timeframe reclaim is journaled.</p>
-            </div>
+            {(market?.snapshot.theses ?? []).length === 0 && (
+              <p className="muted">{market?.interpretation || 'No competing theses at this as_of.'}</p>
+            )}
+            {(market?.snapshot.theses ?? []).map((thesis) => (
+              <div className={`thesis ${thesis.direction === 'bear' ? 'bear' : 'bull'}`} key={thesis.id}>
+                <b>
+                  {thesis.timeframe} {thesis.direction} · {thesis.status}
+                </b>
+                <p>
+                  {thesis.kind} · {thesis.regime_relation ?? 'unknown'} · {thesis.note}
+                </p>
+                {(thesis.invalidation_rules ?? []).map((rule) => (
+                  <p key={rule.id}>
+                    Invalidation ({rule.timeframe}): {rule.kind} {rule.price.toFixed(3)} — frozen at open
+                  </p>
+                ))}
+              </div>
+            ))}
           </section>
           {market && (
             <ContextEvidence

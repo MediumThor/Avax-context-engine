@@ -113,6 +113,7 @@ The exact prices are benchmark data, not hard-coded universal rules.
 - `analogs` — prior origins whose h=10 outcome is known at `as_of`. Each row has `origin_close_time`, `distance`, `realized_h10_log_return`, `known_at`, and a note that it is not a forecast and not confidence.
 - `pattern_hypotheses` — competing pattern summaries with `score_provenance=evidence_count_v1`. Not calibrated percents.
 - `fib_levels` — candidate Fibonacci/measured-move prices from confirmed swings. `is_guaranteed_support` is always false.
+- `theses` — competing bull/bear ledger summaries rebuilt at `as_of`. Invalidation prices are frozen at open. A 5m bar cannot satisfy a 4h rule. These are not confidence scores.
 
 These fields must be unchanged when candles after `as_of` are perturbed.
 
