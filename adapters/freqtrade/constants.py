@@ -60,3 +60,8 @@ NO_BASELINE_CLAIM = (
     "FreqAI is pinned infrastructure. This adapter does not claim that FreqAI "
     "beats project baselines out of sample."
 )
+
+# Local research command (not a Freqtrade CLI subcommand). Never maps to `trade`.
+QUANTILE_RESEARCH_COMMAND = "avax-freqai-quantiles"
+QUANTILE_MODEL_ID = "freqai.quantiles.research.v1"
+QUANTILE_FEATURE_SCHEMA_VERSION = "freqai.quantiles.features.v1"
