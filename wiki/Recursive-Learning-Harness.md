@@ -66,7 +66,7 @@ closed candles
     → challenger harness versions compete on frozen fixtures
 ```
 
-Current live path (`PrototypeRuntime.forecast`): emit the forecast, journal it, then build `EncoderMemory` from the same snapshot and run one bounded `run_loop`. `analog.search` and `context.get_hypotheses` receive only snapshot analogs/theses whose `known_at` is ≤ `as_of`. The forecast payload is not rewritten. LoopTraces are not persisted yet. `/api/v1/loops/run` remains a kill-switch-guarded stub.
+Current live path (`PrototypeRuntime.forecast`): emit the forecast, journal it, then build `EncoderMemory` from the same snapshot and run one bounded `run_loop`. `analog.search` and `context.get_hypotheses` receive only snapshot analogs/theses whose `known_at` is ≤ `as_of`. The forecast payload is not rewritten. LoopTraces append to `loop_traces`. Live snapshot theses append to `theses` without moving stored invalidation. `/api/v1/loops/run` remains a kill-switch-guarded stub.
 
 Freqtrade/FreqAI remains the quant backbone. RLH remains custom.
 

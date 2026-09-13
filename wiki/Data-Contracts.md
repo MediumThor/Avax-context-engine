@@ -167,6 +167,8 @@ Allowed `regime_relation` values are `aligned`, `countertrend`, `mixed`, and `un
 
 Hypotheses are immutable versions. New material evidence or parent-regime alignment creates a new version within the same lineage. Invalidation rules may not move across active versions; changed invalidation reasoning closes the old lineage and starts a new one.
 
+Live snapshot theses are also stored append-only in the journal `theses` table keyed by thesis id. `sync_theses` inserts the first payload and refuses a later write that would change `invalidation_fingerprint`. Replay does not insert. This is journal storage, not a Recursive Learning schema change.
+
 ## ForecastPackage
 
 ```json

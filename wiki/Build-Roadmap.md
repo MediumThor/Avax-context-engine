@@ -8,7 +8,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 | --- | --- |
 | 0 — Foundation/governance | In progress: Constitution, RLH schemas, CI, layout, pins |
 | 1 — Data/replay | Integrity helpers + snapshot replay + fixture/Binance Vision ingest on `main` |
-| 2 — Context Engine | Pivots/zones/regime/patterns/cross-market/analogs + live snapshot theses with frozen invalidation + zone lifecycle walked inside `build_snapshot` (this branch) |
+| 2 — Context Engine | Pivots/zones/regime/patterns/cross-market/analogs + live snapshot theses with frozen invalidation + zone lifecycle in `build_snapshot` + insert-only journaled theses (this branch) |
 | 3 — Forecasting | Journaled next-10 quantiles + walk-forward vs drift20 on `main` (`80a4d70`); challenger now training on `avax.features.mtf.v1` (this branch, not promoted) |
 | 4 — Journal/evaluation | Journal + walk-forward baseline MAE; this branch adds walk-forward Brier/ECE/coverage for empirical P(up) and residual q10–q90 when n is sufficient. Not a promotion claim. |
 | 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; live forecast journals first, runs a bounded loop, then appends LoopTrace without rewriting the forecast. `/loops/run` remains a stub |

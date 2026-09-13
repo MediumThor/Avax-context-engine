@@ -231,6 +231,7 @@ export default function App() {
                 </b>
                 <p>
                   {thesis.kind} · {thesis.regime_relation ?? 'unknown'} · {thesis.note}
+                  {thesis.ledger === 'journaled' ? ' · ledger journaled' : ''}
                 </p>
                 {(thesis.invalidation_rules ?? []).map((rule) => (
                   <p key={rule.id}>
