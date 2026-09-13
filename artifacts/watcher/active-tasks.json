@@ -5,11 +5,12 @@
   "integration_target": "main",
   "branch_mode": "ephemeral-isolation-direct-main-integration",
   "watcher": "00",
-  "updated_at": "2026-09-13T10:40:00Z",
+  "updated_at": "2026-09-13T10:52:00Z",
   "notes": [
     "Wave 1 RLH Task agents produced no code. Agent 00 implements RLH 26-30+36 on cursor/watcher-wave2-rlh-core-8771.",
     "Do not write App.tsx, services/api/main.py, packages/models/baselines.py, packages/journal/journal.py, or packages/context_engine/engine.py until PR 8 merges or is rejected.",
-    "packages/contracts/recursive/ remains Agent 25 locked."
+    "packages/contracts/recursive/ remains Agent 25 locked.",
+    "Watcher renamed tests/features/test_leakage.py -> test_feature_leakage.py on PR 15 after CI collection clash."
   ],
   "tasks": [
     {
@@ -17,6 +18,7 @@
       "agent": "00",
       "title": "Watcher audit + RLH core integration",
       "status": "active",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/9",
       "write_scope": [
         "artifacts/watcher/**",
         "services/harness/**",
@@ -32,6 +34,7 @@
       "title": "Honest market slice PR 8",
       "status": "in_flight",
       "temporary_source": "cursor/honest-market-slice-ee66",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/8",
       "write_scope": ["apps/web/**", "services/api/**", "packages/models/baselines.py"]
     },
     {
@@ -44,14 +47,6 @@
       "write_scope": ["packages/market_data/integrity.py", "tests/test_data_integrity.py"]
     },
     {
-      "id": "WAVE2-03",
-      "agent": "03",
-      "title": "Leakage-safe feature assembler",
-      "status": "launched",
-      "run_id": "bc-b06e7a31-5035-5e97-b9d2-f1e883f82cfd",
-      "write_scope": ["packages/features/**", "tests/features/**"]
-    },
-    {
       "id": "WAVE2-02",
       "agent": "02",
       "title": "FreqAI adapter hardening",
@@ -59,6 +54,26 @@
       "run_id": "bc-2c2ec82e-6b02-5df3-a85d-426850658021",
       "pr": "https://github.com/MediumThor/Avax-context-engine/pull/11",
       "write_scope": ["adapters/freqtrade/**", "scripts/bootstrap_freqtrade.sh"]
+    },
+    {
+      "id": "WAVE2-03",
+      "agent": "03",
+      "title": "Leakage-safe feature assembler",
+      "status": "reviewed",
+      "run_id": "bc-b06e7a31-5035-5e97-b9d2-f1e883f82cfd",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/15",
+      "ci": "green",
+      "notes": "Watcher renamed tests/features/test_leakage.py -> test_feature_leakage.py after CI collection clash with tests/test_leakage.py.",
+      "write_scope": ["packages/features/**", "tests/features/**"]
+    },
+    {
+      "id": "WAVE2-08",
+      "agent": "08",
+      "title": "OSS research log",
+      "status": "reviewed",
+      "run_id": "bc-f3df79a4-396d-5a6d-811a-06ba1c1610e3",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/21",
+      "write_scope": ["wiki/Open-Source-Research-Log.md"]
     },
     {
       "id": "WAVE2-10",
@@ -70,20 +85,31 @@
       "write_scope": ["packages/context_engine/pivots_atr.py", "tests/test_pivots_atr.py"]
     },
     {
-      "id": "WAVE2-12",
-      "agent": "12",
-      "title": "Structural Fibonacci",
-      "status": "launched",
-      "run_id": "bc-91ff0fb8-a2b7-5246-8741-834b6ee8a4e0",
-      "write_scope": ["packages/context_engine/fibonacci.py", "tests/test_fibonacci.py"]
-    },
-    {
       "id": "WAVE2-11",
       "agent": "11",
       "title": "Zone lifecycle",
-      "status": "launched",
+      "status": "reviewed",
       "run_id": "bc-ccf75827-a6e7-5d1d-8efa-e2ad1403d9a4",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/16",
       "write_scope": ["packages/context_engine/zones.py", "tests/test_zones.py"]
+    },
+    {
+      "id": "WAVE2-12",
+      "agent": "12",
+      "title": "Structural Fibonacci",
+      "status": "reviewed",
+      "run_id": "bc-91ff0fb8-a2b7-5246-8741-834b6ee8a4e0",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/18",
+      "write_scope": ["packages/context_engine/fibonacci.py", "tests/test_fibonacci.py"]
+    },
+    {
+      "id": "WAVE2-14",
+      "agent": "14",
+      "title": "BTC/ETH cross-market context",
+      "status": "reviewed",
+      "run_id": "bc-b07d60df-677c-5d56-8ab7-d3b7d53c19ff",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/19",
+      "write_scope": ["packages/context_engine/cross_market.py", "tests/test_cross_market.py"]
     },
     {
       "id": "WAVE2-15",
@@ -93,6 +119,42 @@
       "run_id": "bc-791f836d-35e3-516f-ac7c-b9740b555f27",
       "pr": "https://github.com/MediumThor/Avax-context-engine/pull/12",
       "write_scope": ["packages/context_engine/thesis.py", "tests/test_thesis.py"]
+    },
+    {
+      "id": "WAVE2-16",
+      "agent": "16",
+      "title": "Deterministic snapshot replay",
+      "status": "reviewed",
+      "run_id": "bc-9d0ca7bf-8975-5de4-8bc9-deb78b67d941",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/17",
+      "write_scope": ["packages/context_engine/replay.py", "tests/test_replay.py"]
+    },
+    {
+      "id": "WAVE2-20",
+      "agent": "20",
+      "title": "ForecastFan component",
+      "status": "reviewed",
+      "run_id": "bc-04cb33cb-c2f9-57f8-ba4f-91204e42ea2a",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/20",
+      "write_scope": ["apps/web/src/components/ForecastFan.tsx"]
+    },
+    {
+      "id": "WAVE2-35",
+      "agent": "35",
+      "title": "Benchmark registry",
+      "status": "reviewed",
+      "run_id": "bc-b2648dbc-1ea5-5251-805b-e57824136d82",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/22",
+      "write_scope": ["benchmarks/registry/**"]
+    },
+    {
+      "id": "WAVE2-37",
+      "agent": "37",
+      "title": "Journal replay red team",
+      "status": "reviewed",
+      "run_id": "bc-f97ceacc-b0e2-5447-b47f-efe2350229ee",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/23",
+      "write_scope": ["tests/replay/**"]
     }
   ]
 }

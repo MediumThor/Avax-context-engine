@@ -23,3 +23,5 @@ Launch these from **latest `main`**. Do not touch locked paths.
 | 37 | journal replay red team | `tests/replay/**` |
 
 Forbidden for every agent: `CONSTITUTION.md`, `packages/contracts/recursive/**`, PR 8 paths, `services/harness/**`.
+
+Live roster: `artifacts/watcher/active-tasks.json`. Watcher review board: `wiki/tasks/WAVE2-00-watch.md`.
