@@ -10,7 +10,7 @@ It is designed to answer three questions without rewriting history:
 
 ## Current status
 
-`main` contains a working prototype spine: public-data helpers, a Context Engine prototype, baseline/evaluator and journal primitives, FreqAI configuration, FastAPI endpoints, an RLH schema/fixture foundation with an operator kill switch, CI, Docker scaffolding, and a React shell. Several paths are intentionally stubs; the production data contracts, persistent state, complete forecasting/evaluation loop, working recurrent LoopStep, and full mobile operator experience are not finished.
+`main` contains a working prototype spine: public-data helpers, a Context Engine prototype, baseline/evaluator and journal primitives, FreqAI configuration, FastAPI endpoints, an RLH schema/fixture foundation with an operator kill switch, CI, Docker scaffolding, and a React shell. Default ingest is live Binance Vision (closed 5m only); `AVAX_USE_FIXTURE=1` is the explicit September dump. A failed live pull is 503 and does not become the fixture. Several paths are intentionally stubs; FreqAI still does not beat `baseline.drift20` out of sample.
 
 The exact verified baseline and remaining gates live in [`wiki/Agent-Build-Plan.md`](wiki/Agent-Build-Plan.md). Do not infer completion from the presence of a directory.
 

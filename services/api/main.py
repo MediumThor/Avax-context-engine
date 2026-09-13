@@ -16,7 +16,7 @@ from packages.harness.kill_switch import (
     reset,
     switch_path,
 )
-from services.api.runtime import get_runtime
+from services.api.runtime import LiveDataUnavailable, get_runtime
 
 app = FastAPI(title="AVAX Context Engine API", version="0.2.0")
 app.add_middleware(
@@ -90,13 +90,18 @@ def system() -> dict:
 def market(symbol: str, as_of: str | None = Query(default=None), limit: int = Query(default=1000, ge=50, le=2000)) -> dict:
     try:
         return get_runtime().market_payload(symbol.upper(), as_of=_parse_as_of(as_of), chart_limit=limit)
+    except LiveDataUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/forecast/current")
 def forecast_current(symbol: str = "AVAXUSDT", as_of: str | None = None) -> dict:
-    return get_runtime().forecast(symbol.upper(), as_of=_parse_as_of(as_of), persist=_parse_as_of(as_of) is None)
+    try:
+        return get_runtime().forecast(symbol.upper(), as_of=_parse_as_of(as_of), persist=_parse_as_of(as_of) is None)
+    except LiveDataUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/forecast/metrics")
@@ -109,7 +114,10 @@ def replay(symbol: str, as_of: str = Query(...)) -> dict:
     parsed = _parse_as_of(as_of)
     if parsed is None:
         raise HTTPException(status_code=400, detail="as_of required")
-    payload = get_runtime().market_payload(symbol.upper(), as_of=parsed)
+    try:
+        payload = get_runtime().market_payload(symbol.upper(), as_of=parsed)
+    except LiveDataUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     payload["replay"] = True
     return payload
 
