@@ -78,6 +78,13 @@ class PrototypeRuntime:
         self.store.close()
         self.journal.close()
 
+    def _with_data_source(self, payload: dict) -> dict:
+        """Stamp candle origin on new journal writes. Existing rows stay append-only."""
+        if payload.get("data_source") in {SOURCE, "fixture", "live"}:
+            return payload
+        payload["data_source"] = "fixture" if self.use_fixture else SOURCE
+        return payload
+
     def _seed_fixture(self) -> None:
         avax = sept_2026_failed_breakout("AVAXUSDT")
         self.store.insert_many("fixture", avax)
@@ -216,6 +223,7 @@ class PrototypeRuntime:
         outcomes = {"forecasts_scanned": 0, "outcomes_written": 0}
         shadow = {"wrote": 0, "remaining": 0, "model_id": SHADOW_CATCHUP_MODEL}
         if persist and not is_engaged():
+            payload = self._with_data_source(payload)
             self.journal.get_or_append(
                 forecast_id=f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}",
                 symbol=symbol,
@@ -429,7 +437,9 @@ class PrototypeRuntime:
         if len(visible) < 40:
             return
         earlier = visible[:-10]
-        prior = self.emit_live_forecast(earlier, as_of=earlier[-1].close_time(), btc=btc)
+        prior = self._with_data_source(
+            self.emit_live_forecast(earlier, as_of=earlier[-1].close_time(), btc=btc)
+        )
         self.journal.get_or_append(
             forecast_id=f"{symbol}:{prior['forecasted_at']}:{prior['model_id']}",
             symbol=symbol,
@@ -466,7 +476,7 @@ class PrototypeRuntime:
         for index in missing[:budget]:
             prefix = matureable[: index + 1]
             try:
-                payload = emit_baseline_forecast(prefix)
+                payload = self._with_data_source(emit_baseline_forecast(prefix))
             except ValueError:
                 continue
             stamp = _origin_stamp(payload["forecasted_at"])
@@ -639,6 +649,11 @@ class PrototypeRuntime:
                 block["probability"] = merged
             elif block.get("probability"):
                 block["probability"]["source"] = "walk_forward"
+            j_live = journal_h.get("probability_held_out_live") or {}
+            block["probability_held_out_live"] = {
+                **j_live,
+                "source": "journal_live",
+            }
             j_iv = journal_h.get("interval") or {}
             if j_iv.get("coverage") is not None:
                 merged_iv = dict(block.get("interval") or {})

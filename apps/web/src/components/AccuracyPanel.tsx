@@ -19,6 +19,9 @@ export interface AccuracySlice {
   baseline_delta: number | null
   challenger_mae?: number | null
   challenger_delta?: number | null
+  live_n?: number | null
+  live_brier?: number | null
+  live_ece?: number | null
   regime?: string | null
 }
 
@@ -85,6 +88,16 @@ const METRIC_ROWS = [
     key: 'challenger_delta' as const,
     label: 'q50 MAE minus drift20 MAE',
     definition: 'Positive means q50 has higher error than baseline.drift20 on this slice. A negative value on one run is not a promotion.',
+  },
+  {
+    key: 'live_brier' as const,
+    label: 'Held-out live Brier',
+    definition: 'Brier on journal rows stamped binance-vision/live only. Fixture and untagged rows are excluded. Missing stays not yet scored.',
+  },
+  {
+    key: 'live_ece' as const,
+    label: 'Held-out live ECE',
+    definition: 'ECE on journal rows stamped binance-vision/live only. Fixture ECE is not live ECE. Missing stays not yet scored.',
   },
 ] as const
 
@@ -431,13 +444,17 @@ function SliceCard({
                 : metric.key === 'baseline_delta' || metric.key === 'challenger_delta'
                   ? 'signed'
                   : 'score'
-            const value = formatAccuracyMetric(slice[metric.key], slice.n, kind)
+            const sample =
+              metric.key === 'live_brier' || metric.key === 'live_ece' ? slice.live_n : slice.n
+            const value = formatAccuracyMetric(slice[metric.key], sample, kind)
             const extra =
               metric.key === 'coverage'
                 ? ` Interval: ${coverageInterval}.`
                 : metric.key === 'baseline_delta'
                   ? ` Baseline: ${baselineName}. Metric: ${baselineDeltaMetric}.`
-                  : ''
+                  : metric.key === 'live_ece' || metric.key === 'live_brier'
+                    ? ' Held-out live journal rows only.'
+                    : ''
             return (
               <div key={metric.key} style={styles.metricRow}>
                 <dt style={styles.metricDt}>
@@ -447,7 +464,7 @@ function SliceCard({
                     {extra}
                   </span>
                 </dt>
-                <dd style={styles.metricDd} data-scored={sufficient && isPresentNumber(slice[metric.key]) ? 'yes' : 'no'}>
+                <dd style={styles.metricDd} data-scored={hasSufficientSample(sample) && isPresentNumber(slice[metric.key]) ? 'yes' : 'no'}>
                   {value}
                 </dd>
               </div>
