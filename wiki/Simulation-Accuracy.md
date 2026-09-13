@@ -8,6 +8,8 @@ Simulations determine whether the system adds measurable forecasting value. They
 
 At every eligible 5m close, the system emits one forecast package containing horizons h=1..10. The package is frozen and later scored as each horizon matures.
 
+Research helper `walk_forward_quantiles` (PR branch `cursor/quantile-walkforward-8771`) scores `freqai.quantiles.research.v1` q50 MAE and empirical q10–q90 coverage against `baseline.zero` and `baseline.drift20` on chronological origins only. It never sets a product promotion flag. Coverage is a hit rate, not ECE.
+
 ## Core simulations
 
 ### 1. Historical walk-forward
