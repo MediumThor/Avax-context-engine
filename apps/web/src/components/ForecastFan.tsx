@@ -781,6 +781,14 @@ export function ForecastFan({
                 ? ` · implied q50 price ${impliedPrice(originClose, selectedRow.q50)} (simple return)`
                 : ''}
             </p>
+            {selectedRow.status === 'ok' &&
+              isFiniteNumber(selectedRow.q10) &&
+              selectedRow.q10 === selectedRow.q90 && (
+                <p style={{ margin: '4px 0 0', color: palette.warn }}>
+                  Zero-width interval at this horizon (q10 = q50 = q90). That is the supplied
+                  distribution, not a certain candle path.
+                </p>
+              )}
             {selectedRow.issues.length > 0 && (
               <p style={{ margin: '4px 0 0', color: palette.warn }}>
                 {selectedRow.issues.map(issueLabel).join(' · ')}

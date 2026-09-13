@@ -94,3 +94,22 @@ Completion report must contain:
 Finish criteria:
 ForecastFan.tsx exists on this branch, typechecks, stays unwired from App.tsx, and Watcher can open the PR. Temporary branch is isolation only; integration target remains main.
 ```
+
+## Implementation note (Agent 20)
+
+- Source `main`: `b6bbbf4dccb6bdd4dc98473ab4887679e282b8b7`
+- Isolation branch: `cursor/wave2-20-forecast-fan-ea2a`
+- Named export: `ForecastFan` plus `inspectForecastHorizons` / `quantileOrderOk`
+- Not imported by `App.tsx`
+- Kill switch at start: not engaged
+- Write-scope check: no other active task owns these two paths
+
+### Tests run
+
+- `npx tsc --noEmit` in `apps/web` — pass
+- Runtime invariants on `inspectForecastHorizons` (valid draw, crossed reject, missing quantile reject, empty, gap honesty, h=11 reject, probability-out-of-range labeled but envelope still drawn, `quantileOrderOk`) — pass
+
+### Metrics
+
+Not applicable. No forecast-quality, coverage, or accuracy number is produced or claimed.
+
