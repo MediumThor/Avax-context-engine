@@ -28,6 +28,8 @@ Forecast content cannot be edited after creation. Corrections create a supersedi
 
 When horizon h matures, append a ForecastOutcome record linked by forecast ID and h.
 
+`score_journaled_forecasts` reads those outcome rows and the frozen forecast probabilities. It does not rewrite the forecast. Brier/ECE/coverage stay null until the minimum sample gates in `packages/models/probability_walkforward.py` are met. The live AccuracyPanel prefers those journaled scores when present; otherwise it uses `walk_forward_probabilities`.
+
 ## Required metadata
 
 Each forecast stores:

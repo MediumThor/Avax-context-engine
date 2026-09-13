@@ -71,12 +71,12 @@ export default function App() {
     if (!horizons) return []
     return Object.entries(horizons).map(([h, block]) => ({
       horizon: Number(h),
-      n: block.sample_count ?? null,
+      n: block.probability?.sample_count ?? block.sample_count ?? null,
       mae: block.drift20?.mae ?? null,
       rmse: block.drift20?.rmse ?? null,
-      brier: null,
-      ece: null,
-      coverage: null,
+      brier: block.probability?.brier ?? null,
+      ece: block.probability?.ece ?? null,
+      coverage: block.interval?.coverage ?? null,
       baseline_delta:
         block.zero?.mae != null && block.drift20?.mae != null ? block.drift20.mae - block.zero.mae : null,
     }))
@@ -196,7 +196,7 @@ export default function App() {
               baselineName="drift20 vs zero"
               baselineDeltaMetric="mae"
               modelId={market?.forecast.forecast.model_id ?? 'baseline.drift20'}
-              coverageInterval="q10–q90 (not scored)"
+              coverageInterval="q10–q90 residual vs drift20"
             />
           </section>
           <section className="card">

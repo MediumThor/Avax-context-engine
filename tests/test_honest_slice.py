@@ -159,6 +159,10 @@ def test_api_fixture_market_is_not_live(tmp_path, monkeypatch):
         assert body["forecast"]["forecast"].get("calibration_ref")
     assert body["metrics"]["available"] is True
     assert "4h" in body["snapshot"]["timeframes"]
+    prob = (body["metrics"].get("horizons") or {}).get("1", {}).get("probability") or {}
+    assert prob.get("brier") is not None
+    assert 0.0 <= prob["brier"] <= 1.0
+    assert body["metrics"].get("promotion_allowed") is False
     analogs = body["snapshot"].get("analogs") or []
     assert analogs
     for row in analogs:
