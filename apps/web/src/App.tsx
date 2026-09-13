@@ -9,7 +9,7 @@ import { LoopTraceCard } from './components/LoopTraceCard'
 import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { fetchSystem, type SystemPayload } from './api/health'
-import { drainShadowJournal, fetchForecastMetrics, fetchMarket } from './api/market'
+import { drainShadowJournal, fetchForecastMetrics, fetchMarket, type MarketMetrics } from './api/market'
 import type { MarketPayload, SwingPivot, TimeframeState } from './api/types'
 import { accuracySlicesFromMarket } from './accuracy/fromMarket'
 import { DestNav } from './nav/DestNav'
@@ -47,6 +47,7 @@ export default function App() {
   const [market, setMarket] = useState<MarketPayload | null>(null)
   const [system, setSystem] = useState<SystemPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [challengerMetrics, setChallengerMetrics] = useState<MarketMetrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [draining, setDraining] = useState(false)
   const [drainError, setDrainError] = useState<string | null>(null)
@@ -111,8 +112,10 @@ export default function App() {
 
   useEffect(() => {
     if (route.dest !== 'accuracy') return
+    setChallengerMetrics(null)
     fetchForecastMetrics(route.symbol, fetchAsOf, true)
       .then((metrics) => {
+        setChallengerMetrics(metrics)
         setMarket((prev) => (prev ? { ...prev, metrics } : prev))
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'metrics unavailable'))
@@ -239,7 +242,10 @@ export default function App() {
     }
     return out
   }, [market, tfStep])
-  const accuracySlices = useMemo(() => accuracySlicesFromMarket(market), [market])
+  const accuracySlices = useMemo(() => {
+    const payload = market && challengerMetrics ? { ...market, metrics: challengerMetrics } : market
+    return accuracySlicesFromMarket(payload)
+  }, [market, challengerMetrics])
 
   function goDest(dest: DestId) {
     applyRoute(destRoute(dest, route, market?.replay_hint_as_of ?? null), 'push')

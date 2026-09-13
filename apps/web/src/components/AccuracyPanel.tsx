@@ -19,6 +19,9 @@ export interface AccuracySlice {
   baseline_delta: number | null
   challenger_mae?: number | null
   challenger_delta?: number | null
+  htf_mae?: number | null
+  htf_delta?: number | null
+  htf_n?: number | null
   live_n?: number | null
   live_brier?: number | null
   live_ece?: number | null
@@ -88,6 +91,16 @@ const METRIC_ROWS = [
     key: 'challenger_delta' as const,
     label: 'q50 MAE minus drift20 MAE',
     definition: 'Positive means q50 has higher error than baseline.drift20 on this slice. A negative value on one run is not a promotion.',
+  },
+  {
+    key: 'htf_mae' as const,
+    label: 'HTF-gated MAE (research)',
+    definition: 'Walk-forward MAE of baseline.htf_regime_drift.v1. Missing stays not yet scored. This is not a promotion.',
+  },
+  {
+    key: 'htf_delta' as const,
+    label: 'HTF MAE minus drift20 MAE',
+    definition: 'Negative means the HTF gate has lower error than drift20 on this slice. A negative fixture delta is not a promotion.',
   },
   {
     key: 'live_brier' as const,
@@ -441,11 +454,17 @@ function SliceCard({
             const kind =
               metric.key === 'coverage'
                 ? 'coverage'
-                : metric.key === 'baseline_delta' || metric.key === 'challenger_delta'
+                : metric.key === 'baseline_delta' ||
+                    metric.key === 'challenger_delta' ||
+                    metric.key === 'htf_delta'
                   ? 'signed'
                   : 'score'
             const sample =
-              metric.key === 'live_brier' || metric.key === 'live_ece' ? slice.live_n : slice.n
+              metric.key === 'live_brier' || metric.key === 'live_ece'
+                ? slice.live_n
+                : metric.key === 'htf_mae' || metric.key === 'htf_delta'
+                  ? slice.htf_n
+                  : slice.n
             const value = formatAccuracyMetric(slice[metric.key], sample, kind)
             const extra =
               metric.key === 'coverage'

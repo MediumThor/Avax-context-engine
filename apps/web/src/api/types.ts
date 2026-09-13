@@ -190,6 +190,8 @@ export interface MarketPayload {
         interval?: { sample_count?: number; coverage?: number | null; source?: string }
         q50?: { mae?: number; rmse?: number; sample_count?: number; source?: string }
         q50_mae_minus_drift20_mae?: number | null
+        htf_regime?: { mae?: number; rmse?: number; sample_count?: number; source?: string }
+        htf_mae_minus_drift20_mae?: number | null
       }
     >
     challenger?: {
@@ -197,6 +199,15 @@ export interface MarketPayload {
       origin_count?: number
       q50_mae_below_drift20_on_all_scored_horizons?: boolean | null
       notes?: string
+      promotion_allowed?: boolean
+      htf_regime?: {
+        id?: string
+        model_id?: string
+        origin_count?: number
+        htf_mae_below_drift20_on_all_scored_horizons?: boolean | null
+        notes?: string
+        promotion_allowed?: boolean
+      }
     }
     promotion_allowed?: boolean
   }

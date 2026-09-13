@@ -25,6 +25,7 @@ from packages.models import (
     emit_quantile_forecast,
     score_journaled_forecasts,
     walk_forward_baselines,
+    walk_forward_htf_regime,
     walk_forward_probabilities,
     walk_forward_quantiles,
 )
@@ -620,6 +621,7 @@ class PrototypeRuntime:
         cal = walk_forward_probabilities(candles, horizons=10, min_history=80, step=20, as_of=as_of)
         journaled = score_journaled_forecasts(self.journal, symbol, as_of=as_of or candles[-1].close_time())
         qwf: dict[str, Any] = {"horizons": {}, "promotion_allowed": False, "origin_count": 0}
+        htf: dict[str, Any] = {"horizons": {}, "promotion_allowed": False, "origin_count": 0}
         if include_challenger:
             backend = os.environ.get("AVAX_QUANTILE_BACKEND", "python")
             if backend not in _QUANTILE_BACKENDS:
@@ -635,6 +637,15 @@ class PrototypeRuntime:
                 )
             except Exception:
                 qwf = {"horizons": {}, "promotion_allowed": False, "origin_count": 0}
+            try:
+                htf = walk_forward_htf_regime(
+                    candles,
+                    horizons=10,
+                    min_history=200,
+                    step=40,
+                )
+            except Exception:
+                htf = {"horizons": {}, "promotion_allowed": False, "origin_count": 0}
         for key, block in report.get("horizons", {}).items():
             extra = cal["horizons"].get(key, {})
             journal_h = journaled["horizons"].get(key, {})
@@ -681,6 +692,11 @@ class PrototypeRuntime:
             if q50 and q50.get("mae") is not None:
                 block["q50"] = {**q50, "source": "walk_forward", "sample_count": qh.get("sample_count")}
                 block["q50_mae_minus_drift20_mae"] = qh.get("q50_mae_minus_drift20_mae")
+            hh = (htf.get("horizons") or {}).get(key) or {}
+            htf_row = hh.get("htf_regime")
+            if htf_row and htf_row.get("mae") is not None:
+                block["htf_regime"] = {**htf_row, "source": "walk_forward", "sample_count": hh.get("sample_count")}
+                block["htf_mae_minus_drift20_mae"] = hh.get("htf_mae_minus_drift20_mae")
         report["available"] = True
         report["symbol"] = symbol
         report["probability_calibration_ref"] = cal["calibration_ref"]
@@ -692,7 +708,19 @@ class PrototypeRuntime:
                 "q50_mae_below_drift20_on_all_scored_horizons"
             ),
             "notes": qwf.get("notes"),
+            "promotion_allowed": False,
         }
+        if include_challenger:
+            report["challenger"]["htf_regime"] = {
+                "id": htf.get("model_id") or "baseline.htf_regime_drift.v1",
+                "model_id": htf.get("model_id"),
+                "origin_count": htf.get("origin_count"),
+                "htf_mae_below_drift20_on_all_scored_horizons": htf.get(
+                    "htf_mae_below_drift20_on_all_scored_horizons"
+                ),
+                "notes": htf.get("notes"),
+                "promotion_allowed": False,
+            }
         report["promotion_allowed"] = False
         self._metrics_cache[cache_key] = report
         return report

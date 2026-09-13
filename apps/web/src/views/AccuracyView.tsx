@@ -18,10 +18,11 @@ export function AccuracyView({
       <section className="card">
         <h2>Walk-forward scores</h2>
         <p className="muted">
-          Primary accuracy destination. Drift20/zero error, Brier/ECE, and research q50 versus
-          drift20 come from the market metrics payload. A lower q50 MAE is not a promotion.
-          Missing values stay not yet scored. This page does not invent ECE or a generic
-          accuracy percentage.
+          Primary accuracy destination. Drift20/zero error, Brier/ECE, research q50 versus
+          drift20, and research HTF-gated drift versus drift20 come from
+          GET /api/v1/forecast/metrics?challenger=true. A lower q50 or HTF MAE is not a
+          promotion. Missing values stay not yet scored. This page does not invent ECE or a
+          generic accuracy percentage.
         </p>
         {asOf && <p className="muted">Market as_of {asOf}</p>}
         {loading && <p className="muted">Loading scored slices…</p>}
