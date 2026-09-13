@@ -2,7 +2,7 @@
 
 **Agent:** 00 Watcher
 **Branch:** `cursor/journal-empty-rounds-8771`
-**Status:** in progress
+**Status:** implemented — awaiting PR
 
 ## Scope
 
