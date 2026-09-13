@@ -144,7 +144,7 @@ Phone layout is the reference implementation.
 - Start design and tests at 360px and 390px CSS viewport widths before tablet/desktop expansion.
 - Keep symbol, price, data health, and higher-timeframe regime in a compact sticky header.
 - Give the chart the primary viewport area without forcing the operator to dismiss navigation chrome.
-- Put Context, Forecast, Thesis, and Journal in one stateful bottom sheet with a stable segmented control.
+- Put Context, Forecast, Thesis, and Journal in one stateful bottom sheet with a stable segmented control. The prototype uses `?panel=` for that selection. Invalid values fall back to Context. A compact regime strip stays above the candles so 4h state is visible when another tab is open. The zone overlay plot is desktop-only; phone operators read zones from the Context tab.
 - Preserve the selected symbol, timeframe, forecast horizon, replay timestamp, and overlays when the sheet opens or routes change.
 - Do not bind horizontal timeframe swipes where they conflict with chart pan; explicit timeframe controls are always available.
 - Use tap targets at least 44 by 44 CSS pixels with adequate separation.

@@ -66,6 +66,8 @@ Tablet and desktop may render the same destinations as a side rail or top-level 
 Preferred query keys:
 - `tf=5m|15m|1h|4h|1d|1w`
 - `at=<ISO timestamp>` for replay contexts
+- `as_of=<ISO timestamp>` for fixture/replay market slice
+- `panel=<context|forecast|thesis|journal>` — phone analysis sheet; desktop ignores the chrome and still shows the full rail
 - `model=<model id>`
 - `h=<1..10>`
 - `overlay=<comma list>`
