@@ -38,7 +38,7 @@ Required layers:
 - volume histogram (drawn under the candles when `volume` is present on the market payload);
 - EMA overlays configurable 9/20/50/100/200 (live 5m pane draws all five from closed closes known at each bar; later candles cannot move earlier values);
 - validated support/resistance **zones** as shaded ranges, not arbitrary thin lines (5m pane fills from `known_at` through the last closed candle and autoscales so HTF bounds such as the 4h $8 cap stay in view);
-- swing pivots;
+- swing pivots (5m pane markers from confirmed `swing_pivots` on 5m and 4h; highs above the bar, lows below; unavailable before `known_at`);
 - breakout/retest/failure markers;
 - forecast q10/q50/q90 fan for next 10 5m horizons;
 - state-change markers;

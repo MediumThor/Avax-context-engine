@@ -15,6 +15,14 @@ export interface Candle {
   ema200?: number
 }
 
+export interface SwingPivot {
+  time: number
+  known_at: string
+  price: number
+  kind: 'high' | 'low'
+  timeframe?: string
+}
+
 export interface TimeframeState {
   timeframe: string
   regime: Regime
@@ -24,6 +32,7 @@ export interface TimeframeState {
   as_of: string
   support_zones?: StructuralZone[]
   resistance_zones?: StructuralZone[]
+  swing_pivots?: SwingPivot[]
 }
 
 export interface StructuralZone {

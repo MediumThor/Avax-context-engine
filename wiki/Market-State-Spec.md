@@ -116,6 +116,7 @@ The exact prices are benchmark data, not hard-coded universal rules.
 - `pattern_hypotheses` — competing pattern summaries with `score_provenance=evidence_count_v1`. Not calibrated percents.
 - `fib_levels` — candidate Fibonacci/measured-move prices from confirmed swings. `is_guaranteed_support` is always false.
 - `theses` — competing bull/bear ledger summaries rebuilt at `as_of`. Invalidation prices are frozen at open. A 5m bar cannot satisfy a 4h rule. Live persist writes the first version to the journal `theses` table; later loads bind stored `invalidation_rules` and set `ledger` to `journaled` or `ephemeral`. These are not confidence scores.
+- `timeframes.*.swing_pivots` — confirmed window extrema (`left=right=3`) with extreme `time` (unix open), `known_at`, `price`, and `kind`. A pivot is absent until its confirmation bar is in the visible closed series. The 5m pane draws markers only when that unix time is on a visible candle. Markers are structure, not confidence.
 
 These fields must be unchanged when candles after `as_of` are perturbed.
 

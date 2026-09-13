@@ -74,6 +74,7 @@ class TimeframeState:
     support_zones: tuple[StructuralZone, ...] = field(default_factory=tuple)
     resistance_zones: tuple[StructuralZone, ...] = field(default_factory=tuple)
     evidence: tuple[str, ...] = field(default_factory=tuple)
+    swing_pivots: tuple[dict[str, Any], ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True, slots=True)

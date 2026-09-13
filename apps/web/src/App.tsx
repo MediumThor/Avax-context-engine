@@ -9,7 +9,7 @@ import { LoopTraceCard } from './components/LoopTraceCard'
 import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { drainShadowJournal, fetchMarket } from './api/market'
-import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
+import type { MarketPayload, StructuralZone, SwingPivot, TimeframeState } from './api/types'
 import './styles.css'
 
 const TF_ORDER = ['1w', '1d', '4h', '1h', '15m', '5m']
@@ -104,6 +104,20 @@ export default function App() {
       }
     }
     return zones
+  }, [market])
+  const chartPivots: SwingPivot[] = useMemo(() => {
+    if (!market) return []
+    const out: SwingPivot[] = []
+    const seen = new Set<string>()
+    for (const tf of ['5m', '1h', '4h'] as const) {
+      for (const pivot of market.snapshot.timeframes[tf]?.swing_pivots ?? []) {
+        const key = `${tf}:${pivot.time}:${pivot.kind}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        out.push({ ...pivot, timeframe: pivot.timeframe ?? tf })
+      }
+    }
+    return out
   }, [market])
   const accuracySlices: AccuracySlice[] = useMemo(() => {
     const horizons = market?.metrics.horizons
@@ -223,7 +237,9 @@ export default function App() {
           </div>
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}
-          {market && <MarketChart candles={market.candles} zones={overlayZones} className="chart" />}
+          {market && (
+            <MarketChart candles={market.candles} zones={overlayZones} pivots={chartPivots} className="chart" />
+          )}
           {market && (
             <ContextOverlays
               zones={overlayZones}
@@ -343,6 +359,24 @@ export default function App() {
                   {zone.lower.toFixed(3)}–{zone.upper.toFixed(3)} · {zone.status ?? 'active'}
                   {zone.provenance?.notes ? ` · ${zone.provenance.notes}` : ''}
                 </span>
+              </div>
+            ))}
+          </section>
+          <section className="card" data-sheet="context">
+            <h2>Swings</h2>
+            <p className="muted">
+              Confirmed window extrema (left/right 3). Price is the extreme, not a forecast. A marker
+              appears on the pane only when that open is in the visible 5m window.
+            </p>
+            {(market?.snapshot.timeframes['5m']?.swing_pivots ?? []).length === 0 && (
+              <p className="muted">No confirmed 5m swings at this as_of.</p>
+            )}
+            {[...(market?.snapshot.timeframes['5m']?.swing_pivots ?? [])].slice(-8).reverse().map((pivot) => (
+              <div className="row analogRow" key={`${pivot.kind}-${pivot.time}`}>
+                <span>
+                  5m {pivot.kind} {pivot.price.toFixed(3)}
+                </span>
+                <span className="muted">known {pivot.known_at}</span>
               </div>
             ))}
           </section>

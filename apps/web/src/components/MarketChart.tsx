@@ -1,15 +1,25 @@
 import { useEffect, useRef } from 'react'
-import { CandlestickSeries, HistogramSeries, LineSeries, createChart, type IChartApi } from 'lightweight-charts'
-import type { Candle } from '../api/types'
+import {
+  CandlestickSeries,
+  HistogramSeries,
+  LineSeries,
+  createChart,
+  createSeriesMarkers,
+  type IChartApi,
+  type SeriesMarker,
+  type Time,
+} from 'lightweight-charts'
+import type { Candle, SwingPivot } from '../api/types'
 import { ZoneBandPrimitive, type ChartZone } from './ChartZoneBands'
 
 interface Props {
   candles: Candle[]
   zones?: ChartZone[]
+  pivots?: SwingPivot[]
   className?: string
 }
 
-export function MarketChart({ candles, zones = [], className }: Props) {
+export function MarketChart({ candles, zones = [], pivots = [], className }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   useEffect(() => {
@@ -33,6 +43,19 @@ export function MarketChart({ candles, zones = [], className }: Props) {
       series.attachPrimitive(
         new ZoneBandPrimitive(zones, candles[0].time, candles[candles.length - 1].time),
       )
+    }
+    const candleTimes = new Set(candles.map((c) => c.time))
+    const markers: SeriesMarker<Time>[] = pivots
+      .filter((pivot) => candleTimes.has(pivot.time))
+      .map((pivot) => ({
+        time: pivot.time as Time,
+        position: pivot.kind === 'high' ? 'aboveBar' : 'belowBar',
+        color: pivot.kind === 'high' ? '#ff5964' : '#25d09a',
+        shape: pivot.kind === 'high' ? 'arrowDown' : 'arrowUp',
+        text: `${pivot.timeframe ?? '5m'} ${pivot.kind === 'high' ? 'H' : 'L'}`,
+      }))
+    if (markers.length) {
+      createSeriesMarkers(series, markers)
     }
     const emaLayers: Array<{ key: keyof Candle; color: string; width: 1 | 2 }> = [
       { key: 'ema9', color: '#d6a4ff', width: 1 },
@@ -74,6 +97,6 @@ export function MarketChart({ candles, zones = [], className }: Props) {
       chart.remove()
       chartRef.current = null
     }
-  }, [candles, zones])
+  }, [candles, zones, pivots])
   return <div ref={host} className={className} aria-label="AVAX market chart" />
 }
