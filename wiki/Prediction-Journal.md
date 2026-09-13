@@ -20,7 +20,7 @@ At each eligible 5m close:
 
 Current live path journals the ForecastPackage, runs one bounded loop, then appends the LoopTrace to `loop_traces` linked by forecast id. The forecast `payload_json` / `payload_sha256` are not updated. Replay (`persist=False`) still runs the loop in memory but does not store a trace. `GET /api/v1/loops/{id}` reads the stored row. `POST /api/v1/loops/run` attaches another bounded loop to a journaled forecast only; it does not emit or rewrite a ForecastPackage.
 
-Live persist also catch-up-journals missing closed 5m origins whose h=10 outcome is already known, using `baseline.drift20` only, capped at 24 rows per request. That fills the shadow journal without emitting extra quantile packages on the request path. Existing quantile rows are not rewritten. This is not a promotion claim.
+Live persist also catch-up-journals missing closed 5m origins whose h=10 outcome is already known, using `baseline.drift20` only, capped at 24 rows per request. `POST /api/v1/journal/catchup` drains more of the same gap (default 200, max 500) without emitting a quantile or running a loop. Existing quantile rows are not rewritten. Replay and the kill switch write nothing (423 on the drain endpoint). This is not a promotion claim.
 
 Live snapshots also insert competing theses into the `theses` table. The same thesis id cannot change `invalidation_fingerprint`. Replay and the kill switch do not insert. `GET /api/v1/theses/{id}` returns the frozen row or 404.
 
