@@ -1,114 +1,38 @@
 {
-  "batch": "RLH-wave-1",
+  "batch": "WAVE-2",
   "model": "Grok 4.6",
   "canonical_branch": "main",
   "integration_target": "main",
   "branch_mode": "ephemeral-isolation-direct-main-integration",
   "watcher": "00",
-  "updated_at": "2026-09-13T10:03:00Z",
+  "updated_at": "2026-09-13T10:25:00Z",
   "notes": [
-    "Existing run refs were launched before mainline-only rapid-prototype mode. They are temporary implementation sources. Accepted work must be reconciled onto current main immediately after review and verified there."
+    "Wave 1 RLH Task agents produced no code. Agent 00 implements RLH 26-30+36 on cursor/watcher-wave2-rlh-core-8771.",
+    "Do not write App.tsx, services/api/main.py, packages/models/baselines.py, packages/journal/journal.py, or packages/context_engine/engine.py until PR 8 merges or is rejected.",
+    "packages/contracts/recursive/ remains Agent 25 locked."
   ],
   "tasks": [
     {
-      "id": "RLH-00",
+      "id": "WAVE2-00",
       "agent": "00",
-      "title": "Recursive watcher artifacts and review",
-      "temporary_source": "cursor/agent-00-rlh-watch-ee66",
-      "status": "launched",
-      "run_id": "bc-9996471d-d66b-544b-897a-746eb95bee07",
-      "integration_target": "main",
-      "write_scope": ["artifacts/watcher/**"]
-    },
-    {
-      "id": "RLH-25",
-      "agent": "25",
-      "title": "Schema stubs and generated types",
-      "temporary_source": "cursor/agent-25-rlh-schema-ee66",
-      "status": "launched",
-      "run_id": "bc-ce2386ac-ef67-5abf-89df-0f62bb3ebbeb",
-      "integration_target": "main",
+      "title": "Watcher audit + RLH core integration",
+      "status": "active",
       "write_scope": [
-        "packages/contracts/recursive/**",
-        "packages/contracts/README.md",
-        "services/harness/schemas/**"
+        "artifacts/watcher/**",
+        "services/harness/**",
+        "services/evaluator/rlh/**",
+        "tests/harness/**",
+        "tests/rlh/**",
+        "tests/leakage/rlh/**"
       ]
     },
     {
-      "id": "RLH-26",
-      "agent": "26",
-      "title": "EncoderMemory builder and read tools",
-      "temporary_source": "cursor/agent-26-rlh-encoder-ee66",
-      "status": "launched",
-      "run_id": "bc-d8aaf7c2-47b5-5614-8ed4-ebd78c30f0d9",
-      "integration_target": "main",
-      "write_scope": ["services/harness/encoder/**", "tests/harness/encoder/**"]
-    },
-    {
-      "id": "RLH-27",
-      "agent": "27",
-      "title": "Same-transition LoopStep",
-      "temporary_source": "cursor/agent-27-rlh-loopstep-ee66",
-      "status": "launched",
-      "run_id": "bc-e46a3bba-daab-50da-98b1-3fcea720ddf7",
-      "integration_target": "main",
-      "write_scope": ["services/harness/loop/**", "tests/harness/loop/**"],
-      "write_scope_excludes": ["services/harness/loop/challenge/**"]
-    },
-    {
-      "id": "RLH-28",
-      "agent": "28",
-      "title": "Challenge and invalidation step",
-      "temporary_source": "cursor/agent-28-rlh-challenge-ee66",
-      "status": "launched",
-      "run_id": "bc-dac4081a-3646-574f-b494-24eebc3f0e53",
-      "integration_target": "main",
-      "write_scope": [
-        "services/harness/loop/challenge/**",
-        "tests/harness/challenge/**",
-        "benchmarks/rlh/invalidation-already-fired/**",
-        "benchmarks/rlh/avax-2026-09-failed-8/**"
-      ]
-    },
-    {
-      "id": "RLH-29",
-      "agent": "29",
-      "title": "SWA window and merge",
-      "temporary_source": "cursor/agent-29-rlh-swa-ee66",
-      "status": "launched",
-      "run_id": "bc-585b2aff-378b-5f1d-9f8c-84727305a991",
-      "integration_target": "main",
-      "write_scope": ["services/harness/memory/**", "tests/harness/memory/**"]
-    },
-    {
-      "id": "RLH-30",
-      "agent": "30",
-      "title": "Process metrics and fixture runner",
-      "temporary_source": "cursor/agent-30-rlh-eval-ee66",
-      "status": "launched",
-      "run_id": "bc-aa834c0d-7f9a-5d91-a09f-7482b09bf974",
-      "integration_target": "main",
-      "write_scope": ["services/evaluator/rlh/**", "tests/rlh/**"]
-    },
-    {
-      "id": "RLH-33",
-      "agent": "33",
-      "title": "CI gate for RLH contracts",
-      "temporary_source": "cursor/agent-33-rlh-ci-ee66",
-      "status": "launched",
-      "run_id": "bc-77a8126d-c585-5525-ae72-7b4b23eaf83f",
-      "integration_target": "main",
-      "write_scope": [".github/workflows/**"]
-    },
-    {
-      "id": "RLH-36",
-      "agent": "36",
-      "title": "Leakage red team",
-      "temporary_source": "cursor/agent-36-rlh-leakage-ee66",
-      "status": "launched",
-      "run_id": "bc-52e0198b-cdf2-5fe2-ac05-32de29f90652",
-      "integration_target": "main",
-      "write_scope": ["tests/leakage/rlh/**"]
+      "id": "SLICE-001",
+      "agent": "17/31",
+      "title": "Honest market slice PR 8",
+      "status": "in_flight",
+      "temporary_source": "cursor/honest-market-slice-ee66",
+      "write_scope": ["apps/web/**", "services/api/**", "packages/models/baselines.py"]
     }
   ]
 }
