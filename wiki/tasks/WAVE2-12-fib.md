@@ -110,7 +110,7 @@ Default ratios:
   - `packages/context_engine/fibonacci.py` (new)
   - `tests/test_fibonacci.py` (new)
   - `wiki/tasks/WAVE2-12-fib.md` (this file)
-- **Tests run:** `python3 -m pytest tests/test_fibonacci.py -q` (see completion message after CI-local run).
+- **Tests run:** `python3 -m pytest tests/test_fibonacci.py tests/test_context_engine.py tests/test_leakage.py -q` → **19 passed** (`test_fibonacci.py` 15 passed).
 - **Metrics before/after:** not a forecast model; no accuracy claims. Feature count 0 → exact candidate levels from confirmed swings.
 - **Known limitations:** not wired into `ContextEngine`; callers must supply confirmed pivots; confluence scoring vs zones is a follow-up.
 - **Documentation updated:** this task contract only. Shared schemas unchanged.
