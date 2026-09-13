@@ -110,8 +110,13 @@ def assert_research_subcommand(command: str) -> str:
     return name
 
 
+_ORDER_ACTION = re.compile(
+    r"(place_.+order|create_.+order|execute_.+order|submit_.+order|cancel_.+order)"
+)
+
+
 def is_forbidden_method(name: str) -> bool:
     normalized = name.lower().strip("_")
     if normalized in FORBIDDEN_ADAPTER_METHODS:
         return True
-    return any(token in normalized for token in ("place_order", "create_order", "execute_order"))
+    return bool(_ORDER_ACTION.search(normalized))

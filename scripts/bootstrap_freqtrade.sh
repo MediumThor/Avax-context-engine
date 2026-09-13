@@ -23,7 +23,7 @@ fi
 mkdir -p "$(dirname "$DEST")"
 
 if [[ ! -d "$DEST/.git" ]]; then
-  # Complete clone: no --depth, no --filter, no sparse-checkout.
+  # Complete clone: no shallow clone, no blob filter, no sparse checkout.
   git clone "$REPO" "$DEST"
 fi
 

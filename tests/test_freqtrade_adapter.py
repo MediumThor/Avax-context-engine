@@ -139,8 +139,8 @@ def test_bootstrap_script_clones_complete_repo_and_records_license():
     script = BOOTSTRAP.read_text(encoding="utf-8")
     assert PIN in script
     assert "git clone" in script
-    assert "--depth" not in script
-    assert "sparse-checkout" in script  # rejected, not used
+    assert "git clone --depth" not in script
+    assert "sparse checkout is not a complete upstream clone" in script
     assert "checkout --detach" in script
     assert "record_upstream_manifest" in script
     assert "LICENSE" in script or "license" in script

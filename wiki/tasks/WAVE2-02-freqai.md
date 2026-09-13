@@ -74,4 +74,68 @@ Integration dependency: none
 
 ## Completion report
 
-See the end of this file after implementation.
+### What changed
+
+Strengthened the pinned Freqtrade/FreqAI adapter as a research-only, non-forked boundary.
+
+- Documented pin `c064be5325ad6941a2789add795434e6a13dffe9` and GPL-3.0 in `pin.json` + `LICENSE-NOTICE.md`.
+- Bootstrap now clones the complete upstream repo (no shallow/sparse clone), checks out the pin, verifies HEAD, and records license via `vendor/freqtrade/.avax-upstream-manifest.json`.
+- Config is dry-run, zero stake, spot-only, no credentials, `max_open_trades=0`, `initial_state=stopped`, FreqAI shuffle disabled.
+- Strategy still emits no entries/exits. Targets remain `&-cum-ret-1..10` labels.
+- `FreqtradeResearchAdapter` refuses execute/order/buy/sell/`freqtrade trade` paths. Tests mock vendor.
+
+No FreqAI-vs-baseline performance claim is made.
+
+### Exact files changed
+
+- `adapters/freqtrade/AvaxContextStrategy.py`
+- `adapters/freqtrade/LICENSE-NOTICE.md` (new)
+- `adapters/freqtrade/README.md`
+- `adapters/freqtrade/__init__.py` (new)
+- `adapters/freqtrade/adapter.py` (new)
+- `adapters/freqtrade/bootstrap.py` (new)
+- `adapters/freqtrade/config.freqai.json`
+- `adapters/freqtrade/constants.py` (new)
+- `adapters/freqtrade/pin.json` (new)
+- `adapters/freqtrade/safety.py` (new)
+- `scripts/bootstrap_freqtrade.sh`
+- `tests/test_freqtrade_adapter.py` (new)
+- `wiki/tasks/WAVE2-02-freqai.md` (new)
+
+### Tests run and results
+
+- `python3 -m pytest -q tests/test_freqtrade_adapter.py` — 11 passed
+- `python3 -m pytest -q` — 29 passed (full current suite)
+- `bash scripts/check_constitution.sh` — Constitution integrity OK
+- Adapter `place_order()` raises `ResearchOnlyViolation`
+
+### Metrics before/after
+
+| check | before (scaffold) | after |
+| --- | --- | --- |
+| pin | documented in lock only | lock + adapter `pin.json` + bootstrap verify |
+| license recording | none | generated vendor manifest + LICENSE-NOTICE |
+| dry_run | true | true |
+| stake_amount | 100 | 0 |
+| trading_mode | futures | spot |
+| execute/order refusal tests | none | 11 adapter tests |
+| FreqAI beats baselines? | not claimed | explicitly not claimed |
+
+### Known limitations
+
+- Tests mock vendor; they do not clone Freqtrade in CI.
+- `stake_amount: 0` is an adapter safety constraint. A later operability agent may need a dummy positive stake if they invoke Freqtrade's own config validator; they must keep `dry_run` and `max_open_trades=0`.
+- No FreqAI model was trained. No walk-forward or baseline comparison was run.
+- Strategy still imports upstream `IStrategy` / TA-Lib and is only executed after bootstrap.
+
+### Documentation updated
+
+Yes: adapter README, LICENSE-NOTICE, WAVE2-02 task/completion report. `upstream.lock.json` and wiki directives were left unchanged (outside write scope; pin already recorded).
+
+### Contract/schema changed?
+
+No shared API/schema. Adapter-local research-only contract only.
+
+### Recommended next task
+
+Agent 05/06: after bootstrap, run leakage-safe FreqAI backtesting against Agent 04 baselines. Do not promote or claim improvement until walk-forward artifacts exist. Agent 32 can wire Docker/bootstrap into the local stack without enabling `trade`.
