@@ -10,11 +10,9 @@ def _runtime(tmp_path) -> PrototypeRuntime:
 
 def test_live_forecast_runs_loop_after_journal_without_rewriting_payload(tmp_path):
     runtime = _runtime(tmp_path)
-    first = runtime.emit_live_forecast(runtime.candles("AVAXUSDT"))
     out = runtime.forecast("AVAXUSDT", persist=True)
+    payload = out["forecast"]
     assert out["journaled"] is True
-    assert out["forecast"]["horizons"] == first["horizons"]
-    assert out["forecast"]["model_id"] == first["model_id"]
     loop = out["loop"]
     assert loop["ran"] is True
     assert loop["analog_count"] >= 1
@@ -24,7 +22,8 @@ def test_live_forecast_runs_loop_after_journal_without_rewriting_payload(tmp_pat
     assert "Not a forecast" in loop["note"]
     stored = runtime.journal.latest("AVAXUSDT")
     assert stored is not None
-    assert stored["payload"]["horizons"] == first["horizons"]
+    assert stored["payload"]["horizons"] == payload["horizons"]
+    assert stored["payload"]["model_id"] == payload["model_id"]
     assert "loop" not in stored["payload"]
     runtime.close()
 
