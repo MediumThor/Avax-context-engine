@@ -84,7 +84,9 @@ class ContextEngine:
         zones = cluster_zones(pivots, close)
         supports = tuple(z for z in zones if z.role in {"support","mixed"} and z.upper <= close*1.01)
         resistances = tuple(z for z in zones if z.role in {"resistance","mixed"} and z.lower >= close*0.99)
-        return TimeframeState(timeframe=timeframe,as_of=candles[-1].close_time(),close=close,regime=regime,swing_state=swing,volatility=volatility,ema20=e20,ema50=e50,ema200=e200,rsi14=rsis[-1],atr14=atrs[-1],support_zones=supports[-5:],resistance_zones=resistances[:5],evidence=tuple(evidence))
+        # Timeframe as_of is the bar open (WAVE-2 replay/leakage contract).
+        # Knowability is enforced by filtering on close_time() before this call.
+        return TimeframeState(timeframe=timeframe,as_of=candles[-1].open_time,close=close,regime=regime,swing_state=swing,volatility=volatility,ema20=e20,ema50=e50,ema200=e200,rsi14=rsis[-1],atr14=atrs[-1],support_zones=supports[-5:],resistance_zones=resistances[:5],evidence=tuple(evidence))
 
     def _apply_parent_context(self, states: dict[str, TimeframeState]) -> dict[str, TimeframeState]:
         order = ["1w", "1d", "4h", "1h", "15m", "5m"]

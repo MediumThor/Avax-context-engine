@@ -81,11 +81,7 @@ class MarketSnapshot:
     interpretation: str = ""
 
     def to_dict(self) -> dict:
-        raw = asdict(self)
-        raw["as_of"] = self.as_of.isoformat()
-        for tf, state in self.timeframes.items():
-            raw["timeframes"][tf]["as_of"] = state.as_of.isoformat()
-        return raw
+        return asdict(self)
 
 
 def utc_now() -> datetime:

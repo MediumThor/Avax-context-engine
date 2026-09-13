@@ -117,7 +117,6 @@ def evaluate_baselines(candles: list[Candle], horizons: int = 10) -> dict:
             past = [math.log(closes[j] / closes[j - 1]) for j in range(i - 19, i + 1)]
             drift.append(mean(past) * h)
         results[str(h)] = {
-            "validation": "in_sample_not_for_claims",
             "zero": {"mae": mae(actual, zero), "rmse": rmse(actual, zero)},
             "drift20": {
                 "mae": mae(actual, drift),
