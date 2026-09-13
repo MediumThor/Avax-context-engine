@@ -252,7 +252,7 @@ export function AccuracyPanel({
             <p style={styles.filterLabel} id={`${titleId}-horizon-filter`}>
               Horizon
             </p>
-            <div style={styles.chipRow} role="radiogroup" aria-labelledby={`${titleId}-horizon-filter`}>
+            <div style={styles.chipRow} role="group" aria-labelledby={`${titleId}-horizon-filter`}>
               <FilterChip
                 selected={horizonFilter === 'all'}
                 onSelect={() => setHorizonFilter('all')}
@@ -273,7 +273,7 @@ export function AccuracyPanel({
               <p style={styles.filterLabel} id={`${titleId}-regime-filter`}>
                 Regime slice
               </p>
-              <div style={styles.chipRow} role="radiogroup" aria-labelledby={`${titleId}-regime-filter`}>
+              <div style={styles.chipRow} role="group" aria-labelledby={`${titleId}-regime-filter`}>
                 <FilterChip
                   selected={regimeFilter === 'all'}
                   onSelect={() => setRegimeFilter('all')}
@@ -358,8 +358,7 @@ function FilterChip({
   return (
     <button
       type="button"
-      role="radio"
-      aria-checked={selected}
+      aria-pressed={selected}
       onClick={onSelect}
       className="ace-accuracy-chip"
       style={{
