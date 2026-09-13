@@ -8,11 +8,12 @@ Before editing anything, every agent must:
 
 1. Read `CONSTITUTION.md`.
 2. Read `wiki/Home.md`.
-3. Read the directive for its subsystem. Harness / loop / explanation work also reads `wiki/Recursive-Learning-Harness.md` and `wiki/Recursive-Agent-Batch.md`.
-4. Pull/read the latest `main` state before beginning work.
-5. Inspect current code/tests for that subsystem.
-6. Write a task contract containing scope, files, assumptions, tests, and finish criteria.
-7. Confirm no active agent owns the same write scope.
+3. Read `wiki/Documentation-Standards.md` and `wiki/Agent-Build-Plan.md`.
+4. Read the directive for its subsystem. Harness / loop / explanation work also reads `wiki/Recursive-Learning-Harness.md` and `wiki/Recursive-Agent-Batch.md`.
+5. Pull/read the latest `main` state and record its SHA.
+6. Inspect current code/tests for that subsystem; do not infer completion from directory names.
+7. Write or update a task contract containing scope, files, assumptions, dependencies, tests, and finish criteria.
+8. Confirm the kill-switch state, active roster, and that no agent owns the same write scope.
 
 ## Rapid-prototype mainline mode
 
@@ -26,7 +27,7 @@ Do not create long-lived `foundation`, `staging`, `integration`, or feature bran
 
 ## Recursive agent kill switch
 
-The operator kill switch is part of the accepted mainline harness. When engaged it severs active recursive-agent work, freezes promotion, degrades harness health, and blocks new loop execution. It does not delete journals, alter the Constitution, or enable trading. Reset requires an explicit logged action.
+The operator kill switch is part of the accepted mainline harness. When engaged it marks active recursive-agent work severed, freezes promotion, degrades harness health, and blocks new loop execution. External agents stop cooperatively when they observe the state; no external-runtime termination adapter is currently implemented. The switch does not delete journals, alter the Constitution, or enable trading. Reset requires an explicit logged action.
 
 Agents must check kill-switch state before beginning or continuing recursive harness work. If the switch is engaged, stop agent/harness implementation and wait for an explicit reset.
 
@@ -35,16 +36,16 @@ Agents must check kill-switch state before beginning or continuing recursive har
 - Agent 00: Watcher / integrator / correction authority.
 - Agents 01-08: data, FreqAI, features, modeling, simulation.
 - Agents 09-16: Context Engine, structure, regimes, patterns, thesis ledger.
-- Agents 17-24: web UI, charts, navigation, UX, accessibility.
-- Agents 25-30: internal AI harness / Recursive Learning Harness, tools, memory, explanation layer. Wave 1 roster: `wiki/Agent-Roster.md`.
+- Agents 17-24: mobile-first Web App, charts, navigation, UX, accessibility.
+- Agents 25-30: Internal AI Harness / Recursive Learning Harness, tools, memory, explanation layer. Wave 1 roster: `wiki/Agent-Roster.md`.
 - Agents 31-35: infrastructure, APIs, observability, CI, reproducibility.
 - Agents 36-39: independent QA, dogfooding, red-team, benchmark replication.
 
-Numbers are lanes, not permanent identities. The Watcher may reassign lanes.
+Numbers are ownership lanes, not permanent identities or a requirement to run 40 processes. The Watcher may reassign lanes, and active work must remain within the runtime's concurrency limit.
 
 ## Concurrency rule
 
-No two agents may write the same path concurrently. Shared contracts have one designated owner per active batch. Agents may work in parallel against accepted contracts while the Watcher keeps `main` continuously integrated.
+No two agents may write the same path concurrently. Shared contracts have one designated owner per active batch. Active contracts live in the task system, `wiki/tasks/`, or `.cursor/plans/` and must name exact write scopes. Agents may work in parallel against accepted contracts while the Watcher keeps `main` continuously integrated.
 
 ## Required output for every task
 

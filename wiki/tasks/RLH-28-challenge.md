@@ -3,7 +3,9 @@
 ```md
 Task: Mandatory CHALLENGE + INVALIDATION_CHECK before directional halt. Fill founding fixtures.
 Agent: 28
-Branch: cursor/agent-28-rlh-challenge-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-28-rlh-challenge-ee66
 Model: Grok 4.6
 Priority: P0
 
@@ -31,7 +33,7 @@ Forbidden write scope:
 Implementation requirements:
 1. CHALLENGE must run before HALT on any directional synthesis.
 2. Attempt to edit an active invalidation → halt reason invalidation_move_attempt.
-3. September 2026 fixture: 4H remains bearish through a 5m relief bounce; expected_invariants stay true.
+3. September 2026 fixture: 4h remains bearish through a 5m relief bounce; `expected_invariants` stay true.
 4. Store challenge result on the trace emit.
 
 Acceptance tests:

@@ -3,7 +3,9 @@
 ```md
 Task: Process-metric runner for RLH fixtures. Invented zones/probabilities/uncalibrated percents fail.
 Agent: 30
-Branch: cursor/agent-30-rlh-eval-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-30-rlh-eval-ee66
 Model: Grok 4.6
 Priority: P0
 

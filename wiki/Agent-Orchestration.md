@@ -4,7 +4,9 @@
 
 Operate the repository as a continuously improving multi-agent engineering system without allowing concurrency to degrade correctness.
 
-The project supports up to 40 active agents. Concurrency is useful only when write scopes, contracts and review authority are explicit.
+Use [`Agent-Build-Plan.md`](Agent-Build-Plan.md) for whole-product dependencies/current status and [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md) for evidence-to-code learning.
+
+The project defines 40 ownership lanes. Up to 40 agents may work concurrently when the runtime supports it; Agent 00 otherwise schedules dependency-safe batches within the available limit. Concurrency is useful only when write scopes, contracts, and review authority are explicit.
 
 ## Mainline operating mode
 
@@ -14,7 +16,7 @@ Agents may use isolated worktrees or temporary branches for collision avoidance,
 
 The operating rule is:
 
-`latest main -> isolated task work -> bounded tests/review -> immediate main integration -> post-integration tests -> next task`
+`latest main -> exclusive lock or disposable isolation -> bounded tests/review -> immediate main integration -> post-integration tests -> next task`
 
 Every new task begins from the latest `main`. Every completion report ends with the accepted `main` commit SHA. Temporary branches are implementation scratch space, not project state.
 
@@ -50,7 +52,7 @@ Agent 00 reads every task contract and completion report. It has authority to re
 
 ### 17-24 Product UI
 
-- 17 App shell/design system
+- 17 Mobile-first app shell/design system
 - 18 TradingView chart integration
 - 19 Context overlays
 - 20 Forecast fan visualization
@@ -76,7 +78,7 @@ Ready-to-copy contracts: [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md).
 - 32 Docker/dev environment
 - 33 CI/reproducibility
 - 34 telemetry/data health
-- 35 benchmark registry
+- 35 benchmark and continuous-improvement registry
 
 ### 36-39 Independent QA
 
@@ -105,6 +107,8 @@ Docs to update: <paths>
 Finish criteria: <observable result on main>
 ```
 
+Store active contracts in the task system, `wiki/tasks/`, or `.cursor/plans/`. A contract is not a path lock until Agent 00 records the assignment.
+
 ## Concurrency rules
 
 1. No two agents may own the same file path simultaneously unless one is read-only.
@@ -120,7 +124,7 @@ Finish criteria: <observable result on main>
 
 The living-project cycle is:
 
-`observe -> issue/task -> isolated implementation -> local tests -> simulation / loop replay -> watcher review -> main integration -> post-integration verification -> live/dry observation + LoopTrace journal -> matured LoopOutcome -> new evidence -> next issue`
+`observe -> evidence-linked task -> locked implementation -> tests -> simulation / loop replay -> watcher review -> main integration -> post-integration verification -> live/dry observation + LoopTrace journal -> matured LoopOutcome -> next candidate`
 
 Watcher prioritizes:
 
@@ -168,6 +172,6 @@ A change can be integrated into `main` only when:
 - relevant docs are updated;
 - metrics do not regress outside an explicitly experimental task;
 - Watcher can reproduce the result;
-- UI claims match evaluator output.
+- Web App claims match Evaluation Engine output.
 
 After integration, the relevant smoke/regression tests run against `main`. If they fail, the Watcher fixes or reverts the bounded change immediately rather than allowing a broken mainline to accumulate.

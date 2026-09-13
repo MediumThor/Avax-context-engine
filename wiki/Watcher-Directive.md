@@ -120,6 +120,7 @@ The Watcher should maintain machine-readable artifacts when automation is implem
 - `artifacts/watcher/regressions.json`
 - `artifacts/watcher/model-promotions.json`
 - `artifacts/watcher/health.json`
+- future versioned learning-candidate, decision, and lesson records defined by [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md)
 
 The integration queue targets `main` only. Generated artifacts should not become hand-edited source of truth.
 
@@ -135,6 +136,8 @@ A model or context algorithm is promoted only after:
 
 When two approaches are statistically indistinguishable, prefer the simpler, faster, more interpretable implementation.
 
+Rejected and quarantined results remain retrievable with their evidence so later agents do not unknowingly repeat failed approaches.
+
 ## Recursive Learning Harness
 
 Agent 00 also runs [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md). Extra halt/promotion freezes apply when loop traces fail exact replay, skip `CHALLENGE`, invent probabilities, or let 5m steps overwrite parent encoder memory.
@@ -147,7 +150,7 @@ Watcher freezes promotion when:
 - source candles are missing or misaligned;
 - model outputs become NaN/inf;
 - live data is stale;
-- prediction journal writes fail;
+- Prediction Journal writes fail;
 - context state cannot replay deterministically;
 - evaluation code changes in the same commit as a model and materially improves its score without independent review;
 - real trade execution appears anywhere in a production path.

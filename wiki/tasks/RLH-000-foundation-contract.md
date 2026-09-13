@@ -3,7 +3,9 @@
 ```md
 Task: Publish the Recursive Learning Harness (RLH) wiki, contracts, schemas, watcher protocol, and first implementable agent batch so up to 40 subagents can continuously implement, test, replay, and improve looped reasoning without inventing architecture.
 Agent: 25 (schema owner for this batch; Watcher 00 reviews)
-Branch: cursor/recursive-learning-harness-ee66
+Base: latest main
+Integration target: main
+Historical temporary source: cursor/recursive-learning-harness-ee66
 Priority: P0
 
 Why:

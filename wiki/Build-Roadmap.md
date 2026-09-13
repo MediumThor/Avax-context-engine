@@ -1,5 +1,22 @@
 # Build Roadmap
 
+## Current status
+
+Several phases have prototype code on `main`, but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
+
+| Phase | Gate status on `main` |
+| --- | --- |
+| 0 — Foundation/governance | In progress: mainline controls, RLH schemas, CI, layout, and pins exist; canonical non-RLH contracts and locked frontend versions remain |
+| 1 — Data/replay | Prototype helpers/tests; gate open |
+| 2 — Context Engine | Prototype state/pivots/zones/tests; gate open |
+| 3 — Forecasting | Baseline and FreqAI scaffolding; gate open |
+| 4 — Journal/evaluation | SQLite/metric prototypes; gate open |
+| 5 — RLH | Schema/fixture/kill-switch foundation; active Wave R incomplete |
+| 6 — Web App | Prototype shell; mobile-first product gate open |
+| 7-10 | Not complete |
+
+Agent 00 updates status only after tests pass on an accepted `main` SHA.
+
 ## Phase 0 — Foundation and governance
 
 Deliverables:
@@ -12,7 +29,7 @@ Deliverables:
 - CI skeleton
 - Freqtrade/FreqAI upstream pin/bootstrap
 
-Finish gate: agents can be launched independently without inventing architecture.
+Finish gate: canonical contracts, locked foundation versions, CI, task/lock coordination, and the repository skeleton are accepted on `main`; agents can work without inventing interfaces.
 
 ## Phase 1 — Data and replay
 
@@ -88,7 +105,7 @@ Finish gate: harness explanations are traceable to state/forecast IDs, live and 
 ## Phase 6 — React/TradingView UI
 
 Deliverables:
-- TSX app shell
+- mobile-first TSX app shell
 - Lightweight Charts candlesticks/volume
 - structural zones
 - timeframe context rail
@@ -97,9 +114,9 @@ Deliverables:
 - replay mode
 - accuracy/calibration dashboard
 - health/system pages
-- mobile responsive pass
+- phone-first 360px/390px validation followed by tablet/desktop progressive enhancement
 
-Finish gate: operator can understand market state, uncertainty and performance without opening raw logs.
+Finish gate: the operator can complete the market/context/forecast/thesis/replay loop on a phone without opening raw logs; larger layouts progressively enhance the same routes and contracts.
 
 ## Phase 7 — Simulation tournament
 
@@ -145,8 +162,8 @@ Finish gate: system runs continuously for a meaningful sample period without jou
 
 Loop forever:
 1. observe errors/drift **and** loop process failures (halt mix, replay mismatch, false reversals);
-2. generate bounded hypotheses;
-3. deploy competing research agents from [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md);
+2. create evidence-linked learning candidates and bounded hypotheses;
+3. deploy competing research agents from accepted task contracts;
 4. benchmark challengers, including RLH depth ablation;
 5. watcher reviews evidence under [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md);
 6. promote only qualified improvements;
@@ -154,25 +171,8 @@ Loop forever:
 
 Do not raise `max_depth` because a research tweet said "infinite reasoning depth." RLT itself defines infinite depth as an extensible temporal path, not infinite work per token.
 
-## Initial parallel agent batch after foundation
+Follow [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md): predeclare evaluation, preserve rejected lessons, and verify every accepted change on `main`.
 
-Recommended first 16 agents:
+## Agent execution
 
-- 01 data ingestion
-- 02 Freqtrade bootstrap/adapter
-- 03 feature schema
-- 04 baseline models
-- 06 walk-forward runner
-- 09 regime state machine
-- 10 pivot engine
-- 11 zone clustering
-- 14 BTC cross-market context
-- 15 thesis ledger
-- 17 web shell/design tokens
-- 18 Lightweight Charts wrapper
-- 25 AI tool contracts
-- 31 FastAPI/OpenAPI contracts
-- 33 CI/reproducibility
-- 36 leakage red-team
-
-Agent 00 watches the entire batch.
+[`Agent-Build-Plan.md`](Agent-Build-Plan.md) is authoritative for dependency gates, whole-product waves, and write ownership. [`Agent-Roster.md`](Agent-Roster.md) and Watcher artifacts are authoritative for currently active work. [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md) applies specifically to the active RLH implementation; it is not a whole-product launch order.

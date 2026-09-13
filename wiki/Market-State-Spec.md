@@ -7,6 +7,7 @@ Every symbol has one canonical `MarketStateSnapshot` assembled from timeframe st
 ### Timeframe state machine
 
 Allowed regime states:
+
 - `bullish`
 - `bearish`
 - `neutral`
@@ -19,6 +20,7 @@ Regime changes should be event-driven and hysteretic. Avoid flipping state on on
 ## Inputs
 
 Each timeframe state may use:
+
 - completed OHLCV candles;
 - confirmed pivots with `known_at` timestamps;
 - EMA geometry;
@@ -52,6 +54,7 @@ Exact weighting may be rule-based initially and later learned, but must be versi
 Parent state constrains interpretation but does not ban countertrend moves.
 
 Example:
+
 - 4H bearish
 - 1H bearish
 - 15m transition_up
@@ -61,9 +64,12 @@ This means a lower-timeframe relief rally inside a bearish higher-timeframe regi
 
 The harness should explain this distinction explicitly. The Recursive Learning Harness must preserve this parent/child split in `EncoderMemory` and in `s_t`; see [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
 
+Conversely, a bearish 5m or 15m setup inside a bullish 4h/1d regime is a tactical retracement hypothesis unless explicit higher-timeframe reversal criteria have triggered. It must not be promoted to a durable bearish thesis based only on lower-timeframe weakness.
+
 ## Meaningful state-change events
 
 Examples:
+
 - confirmed higher low;
 - confirmed lower high;
 - break/acceptance beyond structural zone;
@@ -78,6 +84,7 @@ Indicator crossovers alone should not necessarily be treated as regime changes.
 ## Zone interaction state
 
 For every active zone, track:
+
 - approaching;
 - testing;
 - rejected;

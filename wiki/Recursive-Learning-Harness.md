@@ -19,8 +19,9 @@ This is the living improvement surface for explanation, challenge, analog retrie
 
 ## Source pattern (RLT) and what we adopt
 
-Reference: Yifan Zhang, *Recurrent Looped Transformer*, technical report, 12 September 2026  
-Project page: https://yifanzhang-pro.github.io/recurrent-looped-tranformer/
+- Reference: Yifan Zhang, *Recurrent Looped Transformer*, technical report, 12 September 2026
+- Official source: https://github.com/yifanzhang-pro/recurrent-looped-tranformer
+- Project page: https://yifanzhang-pro.github.io/recurrent-looped-tranformer/
 
 The operator screenshot is the two-block diagram:
 
@@ -57,7 +58,8 @@ closed candles
     → forecast ensemble (FreqAI / baselines) → ForecastPackage
     → RLH recurrent loop D_φ over LoopTokens
          each step: Merge → retrieve/challenge/synthesize/halt
-    → journal ForecastPackage + LoopTrace (before next candle)
+    → durable ForecastPackage commit
+    → bounded RLH run → durable LoopTrace append (before explanation)
     → UI shows state, uncertainty, loop depth, halt reason
     → outcomes mature → Recursive Evaluator scores depth vs quality
     → Watcher opens bounded improvement tasks
@@ -133,7 +135,7 @@ If live and replay diverge, the harness is broken. Watcher treats that as an eme
 
 See [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md).
 
-1. **Context KV / EncoderMemory `M_≤T`** — frozen market facts. Hierarchical. A 5m token may update only the 5m slice. It may not rewrite 4H/1D/1W regime.
+1. **Context KV / EncoderMemory `M_≤T`** — frozen market facts. Hierarchical. A 5m token may update only the 5m slice. It may not rewrite 4h/1d/1w regime.
 2. **Recurrent state `s_t`** — working synthesis. Scratch, not truth. Truth is snapshot + journal.
 3. **SWA KV `C_t^D`** — last `W` loop tokens. Default `W=16`. Prevents unbounded prose memory.
 
@@ -159,14 +161,17 @@ Halt is a first-class token. The UI must show `halt_reason`, `depth_used`, and c
 
 ## Journal and learning
 
-Every eligible forecast writes, in order:
+Every eligible forecast writes in two durable stages:
 
-1. `EncoderMemory` hash
-2. `ForecastPackage`
-3. `LoopTrace` (all steps, tool IOs, halt)
-4. durable commit
+1. build and hash `EncoderMemory` with an allocated forecast ID;
+2. durably commit the immutable `ForecastPackage` and its source hashes;
+3. run the bounded RLH against that journaled forecast;
+4. build the `LoopTrace` with all steps, tool I/O, and halt evidence;
+5. durably append the trace before exposing its explanation.
 
 Outcomes later attach to the forecast **and** to any intermediate `FORECAST_REFINE` tokens that restated the ensemble. Intermediate refinements may be scored for depth-ablation. They must not mutate the original ForecastPackage.
+
+If RLH fails or times out, the ForecastPackage remains journaled and usable with `harness-degraded`; no unjournaled explanation may be shown.
 
 Recursive learning means:
 
@@ -179,11 +184,11 @@ Recursive learning means:
 
 Agent 00 monitors RLH continuously using [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md).
 
-The operator kill switch (UI + `POST /api/v1/agents/kill-switch`) severs every in-flight recursive agent and blocks new loops. Journaled traces stay. Trading stays off.
+The operator kill switch (UI + `POST /api/v1/agents/kill-switch`) marks active RLH tasks severed, freezes promotion, and makes new loop runs fail closed. Journaled traces stay. Trading stays off.
 
 Lanes 25-30 own implementation. Lanes 36-39 try to break it. Ready-to-launch contracts are in [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md).
 
-The operator kill switch (UI + `POST /api/v1/agents/kill-switch`) severs every in-flight recursive agent and blocks new loops. Journaled traces stay. Trading stays off.
+The current prototype is a cooperative control plane: repository agents must check the state and stop, while API loop execution refuses with HTTP 423. It cannot forcibly terminate an already-running external compute process unless that orchestrator is later connected to the kill-switch event. The UI and docs must not claim stronger termination than the connected runtime can enforce.
 
 No agent may:
 

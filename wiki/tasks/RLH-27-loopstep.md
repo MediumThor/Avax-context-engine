@@ -3,7 +3,9 @@
 ```md
 Task: Implement one D_φ LoopStep for ingest and emit, with halt budget and journal stub.
 Agent: 27
-Branch: cursor/agent-27-rlh-loopstep-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-27-rlh-loopstep-ee66
 Model: Grok 4.6
 Priority: P0
 

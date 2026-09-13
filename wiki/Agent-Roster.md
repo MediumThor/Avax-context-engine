@@ -1,8 +1,8 @@
 # Agent roster — prototype on main
 
-All Recursive Learning Harness work now lands on **`main`** so the team can prototype on one line of code.
+All accepted Recursive Learning Harness work lands on **`main`** so the team prototypes against one durable product state.
 
-Split wave-1 branches (`cursor/agent-00-…` through `cursor/agent-36-…`) are **retired**. Do not write to them. Do not launch a second copy of a lane on another branch.
+The `temporary_source` refs in `artifacts/watcher/active-tasks.json` are launch provenance for already-running jobs, not product branches. Review each returned candidate against current `main`, integrate accepted work immediately, verify it on `main`, and retire the temporary ref. Do not launch a second copy of a live lane.
 
 **Model:** Grok 4.6 for agent reasoning  
 **Batch:** `RLH-wave-1` (integrated)  
@@ -23,6 +23,8 @@ Engaging the switch:
 
 Reset is a second explicit, reason-logged action. Events are append-only.
 
+Prototype enforcement is cooperative for external agents: the repository state marks tasks severed and loop API calls fail closed, but an external runner must observe the state to stop. No direct external-runtime termination adapter is implemented yet.
+
 ## Locks during prototype
 
 One writer at a time on a path, even on `main`. If the kill switch is engaged, stop implementing agent features until reset.
@@ -38,15 +40,15 @@ One writer at a time on a path, even on `main`. If the kill switch is engaged, s
 
 ## Wave 1 status
 
-Former isolated branches are closed. Implement the same contracts from `wiki/tasks/` **on main**.
+The registry is the authority for live status. `launched` means a temporary implementation source may still return; it does not mean its work has passed review or landed on `main`. New or retried work follows the mainline protocol in [`Agent-Build-Plan.md`](Agent-Build-Plan.md).
 
 | agent | task | status |
 | --- | --- | --- |
-| 00 | Watcher + kill switch | on main |
-| 25 | Schema stubs | on main (schemas present) |
-| 26–30 | Encoder / LoopStep / challenge / SWA / eval | implement on main |
-| 33 | CI | on main |
-| 36 | Leakage probes | implement on main |
+| 00 | Watcher + kill switch | launched source; kill-switch implementation is on `main` |
+| 25 | Schema stubs | launched source; JSON schemas are on `main` |
+| 26–30 | Encoder / LoopStep / challenge / SWA / eval | launched sources; acceptance pending |
+| 33 | CI | launched source; acceptance pending |
+| 36 | Leakage probes | launched source; acceptance pending |
 
 ## Wave 2
 

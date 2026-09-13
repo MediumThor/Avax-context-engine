@@ -50,8 +50,20 @@ Working synthesis `s_t`.
   "regime_reading": {},
   "what_changed": [],
   "what_did_not_change": [],
-  "bull_case": { "claims": [], "citations": [] },
-  "bear_case": { "claims": [], "citations": [] },
+  "bull_case": {
+    "regime_relation": "countertrend",
+    "supporting_timeframes": ["5m"],
+    "conflicting_timeframes": ["4h", "1d"],
+    "claims": [],
+    "citations": []
+  },
+  "bear_case": {
+    "regime_relation": "aligned",
+    "supporting_timeframes": ["4h", "1d"],
+    "conflicting_timeframes": ["5m"],
+    "claims": [],
+    "citations": []
+  },
   "forecast_summary": {
     "forecast_package_id": "forecast-...",
     "quoted_fields": []
@@ -66,6 +78,8 @@ Working synthesis `s_t`.
 ```
 
 `confidence_source` enum: `calibrated` | `model-disagreement` | `insufficient-data`.
+
+`regime_relation` enum: `aligned` | `countertrend` | `mixed` | `unknown`. A lower-timeframe bearish case inside a bullish higher-timeframe regime remains a tactical countertrend case until explicit reversal confirmation; the symmetric rule applies to bullish cases inside a bearish parent regime.
 
 ## LoopStep
 

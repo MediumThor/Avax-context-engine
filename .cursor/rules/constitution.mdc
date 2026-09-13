@@ -9,11 +9,12 @@ Before any edit:
 
 1. Read `/CONSTITUTION.md` in full.
 2. Read `/AGENTS.md`.
-3. Read `/wiki/Home.md` and the directive for the subsystem being changed.
+3. Read `/wiki/Home.md`, `/wiki/Documentation-Standards.md`, `/wiki/Agent-Build-Plan.md`, and the directive for the subsystem being changed.
 
 `/CONSTITUTION.md` is immutable project law. Do not edit it, weaken it, bypass it, or create a conflicting instruction elsewhere.
 
 Mandatory constraints:
+
 - no future-data leakage;
 - no random shuffled time-series validation for reported forecasting performance;
 - no moving thesis invalidations after the fact;

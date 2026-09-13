@@ -3,7 +3,9 @@
 ```md
 Task: Five blocking leakage probes for RLH encoder/loop memory.
 Agent: 36
-Branch: cursor/agent-36-rlh-leakage-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-36-rlh-leakage-ee66
 Model: Grok 4.6
 Priority: P0
 

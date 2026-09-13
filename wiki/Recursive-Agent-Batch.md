@@ -2,9 +2,9 @@
 
 Launch these contracts after this foundation merges. Agent 00 watches the batch. Do not start two writers on `packages/contracts/recursive/` in the same wave.
 
-**Prototype mode:** implement these contracts on **`main`**. Isolated lane branches are retired. Live roster: [`Agent-Roster.md`](Agent-Roster.md). The UI kill switch severs all of this work. Do not re-launch a lane on a side branch.
+**Prototype mode:** `main` is the only durable product state. Existing `cursor/*` refs in the live registry are disposable sources created by the runner; they must be reviewed against current `main`, integrated immediately, verified on `main`, and retired. New or retried work starts from latest `main` and follows [`Agent-Build-Plan.md`](Agent-Build-Plan.md). The UI kill switch cooperatively stops this work; external runners must observe it.
 
-Copy a block into a Cursor task. Change only the branch slug if needed. Cloud agents that must use `cursor/<slug>-<id>` keep the same write scope.
+Copy a block into a task. `Base` and `Integration target` are fixed. Use direct-main work only with an exclusive path lock; if the runner requires isolation, record the disposable source in the registry and do not treat it as a product branch.
 
 ## Batch graph
 
@@ -33,7 +33,8 @@ Copy a block into a Cursor task. Change only the branch slug if needed. Cloud ag
 ```md
 Task: Stand up recursive watcher artifacts and review the 25-30 wave.
 Agent: 00
-Branch: agent/00-rlh-watch
+Base: latest main
+Integration target: main
 Allowed write scope:
 - artifacts/watcher/**
 - wiki/Recursive-Watcher-Protocol.md (corrections only)
@@ -49,7 +50,8 @@ Finish criteria: no overlapping writers; first fixture canary defined
 ```md
 Task: Keep loop/tool schemas valid and generate TS/Pydantic stubs from packages/contracts/recursive.
 Agent: 25
-Branch: agent/25-rlh-schema-stubs
+Base: latest main
+Integration target: main
 Allowed write scope:
 - packages/contracts/recursive/**
 - packages/contracts/README.md
@@ -67,7 +69,8 @@ Finish criteria: one schema owner; no hand-copied duplicate types
 ```md
 Task: Implement EncoderMemory builder and harness tools that only read frozen memory at as_of.
 Agent: 26
-Branch: agent/26-rlh-encoder-memory
+Base: latest main
+Integration target: main
 Allowed write scope:
 - services/harness/**
 - services/context/read-models/** (read adapters only)
@@ -87,7 +90,8 @@ Finish criteria: builder + get_* tools return hashed memory
 ```md
 Task: Implement D_φ so ingest tokens and emit tokens share one LoopStep, with halt budget.
 Agent: 27
-Branch: agent/27-rlh-loopstep
+Base: latest main
+Integration target: main
 Allowed write scope:
 - services/harness/loop/**
 - tests/harness/loop/**
@@ -107,7 +111,8 @@ Finish criteria: one function, versioned harness_version, journal writer stub
 ```md
 Task: Make CHALLENGE + INVALIDATION_CHECK mandatory before directional halt.
 Agent: 28
-Branch: agent/28-rlh-challenge
+Base: latest main
+Integration target: main
 Allowed write scope:
 - services/harness/loop/challenge/**
 - tests/harness/challenge/**
@@ -127,7 +132,8 @@ Finish criteria: challenge result stored on the trace
 ```md
 Task: Implement W-sized SWA ring and a summarizer that never becomes sole truth.
 Agent: 29
-Branch: agent/29-rlh-swa
+Base: latest main
+Integration target: main
 Allowed write scope:
 - services/harness/memory/**
 - tests/harness/memory/**
@@ -144,7 +150,8 @@ Finish criteria: replay reconstructs identical SWA hashes per step
 ```md
 Task: Implement Recursive-Evaluation process metrics and fixture runner.
 Agent: 30
-Branch: agent/30-rlh-eval
+Base: latest main
+Integration target: main
 Allowed write scope:
 - services/evaluator/rlh/**
 - tests/rlh/**

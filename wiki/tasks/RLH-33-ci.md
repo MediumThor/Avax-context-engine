@@ -3,7 +3,9 @@
 ```md
 Task: GitHub Actions workflow that runs RLH contract tests on PRs touching harness or recursive contracts.
 Agent: 33
-Branch: cursor/agent-33-rlh-ci-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-33-rlh-ci-ee66
 Model: Grok 4.6
 Priority: P1
 

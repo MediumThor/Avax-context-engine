@@ -2,7 +2,22 @@
 
 ## Purpose
 
-AVAX Context Engine is a read-only market research and probabilistic forecasting platform. It integrates proven open-source quant infrastructure while keeping the context model, state model, AI harness, evaluation loop and user experience custom.
+AVAX Context Engine is a read-only market research and probabilistic forecasting platform. It integrates proven open-source quantitative infrastructure while keeping the Context Engine, Recursive Learning Harness, Evaluation Engine, continuous-improvement loop, and operator experience custom.
+
+The repository currently contains prototypes and stubs for several components below. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the current implementation inventory; this page defines accepted boundaries and targets.
+
+## Foundation technology decisions
+
+- Custom services are Python `>=3.11`; CI uses Python 3.12.
+- FastAPI + Pydantic own the canonical HTTP/OpenAPI layer.
+- The Web App uses the npm workspace, React, TypeScript/TSX, Vite, and TradingView Lightweight Charts.
+- Replace all `latest` frontend dependency ranges with reviewed, locked versions before G1 closes.
+- SQLite remains valid for deterministic tests and the local prototype. The production persistence target is PostgreSQL for relational records plus a content-addressed filesystem/S3-compatible adapter for immutable payloads; Parquet is for bulk research exports.
+- REST serves canonical point-in-time records. Server-Sent Events are the initial one-way live-notification target; clients refetch records by stable ID.
+- Docker Compose is the full local orchestration path; fixture mode remains available for fast mobile Web App work.
+- TypeScript clients/types derive from accepted schemas rather than hand-maintained copies.
+
+Redis, a distributed broker, Kubernetes, native wrappers, and GPU inference are not foundation requirements. Add them only through an evidence-backed architecture task.
 
 ## Top-level components
 
@@ -12,7 +27,7 @@ Freqtrade/FreqAI is consumed as a pinned upstream dependency/service. We do not 
 
 Reason: Freqtrade is GPLv3. Keeping it as an independently runnable service/dependency preserves an upgrade path and makes the copyleft boundary explicit. Any direct code copying or linked derivative work must be reviewed for GPL obligations.
 
-Pinned initial upstream target: `freqtrade/freqtrade@c064be5325ad6941a2789add795434e6a13dffe9` (develop snapshot observed 2026-09-13).
+Pinned upstream commit: `freqtrade/freqtrade@c064be5325ad6941a2789add795434e6a13dffe9`, recorded in `upstream.lock.json`.
 
 ### 2. Data Service
 
@@ -78,7 +93,7 @@ The harness produces concise explanations, challenge/counter-thesis analysis and
 
 ### 6. Evaluation Engine
 
-Every forecast becomes immutable journal data. When horizons mature, the evaluator attaches realized outcomes and computes:
+Every forecast becomes immutable journal data. When horizons mature, the Evaluation Engine attaches realized outcomes and computes:
 
 - return MAE/RMSE;
 - direction accuracy;
@@ -93,7 +108,7 @@ Every forecast becomes immutable journal data. When horizons mature, the evaluat
 
 ### 7. Web App
 
-React + TypeScript. TradingView Lightweight Charts is the chart rendering library.
+The Web App is mobile-first React + TypeScript. TradingView Lightweight Charts is the chart renderer. Phone information hierarchy, touch interaction, and loading behavior define the base components; tablet and desktop progressively expose more simultaneous panels without changing route or contract semantics.
 
 The UI consumes our API and renders:
 
@@ -109,15 +124,25 @@ The UI consumes our API and renders:
 
 No trade execution in v1.
 
-## Recommended repository layout
+### 8. Continuous Improvement Workflow
+
+Matured forecasts and LoopTraces become structured evidence. The workflow turns repeated errors into predeclared experiments, bounded agent tasks, reproducible evaluations, and Watcher decisions. It preserves rejected approaches and lessons so later agents receive exact source context rather than a mutable narrative.
+
+See [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md). This workflow may propose changes but cannot bypass the kill switch, tests, Watcher, or `main` verification.
+
+## Repository boundaries
 
 ```text
 /apps/web                 React/TSX UI
 /services/api             FastAPI gateway
-/services/context         deterministic context engine
+/packages/context_engine  deterministic Context Engine core
+/packages/market_data     public data and immutable local store
+/packages/models          baseline and forecast-model core
+/packages/journal         journal core
+/packages/evaluator       metric core
 /services/harness         recursive learning harness (custom LoopStep)
 /packages/contracts/recursive  LoopTrace / EncoderMemory / halt schemas
-/services/evaluator       prediction scoring + reports
+/services/evaluator       evaluation workflows + reports
 /adapters/freqtrade       Freqtrade/FreqAI integration
 /packages/contracts       JSON/Pydantic/TS schemas
 /packages/market-math     shared structural math
@@ -136,12 +161,15 @@ No trade execution in v1.
 3. Higher timeframes update only when their candle closes.
 4. Context Engine processes state transition.
 5. Feature assembler builds leakage-safe feature snapshot.
-6. Forecast Engine produces horizon distributions.
-7. Context Engine + Recursive Learning Harness produce a journaled `LoopTrace` from frozen `EncoderMemory`.
-8. Prediction journal writes forecast **and** loop trace before next candle outcome.
-9. UI refreshes.
-10. As horizons mature, evaluator appends outcome scores.
-11. Continuous-improvement agents inspect aggregate evidence and propose experiments.
+6. Forecast Engine produces a ForecastPackage for `h=1..10`.
+7. The system builds frozen EncoderMemory referencing the accepted context, features, and allocated forecast ID.
+8. Prediction Journal durably commits the immutable ForecastPackage and source hashes.
+9. RLH runs a bounded LoopStep sequence against that journaled forecast and frozen memory.
+10. Prediction Journal durably appends the LoopTrace before any RLH explanation is exposed.
+11. Web App refreshes from journaled state, forecast, trace, and health records; a failed RLH degrades the explanation without deleting the forecast.
+12. As horizons mature, Evaluation Engine appends outcome records and scores.
+13. Continuous-improvement agents inspect aggregate evidence and propose experiments.
+14. Watcher decisions and lessons remain retrievable for later agent context packets.
 
 ## Architecture constraints
 
