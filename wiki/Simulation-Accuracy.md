@@ -10,7 +10,7 @@ At every eligible 5m close, the system emits one forecast package containing hor
 
 Research helper `walk_forward_quantiles` scores `freqai.quantiles.research.v1` q50 MAE and empirical q10–q90 coverage against `baseline.zero` and `baseline.drift20` on chronological origins only. It never sets a product promotion flag. Coverage is a hit rate, not ECE.
 
-`walk_forward_probabilities` scores the live `empirical_signed_base_rate.v1` P(up) (Brier / ECE) and an empirical residual-vs-drift20 q10–q90 hit rate. Those scores are attached to `/api/v1/market` metrics when the walk-forward sample is large enough. They are not a FreqAI-beats-baseline claim. `score_journaled_forecasts` uses the same gates on matured journal rows.
+`walk_forward_probabilities` scores the live `empirical_signed_base_rate.v1` P(up) (Brier) and an empirical residual-vs-drift20 q10–q90 hit rate. Reported ECE is chronological held-out and live/non-fixture only (`binance-vision`). The later 40% of eligible (p, y) pairs is the unseen window; ECE stays null unless that slice has n ≥ 15. Fixture candles, unknown source, and short held-out windows leave `ece` null with `ece_reason`. Those scores are attached to `/api/v1/market` metrics when the walk-forward sample is large enough. They are not a FreqAI-beats-baseline claim. `score_journaled_forecasts` uses the same ECE gate on matured journal rows and stamps `candle_source` on new payloads.
 
 ## Core simulations
 

@@ -10,12 +10,11 @@ import math
 from statistics import mean
 from typing import Any, Sequence
 
-from packages.evaluator.calibration import expected_calibration_error
+from packages.evaluator.held_out import MIN_ECE, held_out_ece
 from packages.evaluator.metrics import brier_score, interval_coverage
 from packages.models.direction_cal import CALIBRATION_REF, empirical_signed_p
 
 MIN_BRIER = 8
-MIN_ECE = 15
 MIN_COVERAGE = 8
 INTERVAL_REF = "empirical_residual_vs_drift20.v1"
 
@@ -49,8 +48,13 @@ def walk_forward_probabilities(
     min_history: int = 80,
     step: int = 15,
     as_of=None,
+    candle_source: str | None = None,
 ) -> dict[str, Any]:
-    """Score empirical_signed_base_rate.v1 and residual q10–q90 on later-known closes."""
+    """Score empirical_signed_base_rate.v1 and residual q10–q90 on later-known closes.
+
+    Brier uses the full walk-forward pool. Reported ECE uses only the later
+    chronological slice and only when ``candle_source`` is live/non-fixture.
+    """
     if horizons < 1 or step < 1 or min_history < 21:
         raise ValueError("invalid walk-forward parameters")
     closed = [c for c in candles if getattr(c, "is_closed", True)]
@@ -99,7 +103,7 @@ def walk_forward_probabilities(
         n_p = len(series["p"])
         n_iv = len(series["actual"])
         brier = brier_score(series["y"], series["p"]) if n_p >= MIN_BRIER else None
-        ece = expected_calibration_error(series["y"], series["p"], bins=5) if n_p >= MIN_ECE else None
+        held = held_out_ece(series["y"], series["p"], report_source=candle_source)
         coverage = (
             interval_coverage(series["actual"], series["q10"], series["q90"])
             if n_iv >= MIN_COVERAGE
@@ -109,11 +113,14 @@ def walk_forward_probabilities(
             "probability": {
                 "sample_count": n_p,
                 "brier": brier,
-                "ece": ece,
+                "ece": held["ece"],
+                "ece_held_out_sample_count": held["held_out_sample_count"],
+                "ece_reason": held["reason"],
+                "ece_validation": held["validation"],
                 "calibration_ref": CALIBRATION_REF,
                 "min_brier": MIN_BRIER,
                 "min_ece": MIN_ECE,
-                "note": "Walk-forward Brier/ECE of empirical signed P(up). Not a FreqAI promotion claim.",
+                "note": "Walk-forward Brier of empirical signed P(up). ECE is held-out live/non-fixture only. Not a FreqAI promotion claim.",
             },
             "interval": {
                 "sample_count": n_iv,
@@ -128,6 +135,8 @@ def walk_forward_probabilities(
         "validation": "walk_forward",
         "calibration_ref": CALIBRATION_REF,
         "interval_ref": INTERVAL_REF,
+        "candle_source": candle_source,
+        "ece_gate": "live_non_fixture_held_out",
         "promotion_allowed": False,
         "freqai_beats_baselines": None,
         "min_history": min_history,

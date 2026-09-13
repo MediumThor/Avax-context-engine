@@ -2,7 +2,7 @@
 
 ## Current status
 
-Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + honest slice), but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
+Several phases have prototype code on `main` (`762e7b2`, WAVE-2 integrate + honest slice + journal drain), but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
 
 | Phase | Gate status on `main` |
 | --- | --- |
@@ -10,7 +10,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 | 1 — Data/replay | Integrity helpers + snapshot replay + fixture/Binance Vision ingest on `main` |
 | 2 — Context Engine | Pivots/zones/regime/patterns/cross-market/analogs + live snapshot theses with frozen invalidation + zone lifecycle in `build_snapshot` + insert-only journaled theses (this branch) |
 | 3 — Forecasting | Journaled next-10 quantiles + walk-forward vs drift20 on `main` (`80a4d70`); challenger now training on `avax.features.mtf.v1` (this branch, not promoted) |
-| 4 — Journal/evaluation | Journal + walk-forward baseline MAE + Brier/ECE/coverage when n is sufficient. Live persist catch-up-journals missing mature-able 5m origins as `baseline.drift20` (capped, no extra quantile emit). Not a promotion claim. |
+| 4 — Journal/evaluation | Journal + walk-forward baseline MAE + Brier/coverage when n is sufficient. ECE is held-out live/non-fixture only (null on fixture or short later slice). Live persist catch-up-journals missing mature-able 5m origins as `baseline.drift20` (capped, no extra quantile emit). Not a promotion claim. |
 | 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; live forecast journals first, runs a bounded loop, then appends LoopTrace without rewriting the forecast. `/loops/run` retries that loop on a journaled forecast and does not emit a new one |
 | 6 — Web App | ForecastFan / overlays / AccuracyPanel mounted; fan draws only when q10/q50/q90 are journaled |
 | 7-10 | Not complete |

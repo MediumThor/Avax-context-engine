@@ -66,6 +66,13 @@ class PrototypeRuntime:
         self.store.close()
         self.journal.close()
 
+    def _stamp_candle_source(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Tag new journal payloads. Never overwrites an existing source field."""
+        if payload.get("candle_source"):
+            return payload
+        payload["candle_source"] = "fixture" if self.use_fixture else SOURCE
+        return payload
+
     def _seed_fixture(self) -> None:
         avax = sept_2026_failed_breakout("AVAXUSDT")
         self.store.insert_many("fixture", avax)
@@ -182,6 +189,7 @@ class PrototypeRuntime:
         outcomes = {"forecasts_scanned": 0, "outcomes_written": 0}
         shadow = {"wrote": 0, "remaining": 0, "model_id": SHADOW_CATCHUP_MODEL}
         if persist and not is_engaged():
+            self._stamp_candle_source(payload)
             self.journal.get_or_append(
                 forecast_id=f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}",
                 symbol=symbol,
@@ -396,6 +404,7 @@ class PrototypeRuntime:
             return
         earlier = visible[:-10]
         prior = self.emit_live_forecast(earlier, as_of=earlier[-1].close_time(), btc=btc)
+        self._stamp_candle_source(prior)
         self.journal.get_or_append(
             forecast_id=f"{symbol}:{prior['forecasted_at']}:{prior['model_id']}",
             symbol=symbol,
@@ -435,6 +444,7 @@ class PrototypeRuntime:
                 payload = emit_baseline_forecast(prefix)
             except ValueError:
                 continue
+            self._stamp_candle_source(payload)
             stamp = _origin_stamp(payload["forecasted_at"])
             if stamp in known:
                 continue
@@ -543,19 +553,29 @@ class PrototypeRuntime:
         cached = self._metrics_cache.get(cache_key)
         if cached is not None:
             return cached
+        source = "fixture" if self.use_fixture else SOURCE
         report = walk_forward_baselines(candles, horizons=10, min_history=80, step=20)
-        cal = walk_forward_probabilities(candles, horizons=10, min_history=80, step=20, as_of=as_of)
-        journaled = score_journaled_forecasts(self.journal, symbol, as_of=as_of or candles[-1].close_time())
+        cal = walk_forward_probabilities(
+            candles, horizons=10, min_history=80, step=20, as_of=as_of, candle_source=source
+        )
+        journaled = score_journaled_forecasts(
+            self.journal, symbol, as_of=as_of or candles[-1].close_time(), candle_source=source
+        )
         for key, block in report.get("horizons", {}).items():
             extra = cal["horizons"].get(key, {})
             journal_h = journaled["horizons"].get(key, {})
             block["probability"] = extra.get("probability")
             block["interval"] = extra.get("interval")
-            # Prefer journaled Brier/ECE when that sample is large enough; otherwise walk-forward.
+            # Prefer journaled Brier when that sample is large enough; ECE stays
+            # held-out live/non-fixture (journal wins only when it actually scored).
             j_prob = journal_h.get("probability") or {}
             if j_prob.get("brier") is not None:
+                wf_ece = (block.get("probability") or {}).get("ece")
                 merged = dict(block.get("probability") or {})
                 merged.update(j_prob)
+                if merged.get("ece") is None and wf_ece is not None:
+                    merged["ece"] = wf_ece
+                    merged["ece_source"] = "walk_forward_held_out"
                 merged["source"] = "journal"
                 block["probability"] = merged
             elif block.get("probability"):
@@ -572,6 +592,8 @@ class PrototypeRuntime:
         report["symbol"] = symbol
         report["probability_calibration_ref"] = cal["calibration_ref"]
         report["interval_ref"] = cal["interval_ref"]
+        report["ece_gate"] = "live_non_fixture_held_out"
+        report["candle_source"] = source
         report["promotion_allowed"] = False
         self._metrics_cache[cache_key] = report
         return report

@@ -45,14 +45,15 @@ The registry is the authority for live status. `launched` means a temporary impl
 
 | agent | task | status |
 | --- | --- | --- |
-| 00 | Watcher + kill switch + RLH core | on `main` (`0876e71` WAVE-2 integrate) |
+| 00 | Watcher + kill switch + RLH core | on `main` (`762e7b2` journal drain) |
+| 07 | Held-out live ECE | this PR (`cursor/heldout-live-ece-5716`) |
 | 25 | Schema stubs | on `main` |
 | 26–30 | Encoder / LoopStep / challenge / SWA / eval | on `main` |
 | 33 | CI | on `main` |
 | 36 | Leakage probes | on `main` |
-| 17/04/09 | SLICE-001 honest market/forecast/replay | this PR (`cursor/honest-market-slice-ee66`) |
+| 17/04/09 | SLICE-001 honest market/forecast/replay | on `main` |
 
-SLICE-001 replaces the sine-wave `$7.26` / `DATA LIVE` shell with fixture-or-Binance candles, Context Engine `as_of` snapshots, journaled drift20 baselines, walk-forward MAE with sample counts, and a September 2026 4H-stability replay. Kill switch remains the hard stop. WAVE-2 modules (features, zones, replay, harness) are already on `main` and are not rewritten here.
+SLICE-001 is on `main`. This increment withholds fixture ECE and reports held-out ECE only on live/non-fixture forecasts. Kill switch remains the hard stop. Do not overlap PR 55 journal-remaining UI files.
 
 ## Wave 2
 

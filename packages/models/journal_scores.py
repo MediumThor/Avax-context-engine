@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from packages.evaluator.calibration import expected_calibration_error
+from packages.evaluator.held_out import held_out_ece, row_eligible_for_live_ece
 from packages.evaluator.metrics import brier_score, interval_coverage
 from packages.journal import ForecastJournal
 from packages.models.direction_cal import CALIBRATION_REF
@@ -27,11 +27,22 @@ def score_journaled_forecasts(
     symbol: str,
     *,
     as_of: datetime | None = None,
+    candle_source: str | None = None,
 ) -> dict[str, Any]:
-    """Brier/ECE/coverage from journaled probabilities and matured outcomes known at as_of."""
+    """Brier/coverage from journaled probabilities; held-out ECE on live rows only."""
     cutoff = _aware(as_of) if as_of is not None else None
-    per_h: dict[int, dict[str, list[float]]] = {
-        h: {"y": [], "p": [], "actual": [], "q10": [], "q90": []} for h in range(1, 11)
+    per_h: dict[int, dict[str, list]] = {
+        h: {
+            "y": [],
+            "p": [],
+            "live_issued": [],
+            "live_y": [],
+            "live_p": [],
+            "actual": [],
+            "q10": [],
+            "q90": [],
+        }
+        for h in range(1, 11)
     }
     used = 0
     for row in journal.list_forecasts(symbol):
@@ -43,6 +54,8 @@ def score_journaled_forecasts(
         if cutoff is not None and issued > cutoff:
             continue
         by_h = {int(item["h"]): item for item in payload.get("horizons") or [] if "h" in item}
+        payload_source = payload.get("candle_source")
+        live_ok = row_eligible_for_live_ece(payload_source, candle_source)
         for outcome in journal.list_outcomes(row["id"]):
             h = int(outcome["h"])
             matured = outcome.get("matured_at")
@@ -57,6 +70,10 @@ def score_journaled_forecasts(
             if isinstance(p, (int, float)) and y is not None:
                 per_h[h]["p"].append(float(p))
                 per_h[h]["y"].append(1.0 if y else 0.0)
+                if live_ok:
+                    per_h[h]["live_p"].append(float(p))
+                    per_h[h]["live_y"].append(1.0 if y else 0.0)
+                    per_h[h]["live_issued"].append(issued)
             q10 = forecast_row.get("q10_cum_log_return")
             q90 = forecast_row.get("q90_cum_log_return")
             actual = outcome.get("realized_cum_log_return")
@@ -70,12 +87,20 @@ def score_journaled_forecasts(
     for h, series in per_h.items():
         n_p = len(series["p"])
         n_iv = len(series["actual"])
+        order = sorted(range(len(series["live_issued"])), key=lambda i: series["live_issued"][i])
+        y_live = [series["live_y"][i] for i in order]
+        p_live = [series["live_p"][i] for i in order]
+        held = held_out_ece(y_live, p_live, report_source=candle_source)
         horizons_out[str(h)] = {
             "probability": {
                 "sample_count": n_p,
                 "brier": brier_score(series["y"], series["p"]) if n_p >= MIN_BRIER else None,
-                "ece": expected_calibration_error(series["y"], series["p"], bins=5) if n_p >= MIN_ECE else None,
+                "ece": held["ece"],
+                "ece_held_out_sample_count": held["held_out_sample_count"],
+                "ece_reason": held["reason"],
+                "ece_validation": held["validation"],
                 "calibration_ref": CALIBRATION_REF,
+                "min_ece": MIN_ECE,
             },
             "interval": {
                 "sample_count": n_iv,
@@ -86,6 +111,8 @@ def score_journaled_forecasts(
         }
     return {
         "validation": "journaled_walk_forward",
+        "ece_gate": "live_non_fixture_held_out",
+        "candle_source": candle_source,
         "forecasts_used": used,
         "promotion_allowed": False,
         "horizons": horizons_out,

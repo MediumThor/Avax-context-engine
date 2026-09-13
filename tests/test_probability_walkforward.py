@@ -14,8 +14,8 @@ def test_fixture_walk_forward_scores_brier_without_promotion():
     assert h1["sample_count"] >= 8
     assert h1["brier"] is not None
     assert 0.0 <= h1["brier"] <= 1.0
-    if h1["ece"] is not None:
-        assert 0.0 <= h1["ece"] <= 1.0
+    # Fixture / unspecified source is not a live calibration claim.
+    assert h1["ece"] is None
     coverage = report["horizons"]["1"]["interval"]["coverage"]
     if coverage is not None:
         assert 0.0 <= coverage <= 1.0

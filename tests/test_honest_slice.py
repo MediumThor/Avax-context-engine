@@ -162,6 +162,9 @@ def test_api_fixture_market_is_not_live(tmp_path, monkeypatch):
     prob = (body["metrics"].get("horizons") or {}).get("1", {}).get("probability") or {}
     assert prob.get("brier") is not None
     assert 0.0 <= prob["brier"] <= 1.0
+    assert prob.get("ece") is None
+    assert body["metrics"].get("ece_gate") == "live_non_fixture_held_out"
+    assert body["metrics"].get("candle_source") == "fixture"
     assert body["metrics"].get("promotion_allowed") is False
     theses = body["snapshot"].get("theses") or []
     bears = [t for t in theses if t.get("direction") == "bear" and t.get("timeframe") == "4h"]

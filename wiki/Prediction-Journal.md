@@ -34,7 +34,7 @@ Forecast content cannot be edited after creation. Corrections create a supersedi
 
 When horizon h matures, append a ForecastOutcome record linked by forecast ID and h.
 
-`score_journaled_forecasts` reads those outcome rows and the frozen forecast probabilities. It does not rewrite the forecast. Brier/ECE/coverage stay null until the minimum sample gates in `packages/models/probability_walkforward.py` are met. The live AccuracyPanel prefers those journaled scores when present; otherwise it uses `walk_forward_probabilities`.
+`score_journaled_forecasts` reads those outcome rows and the frozen forecast probabilities. It does not rewrite the forecast. Brier/coverage stay null until the minimum sample gates in `packages/models/probability_walkforward.py` are met. ECE uses `packages/evaluator/held_out.py`: only live/non-fixture rows, later chronological 40%, n ≥ 15. Fixture mode never reports ECE. New journal payloads include `candle_source` (`fixture` or `binance-vision`); existing rows inherit the caller source and explicit `fixture` tags are excluded. The live AccuracyPanel prefers those journaled scores when present; otherwise it uses `walk_forward_probabilities`. Neither path is a promotion claim.
 
 ## Required metadata
 

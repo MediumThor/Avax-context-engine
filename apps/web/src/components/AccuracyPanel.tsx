@@ -62,7 +62,7 @@ const METRIC_ROWS = [
   {
     key: 'ece' as const,
     label: 'ECE (calibration)',
-    definition: 'Expected calibration error from the evaluation run. Lower is better. Shown only when the caller supplies it.',
+    definition: 'Held-out expected calibration error on live/non-fixture forecasts. Lower is better. Null on fixture data or when the later chronological slice is too small. Shown only when the caller supplies it.',
   },
   {
     key: 'coverage' as const,
