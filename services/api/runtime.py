@@ -21,6 +21,7 @@ from packages.models import (
     emit_quantile_forecast,
     walk_forward_baselines,
 )
+from packages.models.outcomes import mature_outcomes
 
 
 SOURCE = "binance-vision"
@@ -143,6 +144,7 @@ class PrototypeRuntime:
             manifest_id = self.store.manifest(source, symbol, "5m").sha256[:16]
         except Exception:
             pass
+        outcomes = {"forecasts_scanned": 0, "outcomes_written": 0}
         if persist and not is_engaged():
             self.journal.get_or_append(
                 forecast_id=f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}",
@@ -154,14 +156,34 @@ class PrototypeRuntime:
                 feature_schema_version=feature_schema,
                 data_manifest_id=manifest_id,
             )
+            self._journal_prior_origin(symbol, candles, btc, as_of=as_of, manifest_id=manifest_id)
+            outcomes = mature_outcomes(self.journal, candles, symbol, as_of=as_of)
         latest = self.journal.latest(symbol)
         return {
             "forecast": payload,
             "journaled": latest is not None and latest["forecasted_at"] == payload["forecasted_at"],
             "context_snapshot_id": snapshot_id,
             "feature_schema_version": feature_schema,
+            "outcomes": outcomes,
             "kill_switch_blocked_write": persist and is_engaged(),
         }
+
+    def _journal_prior_origin(self, symbol: str, candles, btc, as_of, manifest_id) -> None:
+        """Journal T-10 so h=1..10 can mature on the same persist without rewriting T."""
+        visible = _visible_closed(candles, as_of)
+        if len(visible) < 40:
+            return
+        earlier = visible[:-10]
+        prior = self.emit_live_forecast(earlier, as_of=earlier[-1].close_time(), btc=btc)
+        self.journal.get_or_append(
+            forecast_id=f"{symbol}:{prior['forecasted_at']}:{prior['model_id']}",
+            symbol=symbol,
+            forecasted_at=prior["forecasted_at"],
+            model_id=prior["model_id"],
+            payload=prior,
+            feature_schema_version=prior.get("feature_schema_version") or FEATURE_SCHEMA,
+            data_manifest_id=manifest_id,
+        )
 
     def emit_live_forecast(self, candles, as_of: datetime | None = None, btc=None) -> dict[str, Any]:
         """Prefer leakage-safe empirical quantiles; fall back to honest drift20."""

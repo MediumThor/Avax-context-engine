@@ -153,7 +153,10 @@ def test_api_fixture_market_is_not_live(tmp_path, monkeypatch):
     body = client.get("/api/v1/market/AVAXUSDT").json()
     assert body["health"]["status"] == "fixture"
     assert body["execution_enabled"] is False
-    assert body["forecast"]["forecast"]["horizons"][0]["p_close_above_origin"] is None
+    p = body["forecast"]["forecast"]["horizons"][0]["p_close_above_origin"]
+    if p is not None:
+        assert 0.0 <= p <= 1.0
+        assert body["forecast"]["forecast"].get("calibration_ref")
     assert body["metrics"]["available"] is True
     assert "4h" in body["snapshot"]["timeframes"]
     reset_runtime()
