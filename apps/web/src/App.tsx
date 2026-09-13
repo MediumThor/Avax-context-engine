@@ -183,6 +183,28 @@ export default function App() {
             <p className="muted">{market?.interpretation || 'Waiting for snapshot.'}</p>
           </section>
           <section className="card">
+            <h2>Thesis</h2>
+            {(market?.snapshot.theses ?? []).length === 0 && (
+              <p className="muted">{market?.interpretation || 'No competing theses at this as_of.'}</p>
+            )}
+            {(market?.snapshot.theses ?? []).map((thesis) => (
+              <div className={`thesis ${thesis.direction === 'bear' ? 'bear' : 'bull'}`} key={thesis.id}>
+                <b>
+                  {thesis.timeframe} {thesis.direction} · {thesis.status}
+                </b>
+                <p>
+                  {thesis.kind} · {thesis.regime_relation ?? 'unknown'} · {thesis.note}
+                  {thesis.ledger === 'journaled' ? ' · ledger journaled' : ''}
+                </p>
+                {(thesis.invalidation_rules ?? []).map((rule) => (
+                  <p key={rule.id}>
+                    Invalidation ({rule.timeframe}): {rule.kind} {rule.price.toFixed(3)} — frozen at open
+                  </p>
+                ))}
+              </div>
+            ))}
+          </section>
+          <section className="card">
             <h2>Forecast · next 10</h2>
             <p className="muted">
               {severed
@@ -220,28 +242,6 @@ export default function App() {
               modelId={market?.forecast.forecast.model_id ?? 'baseline.drift20'}
               coverageInterval="q10–q90 residual vs drift20"
             />
-          </section>
-          <section className="card">
-            <h2>Thesis</h2>
-            {(market?.snapshot.theses ?? []).length === 0 && (
-              <p className="muted">{market?.interpretation || 'No competing theses at this as_of.'}</p>
-            )}
-            {(market?.snapshot.theses ?? []).map((thesis) => (
-              <div className={`thesis ${thesis.direction === 'bear' ? 'bear' : 'bull'}`} key={thesis.id}>
-                <b>
-                  {thesis.timeframe} {thesis.direction} · {thesis.status}
-                </b>
-                <p>
-                  {thesis.kind} · {thesis.regime_relation ?? 'unknown'} · {thesis.note}
-                  {thesis.ledger === 'journaled' ? ' · ledger journaled' : ''}
-                </p>
-                {(thesis.invalidation_rules ?? []).map((rule) => (
-                  <p key={rule.id}>
-                    Invalidation ({rule.timeframe}): {rule.kind} {rule.price.toFixed(3)} — frozen at open
-                  </p>
-                ))}
-              </div>
-            ))}
           </section>
           <section className="card">
             <h2>Zones</h2>
