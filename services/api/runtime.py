@@ -33,6 +33,7 @@ FEATURE_SCHEMA = "1"
 QUANTILE_LOOKBACK = 400
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
 SHADOW_CATCHUP_BUDGET = 24
+SHADOW_DRAIN_BUDGET = 200
 SHADOW_CATCHUP_MODEL = "baseline.drift20"
 
 
@@ -454,6 +455,37 @@ class PrototypeRuntime:
             "model_id": SHADOW_CATCHUP_MODEL,
             "note": "Catch-up uses drift20 only. Not a quantile emit and not a promotion claim.",
         }
+
+    def drain_shadow_journal(self, symbol: str, *, budget: int = SHADOW_DRAIN_BUDGET) -> dict[str, Any]:
+        """Fill more missing mature-able 5m origins. Does not emit a quantile or run a loop."""
+        if is_engaged():
+            return {
+                "wrote": 0,
+                "remaining": 0,
+                "model_id": SHADOW_CATCHUP_MODEL,
+                "blocked": True,
+                "note": "Kill switch blocks journal drain.",
+            }
+        capped = max(1, min(int(budget), 500))
+        candles = self.candles(symbol, limit=8000)
+        as_of = candles[-1].close_time() if candles else None
+        btc: list = []
+        try:
+            btc = self.candles("BTCUSDT", as_of=as_of, limit=8000)
+        except Exception:
+            btc = []
+        manifest_id = None
+        try:
+            source = "fixture" if self.use_fixture else SOURCE
+            manifest_id = self.store.manifest(source, symbol, "5m").sha256[:16]
+        except Exception:
+            pass
+        shadow = self._journal_shadow_origins(
+            symbol, candles, btc, as_of, manifest_id, budget=capped
+        )
+        shadow["blocked"] = False
+        shadow["budget"] = capped
+        return shadow
 
     def emit_live_forecast(self, candles, as_of: datetime | None = None, btc=None) -> dict[str, Any]:
         """Prefer leakage-safe empirical quantiles; fall back to honest drift20."""

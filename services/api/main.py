@@ -155,6 +155,19 @@ def get_loop(loop_id: str) -> dict:
         raise HTTPException(status_code=404, detail="loop trace not found") from exc
 
 
+@app.post("/api/v1/journal/catchup")
+def journal_catchup(
+    symbol: str = "AVAXUSDT",
+    budget: int = Query(default=200, ge=1, le=500),
+) -> dict:
+    """Drain missing mature-able 5m origins with drift20 only. No new quantile. No loop."""
+    try:
+        assert_not_severed()
+    except AgentsSevered as exc:
+        raise HTTPException(status_code=423, detail=str(exc)) from exc
+    return get_runtime().drain_shadow_journal(symbol.upper(), budget=budget)
+
+
 @app.get("/api/v1/theses/{thesis_id}")
 def get_thesis(thesis_id: str) -> dict:
     stored = get_runtime().journal.get_thesis(thesis_id)
