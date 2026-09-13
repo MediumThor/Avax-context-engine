@@ -18,3 +18,12 @@ Agent 07. Branch `cursor/heldout-live-ece-5716`. Source `main` `762e7b2`.
 ## Forbidden
 
 Do not rewrite `baselines.py`, recursive contracts, or PR 55 UI files. Do not fabricate ECE. Do not promote the research quantile path.
+
+## Completion evidence (branch `cursor/heldout-live-ece-5716`)
+
+- Candidate SHA: `b342932`
+- `python3 -m pytest -q`: **318 passed**, 3 skipped
+- Constitution integrity: pass
+- Fixture market `/api/v1/market` ECE is null; live held-out ECE is defined only when the later 40% has n ≥ 15
+- `promotion_allowed` remains false
+- PR 55 paths untouched

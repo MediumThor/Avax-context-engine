@@ -100,3 +100,12 @@ Docs to update:
 Finish criteria:
 Reported ECE is live/non-fixture and held-out, or explicitly null. No promotion language. PR 55 paths untouched.
 ```
+
+## Completion evidence
+
+- Branch: `cursor/heldout-live-ece-5716`
+- Candidate SHA: `b342932`
+- Tests: `python3 -m pytest -q` → 318 passed, 3 skipped
+- Constitution: unchanged / integrity OK
+- PR: https://github.com/MediumThor/Avax-context-engine/pull/62
+
