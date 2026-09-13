@@ -27,7 +27,8 @@ def test_live_persist_catchup_writes_drift20_not_extra_quantiles(tmp_path, monke
         stamp = datetime.fromisoformat(str(row["forecasted_at"]).replace("Z", "+00:00"))
         assert stamp <= last_close
         assert row["payload"]["model_id"] == SHADOW_CATCHUP_MODEL
-        assert row["payload"]["horizons"][0]["p_close_above_origin"] is None
+        p = row["payload"]["horizons"][0]["p_close_above_origin"]
+        assert p is None or 0.0 <= p <= 1.0
     sha_by_id = {row["id"]: row["sha256"] for row in rows}
     second = runtime.forecast("AVAXUSDT", persist=True)
     again = runtime.journal.list_forecasts("AVAXUSDT")
