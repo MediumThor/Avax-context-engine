@@ -27,6 +27,7 @@ def test_engage_severs_roster_and_blocks_loops(tmp_path: Path):
     assert is_engaged(paths["path"]) is True
     assert set(state["severed_task_ids"]) == {"RLH-27", "RLH-30"}
     assert "halt_new_loops" in state["effects"]
+    assert "pause_new_forecasts" in state["effects"]
     with pytest.raises(AgentsSevered):
         assert_not_severed(paths["path"])
     health = paths["health_path"].read_text(encoding="utf-8")
@@ -68,3 +69,42 @@ def test_api_kill_switch_blocks_loop_run(tmp_path: Path, monkeypatch: pytest.Mon
     assert reset_res.status_code == 200
     assert reset_res.json()["engaged"] is False
     assert client.post("/api/v1/loops/run").status_code == 200
+
+
+def test_header_pause_button_copy_exists():
+    source = Path("apps/web/src/components/AgentKillSwitch.tsx").read_text(encoding="utf-8")
+    app = Path("apps/web/src/App.tsx").read_text(encoding="utf-8")
+    assert "Pause predictions" in source
+    assert "Resume predictions" in source
+    assert "<AgentKillSwitch" in app
+    assert 'className="topbar"' in app
+    assert 'className="topbarMeta"' in app
+
+
+def test_pause_blocks_new_forecast_journal_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from services.api.runtime import PrototypeRuntime, reset_runtime
+
+    monkeypatch.setenv("AVAX_KILL_SWITCH_PATH", str(tmp_path / "kill-switch.json"))
+    monkeypatch.setenv("AVAX_WATCHER_TASKS_PATH", str(tmp_path / "active-tasks.json"))
+    monkeypatch.setenv("AVAX_WATCHER_HEALTH_PATH", str(tmp_path / "recursive-health.json"))
+    monkeypatch.setenv("AVAX_USE_FIXTURE", "1")
+    monkeypatch.setenv("AVAX_MARKET_DB", str(tmp_path / "m.db"))
+    monkeypatch.setenv("AVAX_JOURNAL_DB", str(tmp_path / "j.db"))
+    reset_runtime()
+    client = TestClient(app)
+    paused = client.post(
+        "/api/v1/agents/kill-switch",
+        json={"reason": "pause predictions", "actor": "ui"},
+    )
+    assert paused.status_code == 200
+    assert paused.json()["engaged"] is True
+    assert "pause_new_forecasts" in paused.json()["effects"]
+    runtime = PrototypeRuntime(tmp_path / "direct-m.db", tmp_path / "direct-j.db", use_fixture=True)
+    blocked = runtime.forecast("AVAXUSDT", persist=True)
+    assert blocked["kill_switch_blocked_write"] is True
+    assert blocked["journaled"] is False
+    assert runtime.journal.latest("AVAXUSDT") is None
+    runtime.close()
+    market = client.get("/api/v1/market/AVAXUSDT").json()
+    assert market["forecast"]["kill_switch_blocked_write"] is True
+    reset_runtime()

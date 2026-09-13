@@ -186,7 +186,7 @@ Recursive learning means:
 
 Agent 00 monitors RLH continuously using [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md).
 
-The operator kill switch (UI + `POST /api/v1/agents/kill-switch`) marks active RLH tasks severed, freezes promotion, and makes new loop runs fail closed. Journaled traces stay. Trading stays off.
+The operator kill switch (header **Pause predictions** + `POST /api/v1/agents/kill-switch`) marks active RLH tasks severed, freezes promotion, skips new live forecast journal writes, and makes new loop runs fail closed. Journaled traces stay. Trading stays off.
 
 Lanes 25-30 own implementation. Lanes 36-39 try to break it. Ready-to-launch contracts are in [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md).
 

@@ -133,6 +133,7 @@ def engage(
             "severed_task_ids": severed,
             "effects": [
                 "halt_new_loops",
+                "pause_new_forecasts",
                 "freeze_promotion",
                 "sever_active_agent_tasks",
                 "harness_degraded",

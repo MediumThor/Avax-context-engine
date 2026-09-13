@@ -44,7 +44,7 @@ Every service exposes health information including:
 
 Aggregate health must be available through `/health` and the Web App.
 
-The recursive agent kill switch is an operability control, not a model parameter. `GET/POST /api/v1/agents/kill-switch` and `POST /api/v1/agents/kill-switch/reset` are the API. Engaged state must appear in `/health`.
+The recursive agent kill switch is an operability control, not a model parameter. The Web App header **Pause predictions** button calls `GET/POST /api/v1/agents/kill-switch` and `POST /api/v1/agents/kill-switch/reset`. Engaged state must appear in `/health` and must skip new live forecast journal writes.
 
 ## Logging
 

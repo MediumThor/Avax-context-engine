@@ -122,22 +122,25 @@ export default function App() {
           <span className="eyebrow">AVAX / USDT · main</span>
           <h1>Context Engine</h1>
         </div>
-        <div className={`health ${severed ? 'severedHealth' : live ? '' : 'staleHealth'}`}>
-          <span className="dot" />
-          {severed
-            ? 'AGENTS SEVERED · READ ONLY'
-            : health === 'live'
-              ? `LIVE · as of ${market?.as_of ?? ''}`
-              : health === 'fixture'
-                ? `FIXTURE · as of ${market?.as_of ?? ''}`
-                : health === 'stale'
-                  ? `STALE · as of ${market?.as_of ?? ''}`
-                  : 'DATA UNAVAILABLE'}
+        <div className="topbarMeta">
+          <div className={`health ${severed ? 'severedHealth' : live ? '' : 'staleHealth'}`}>
+            <span className="dot" />
+            {severed
+              ? 'PREDICTIONS PAUSED · READ ONLY'
+              : health === 'live'
+                ? `LIVE · as of ${market?.as_of ?? ''}`
+                : health === 'fixture'
+                  ? `FIXTURE · as of ${market?.as_of ?? ''}`
+                  : health === 'stale'
+                    ? `STALE · as of ${market?.as_of ?? ''}`
+                    : 'DATA UNAVAILABLE'}
+          </div>
+          <AgentKillSwitch state={kill} error={killError} onChange={setKill} />
         </div>
       </header>
       {severed && (
         <div className="banner" role="status">
-          Recursive Learning Harness agents are severed. Market context and journaled forecasts remain; no agent may continue until reset.
+          Prediction agents are paused. Last journaled forecast remains; no new forecast or loop is written until resume.
         </div>
       )}
       {market?.replay && (
@@ -145,7 +148,6 @@ export default function App() {
           Replay at {market.as_of}. Future candles after this timestamp are hidden. <button type="button" className="quiet" onClick={exitReplay}>Exit replay</button>
         </div>
       )}
-      <AgentKillSwitch state={kill} error={killError} onChange={setKill} />
       <section className="workspace">
         <div className="chartPanel">
           <div className="chartHeader">
@@ -184,7 +186,7 @@ export default function App() {
             <h2>Forecast · next 10</h2>
             <p className="muted">
               {severed
-                ? 'Harness degraded. Journaled forecast stays as written; no new loop will run.'
+                ? 'Predictions paused. Journaled forecast stays as written; no new forecast is written until resume.'
                 : market?.forecast.forecast.notes || 'No journaled forecast yet.'}
             </p>
             {market && (

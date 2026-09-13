@@ -19,61 +19,61 @@ export function AgentKillSwitch({ state, error, onChange }: Props) {
     try {
       const next =
         kind === 'engage'
-          ? await engageKillSwitch('Operator kill switch: sever all recursive agent work')
-          : await resetKillSwitch('Operator reset: resume prototype on main')
+          ? await engageKillSwitch('Operator pause: stop new prediction writes and recursive agent loops')
+          : await resetKillSwitch('Operator resume: allow new prediction writes on main')
       onChange(next)
       setConfirm(null)
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'kill switch failed')
+      setLocalError(err instanceof Error ? err.message : 'pause control failed')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <section className={`killSwitch ${engaged ? 'engaged' : ''}`} aria-label="Recursive agent kill switch">
-      <div className="killCopy">
-        <span className="eyebrow">{engaged ? 'Agents severed' : 'Recursive agents'}</span>
-        <strong>{engaged ? 'KILL SWITCH ENGAGED' : 'Prototype on main'}</strong>
-        <p>
-          {engaged
-            ? `All RLH / wave-1 agent work is halted. ${state?.severed_task_ids.length ?? 0} tasks severed. Journal and forecasts stay.`
-            : 'One line of work on main. This switch severs every recursive agent immediately.'}
-        </p>
-        {(error || localError) && <p className="killError">{error || localError}</p>}
-      </div>
-      <div className="killActions">
-        {!engaged && (
-          <button type="button" className="danger" disabled={busy} onClick={() => setConfirm('engage')}>
-            Kill all agents
-          </button>
-        )}
-        {engaged && (
-          <button type="button" className="ghost" disabled={busy} onClick={() => setConfirm('reset')}>
-            Reset switch
-          </button>
-        )}
-      </div>
+    <div className={`pauseControl ${engaged ? 'paused' : ''}`} aria-label="Prediction agent pause">
+      <button
+        type="button"
+        className={engaged ? 'pauseBtn resume' : 'pauseBtn'}
+        disabled={busy}
+        aria-pressed={engaged}
+        aria-haspopup="dialog"
+        onClick={() => setConfirm(engaged ? 'reset' : 'engage')}
+      >
+        {engaged ? 'Resume predictions' : 'Pause predictions'}
+      </button>
+      {(error || localError) && (
+        <span className="killError" role="alert">
+          {error || localError}
+        </span>
+      )}
       {confirm && (
-        <div className="confirm" role="dialog" aria-modal="true" aria-labelledby="kill-confirm-title">
-          <h3 id="kill-confirm-title">
-            {confirm === 'engage' ? 'Sever all recursive agent work?' : 'Reset the kill switch?'}
-          </h3>
-          <p>
-            {confirm === 'engage'
-              ? 'This halts new loops, freezes promotion, and marks every launched agent task severed. It does not delete journals or turn on trading.'
-              : 'Agents may run again on main. The engage/reset audit trail stays append-only.'}
-          </p>
-          <div className="killActions">
-            <button type="button" className={confirm === 'engage' ? 'danger' : 'ghost'} disabled={busy} onClick={() => run(confirm)}>
-              {confirm === 'engage' ? 'Yes, sever them' : 'Yes, reset'}
-            </button>
-            <button type="button" className="quiet" disabled={busy} onClick={() => setConfirm(null)}>
-              Cancel
-            </button>
+        <div className="confirmSheet" role="dialog" aria-modal="true" aria-labelledby="pause-confirm-title">
+          <div className="confirmCard">
+            <h3 id="pause-confirm-title">
+              {confirm === 'engage' ? 'Pause prediction agents?' : 'Resume prediction agents?'}
+            </h3>
+            <p>
+              {confirm === 'engage'
+                ? 'This stops new live forecast journal writes, blocks new loops, and freezes promotion. Journaled forecasts stay. Trading stays off. Connected agents stop cooperatively; this does not forcibly terminate an unconnected external process.'
+                : 'Prediction agents may write new forecasts and run loops again. The pause/resume audit trail stays append-only.'}
+            </p>
+            <div className="killActions">
+              <button
+                type="button"
+                className={confirm === 'engage' ? 'danger' : 'ghost'}
+                disabled={busy}
+                onClick={() => run(confirm)}
+              >
+                {confirm === 'engage' ? 'Yes, pause them' : 'Yes, resume'}
+              </button>
+              <button type="button" className="quiet" disabled={busy} onClick={() => setConfirm(null)}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
-    </section>
+    </div>
   )
 }
