@@ -1,7 +1,8 @@
 export const DEFAULT_SYMBOL = 'AVAXUSDT'
 
 export const DEST_IDS = ['market', 'replay', 'accuracy', 'health', 'more'] as const
-export type DestId = (typeof DEST_IDS)[number]
+export const SECONDARY_DESTS = ['benchmarks', 'models'] as const
+export type DestId = (typeof DEST_IDS)[number] | (typeof SECONDARY_DESTS)[number]
 
 export const SHEET_PANELS = ['context', 'forecast', 'thesis', 'journal'] as const
 export type SheetPanel = (typeof SHEET_PANELS)[number]
@@ -19,6 +20,8 @@ export const DEST_LABELS: Record<DestId, string> = {
   accuracy: 'Accuracy',
   health: 'Health',
   more: 'More',
+  benchmarks: 'Benchmarks',
+  models: 'Models',
 }
 
 const SYMBOL_RE = /^[A-Z0-9]{3,20}$/
@@ -93,6 +96,12 @@ export function parseLocation(pathname: string, search = ''): RouteState {
   if (head === 'health') {
     return { dest: 'health', symbol: DEFAULT_SYMBOL, asOf: null, panel: 'context', tf: DEFAULT_TF }
   }
+  if (head === 'benchmarks') {
+    return { dest: 'benchmarks', symbol: DEFAULT_SYMBOL, asOf: null, panel: 'context', tf: DEFAULT_TF }
+  }
+  if (head === 'models') {
+    return { dest: 'models', symbol: DEFAULT_SYMBOL, asOf: null, panel: 'context', tf: DEFAULT_TF }
+  }
   if (head === 'more' || head === 'system') {
     return { dest: 'more', symbol: DEFAULT_SYMBOL, asOf: null, panel: 'context', tf: DEFAULT_TF }
   }
@@ -114,6 +123,10 @@ export function pathFor(route: RouteState): string {
       return '/accuracy'
     case 'health':
       return '/health'
+    case 'benchmarks':
+      return '/benchmarks'
+    case 'models':
+      return '/models'
     case 'more':
       return '/more'
   }
@@ -167,6 +180,12 @@ export function destRoute(dest: DestId, current: RouteState, replayHint: string 
   }
   if (dest === 'health') {
     return { dest: 'health', symbol: current.symbol, asOf: null, panel: 'context', tf: current.tf }
+  }
+  if (dest === 'benchmarks') {
+    return { dest: 'benchmarks', symbol: current.symbol, asOf: null, panel: 'context', tf: current.tf }
+  }
+  if (dest === 'models') {
+    return { dest: 'models', symbol: current.symbol, asOf: null, panel: 'context', tf: current.tf }
   }
   return { dest: 'more', symbol: current.symbol, asOf: null, panel: 'context', tf: current.tf }
 }

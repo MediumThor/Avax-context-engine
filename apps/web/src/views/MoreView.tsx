@@ -1,16 +1,19 @@
 import type { SystemPayload } from '../api/health'
 import type { ShadowJournalStatus } from '../api/types'
+import type { DestId } from '../nav/destinations'
 
 export function MoreView({
   system,
   shadow,
   loading,
   error,
+  onNavigate,
 }: {
   system: SystemPayload | null
   shadow?: ShadowJournalStatus
   loading: boolean
   error: string | null
+  onNavigate?: (dest: DestId) => void
 }) {
   return (
     <div className="pageView" aria-label="More">
@@ -69,12 +72,19 @@ export function MoreView({
         )}
       </section>
       <section className="card">
-        <h2>Not in this shell</h2>
+        <h2>Catalog</h2>
         <p className="muted">
-          /benchmarks and /models are listed in the navigation directive and are not implemented
-          here. Missing destinations are absent, not scored. Do not treat this page as calibration
-          evidence.
+          These are secondary destinations. They are not a sixth bottom-nav item. They name gates
+          and model roles. They do not invent ECE or promote a challenger.
         </p>
+        <div className="row">
+          <button type="button" className="quiet" onClick={() => onNavigate?.('benchmarks')}>
+            Benchmarks
+          </button>
+          <button type="button" className="quiet" onClick={() => onNavigate?.('models')}>
+            Models
+          </button>
+        </div>
       </section>
     </div>
   )
