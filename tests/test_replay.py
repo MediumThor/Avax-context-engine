@@ -190,9 +190,9 @@ def test_5m_relief_does_not_overwrite_completed_4h_bearish_parent():
     assert after.timeframes["4h"]["close"] == parent_close
     assert after.timeframes["4h"]["regime"] != "bullish"
     # Incomplete new 4H parent (12 of 48 five-minute bars) must not appear.
-    parent_time = datetime.fromisoformat(parent_as_of.replace("Z", "+00:00"))
+    last_4h_close = datetime.fromisoformat(parent_as_of.replace("Z", "+00:00")) + timedelta(hours=4)
     assert after.timeframes["4h"]["as_of"] == before.timeframes["4h"]["as_of"]
-    assert period_end(relief[-1]) - parent_time < timedelta(hours=4)
+    assert last_4h_close <= period_end(relief[-1]) < last_4h_close + timedelta(hours=4)
 
 
 def test_engine_and_schema_version_recorded_on_persisted_snapshots():
