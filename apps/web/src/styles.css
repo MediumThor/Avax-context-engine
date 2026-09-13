@@ -5,3 +5,22 @@
 .sheetTab{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .sheetBadge{display:inline-block;min-width:20px;padding:2px 6px;border-radius:999px;background:#3a2a12;color:#f0c36a;font-size:11px;font-variant-numeric:tabular-nums;line-height:1.2}
 @media(max-width:900px){.health{max-width:220px}}
+.destLayout{flex:1 1 auto;min-height:0;display:flex;overflow:hidden}
+.destBody{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.destBody .workspace{flex:1 1 auto;min-height:0}
+.destNav{display:flex;gap:4px;flex:0 0 auto}
+.destBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1 1 0;min-height:44px;min-width:44px;border:0;border-radius:8px;background:transparent;color:#9aa5b3;font-weight:600;cursor:pointer}
+.destBtn[aria-current="page"]{color:#eef3f8;background:#151b24}
+.pageView{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:12px}
+.shell.dest-accuracy .destBody,.shell.dest-health .destBody,.shell.dest-more .destBody{overflow:hidden}
+@media(max-width:900px){
+  .destLayout{flex-direction:column}
+  .destBody{order:1}
+  .destNav{order:2;padding:4px 0 2px;border-top:1px solid #1c2430;background:#07090d}
+  .destBody .workspace{height:100%;max-height:100%}
+}
+@media(min-width:901px){
+  .destNav{flex-direction:column;width:128px;padding:0 10px 0 0}
+  .destBtn{width:100%;justify-content:flex-start;padding:10px 12px}
+  .destBody .workspace{height:100%;max-height:100%}
+}
