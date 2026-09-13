@@ -113,6 +113,17 @@ Mandatory baselines:
 
 Optional external/open-source strategy baselines may be added, but licenses and exact versions must be recorded.
 
+## Leverage-aware simulation (research only)
+
+When the owner wants to know whether forecasts would have helped a **leveraged** AVAX operator, score an extra overlay after the core metrics:
+
+- apply predeclared fees and slippage;
+- accrue funding only from rates published at or before `forecasted_at`, or mark the run `funding_assumed`;
+- if adverse excursion hits a predeclared liquidation/stop barrier, count a full simulated loss even if price later recovered;
+- report `sample_count` and abstentions; never a bare win rate.
+
+This overlay never places an order. Promotion still requires the core walk-forward gate in [`Prediction-Improvement-Loop.md`](Prediction-Improvement-Loop.md).
+
 ## Statistical caution
 
 Do not overinterpret tiny accuracy differences. Report confidence intervals or bootstrap uncertainty where valid for time-series dependence, and examine stability across windows/regimes.

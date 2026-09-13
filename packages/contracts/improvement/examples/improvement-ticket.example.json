@@ -1,0 +1,31 @@
+{
+  "id": "IMP-001",
+  "residual": "AVAX forecasts have almost no real BTC/ETH state so sync versus decouple is invisible",
+  "hypothesis": "Leakage-safe BTC/ETH regime and rolling beta at as_of beats AVAX-only drift20 walk-forward on predeclared windows",
+  "write_scope": [
+    "packages/market_data/**",
+    "packages/context_engine/**",
+    "packages/evaluator/**"
+  ],
+  "forbidden_scope": [
+    "CONSTITUTION.md",
+    "any execution path"
+  ],
+  "depends_on_gaps": ["GAP-BTC-ETH-LIVE"],
+  "depends_on_access": [],
+  "metrics_gate": {
+    "target": "AVAXUSDT 5m horizons 1-10",
+    "validation": "walk_forward",
+    "primary_metric": "mae_or_signed_direction vs drift20",
+    "baseline_ids": ["baseline.zero", "baseline.drift20"],
+    "n_min": 200,
+    "leverage_sim": false,
+    "must_not": "flip September 2026 4H bear on the 5m relief bounce"
+  },
+  "regressions": [
+    "avax-2026-09-failed-8",
+    "parent-child-split"
+  ],
+  "status": "proposed",
+  "created_at": "2026-09-13T10:00:00Z"
+}

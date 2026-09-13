@@ -12,7 +12,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 | 3 — Forecasting | Journaled next-10 quantiles + walk-forward vs drift20 on `main` (`80a4d70`); challenger now training on `avax.features.mtf.v1` (this branch, not promoted) |
 | 4 — Journal/evaluation | Journal + walk-forward baseline MAE; this branch adds walk-forward Brier/ECE/coverage for empirical P(up) and residual q10–q90 when n is sufficient. Not a promotion claim. |
 | 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; not wired to live forecasts |
-| 6 — Web App | ForecastFan / overlays / AccuracyPanel mounted; fan draws only when q10/q50/q90 are journaled |
+| 6 — Web App | ForecastFan / overlays / AccuracyPanel / snapshot theses mounted; live Binance chart + 5m–1W switcher; fan draws only when q10/q50/q90 are journaled |
 | 7-10 | Not complete |
 
 Honest slice on `main` (`811ea80`):
@@ -25,6 +25,18 @@ Honest slice on `main` (`811ea80`):
 This branch additionally journals leakage-safe empirical q10/q50/q90 (research model id `freqai.quantiles.research.v1`) when enough history exists, plus the MTF feature snapshot. It does **not** claim the challenger beats drift20.
 
 Agent 00 updates status only after tests pass on an accepted `main` SHA.
+
+## Prediction improvement loop
+
+Continuous forecast-quality work follows [`Prediction-Improvement-Loop.md`](Prediction-Improvement-Loop.md) and sits under [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md):
+
+1. Diagnose code and journal residuals.
+2. Record missing information in [`Information-Gaps.md`](Information-Gaps.md).
+3. Discover public sources; **ask the owner** for keys, paid APIs, or wallet labels.
+4. Implement a bounded ticket with a frozen walk-forward gate.
+5. Promote, reject, or hold from an append-only outcome. Residual error becomes the next ticket.
+
+This loop is decision-support for a leveraged AVAX operator. It does not enable live execution.
 
 ## Phase 0 — Foundation and governance
 

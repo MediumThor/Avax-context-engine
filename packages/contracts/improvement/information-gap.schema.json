@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/improvement/information-gap.schema.json",
+  "title": "InformationGap",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gap_id",
+    "family",
+    "status",
+    "decision_it_changes",
+    "candidate_sources",
+    "access",
+    "leakage_notes",
+    "updated_at"
+  ],
+  "properties": {
+    "gap_id": { "type": "string", "minLength": 5, "pattern": "^GAP-[A-Z0-9-]+$" },
+    "family": { "type": "string", "minLength": 3 },
+    "status": {
+      "type": "string",
+      "enum": ["missing", "partial", "blocked-on-access", "ingested", "rejected"]
+    },
+    "decision_it_changes": { "type": "string", "minLength": 8 },
+    "candidate_sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 3 }
+    },
+    "access": {
+      "type": "string",
+      "enum": ["none", "key", "paid", "owner-list", "denied"]
+    },
+    "access_request_id": { "type": ["string", "null"] },
+    "leakage_notes": { "type": "string", "minLength": 8 },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

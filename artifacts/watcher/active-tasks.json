@@ -1,50 +1,52 @@
 {
-  "batch": "WAVE-2-post-integrate",
+  "batch": "WATCH-00-merge-all-branches",
   "model": "Grok 4.6",
   "canonical_branch": "main",
   "integration_target": "main",
   "branch_mode": "ephemeral-isolation-direct-main-integration",
   "watcher": "00",
-  "updated_at": "2026-09-13T11:40:00Z",
-  "main_sha": "811ea804aae12f4b42b375ed3307e6fd5cacfd17",
+  "updated_at": "2026-09-13T13:05:00Z",
+  "main_sha": "c9a56c27682ec408e001a5a6ed92ab15f5df74ee",
   "notes": [
-    "WAVE-2 integrate and honest-slice PR 8 are on main (811ea80).",
+    "Operator asked to merge all remotes onto main.",
+    "Most cursor/foundation/integration refs are already ancestors of main (0 unique commits).",
+    "Reconciled unique work: PR 37 theses, PR 35 live chart, PR 13 improvement loop.",
+    "Skipped PR 7 rlh-main-prototype: kill-switch work already on main; replaying it would regress App.tsx.",
     "packages/contracts/recursive/ remains Agent 25 locked.",
     "CONSTITUTION.md is immutable.",
-    "Do not rewrite packages/models/baselines.py.",
-    "Leave PR 13 (prediction-improvement-loop) unmerged until reviewed.",
-    "Watcher wiring live quantiles + MTF feature journal on cursor/empirical-quantiles-8771."
+    "Do not rewrite packages/models/baselines.py."
   ],
   "tasks": [
+    {
+      "id": "WATCH-00-MERGE",
+      "agent": "00",
+      "title": "Reconcile remaining unique branches onto main",
+      "status": "active",
+      "branch": "cursor/merge-all-branches-a127",
+      "write_scope": [
+        "apps/web/**",
+        "packages/context_engine/**",
+        "packages/market_data/binance.py",
+        "packages/contracts/improvement/**",
+        "services/api/**",
+        "tests/**",
+        "wiki/**",
+        "artifacts/watcher/**"
+      ]
+    },
     {
       "id": "WAVE2-00-EQ",
       "agent": "00",
       "title": "Journaled empirical next-10 quantiles + MTF features",
-      "status": "active",
-      "branch": "cursor/empirical-quantiles-8771",
-      "write_scope": [
-        "services/api/runtime.py",
-        "packages/models/freqai_quantiles.py",
-        "packages/models/__init__.py",
-        "packages/journal/journal.py",
-        "apps/web/src/api/types.ts",
-        "apps/web/src/components/ForecastFan.tsx",
-        "apps/web/src/App.tsx",
-        "tests/test_live_quantile_journal.py",
-        "wiki/tasks/WAVE2-00-empirical-quantiles.md"
-      ]
+      "status": "on_main",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/30"
     },
     {
       "id": "WAVE2-05",
       "agent": "05",
       "title": "Research-only FreqAI quantile emitter",
-      "status": "included_on_watcher_branch",
-      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/29",
-      "write_scope": [
-        "packages/models/freqai_quantiles.py",
-        "adapters/freqtrade/**",
-        "tests/test_freqai_quantiles.py"
-      ]
+      "status": "on_main",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/29"
     },
     {
       "id": "SLICE-001",
@@ -52,6 +54,13 @@
       "title": "Honest market slice PR 8",
       "status": "on_main",
       "pr": "https://github.com/MediumThor/Avax-context-engine/pull/8"
+    },
+    {
+      "id": "IMP-000",
+      "agent": "00/36",
+      "title": "Prediction improvement loop playbook",
+      "status": "included_on_watcher_branch",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/13"
     }
   ]
 }
