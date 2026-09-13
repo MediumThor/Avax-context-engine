@@ -35,8 +35,8 @@ Use Lightweight Charts directly; do not recreate a charting engine.
 Required layers:
 
 - OHLC candles;
-- volume histogram;
-- EMA overlays configurable 9/20/50/100/200;
+- volume histogram (drawn under the candles when `volume` is present on the market payload);
+- EMA overlays configurable 9/20/50/100/200 (live 5m pane draws EMA20/EMA50 from closed closes known at each bar; later candles cannot move earlier values);
 - validated support/resistance **zones** as shaded ranges, not arbitrary thin lines;
 - swing pivots;
 - breakout/retest/failure markers;

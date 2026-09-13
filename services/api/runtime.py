@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from packages.context_engine import ContextEngine
+from packages.context_engine.indicators import ema
 from packages.features import FEATURE_SCHEMA_VERSION as MTF_FEATURE_SCHEMA
 from packages.features import assemble_features
 from packages.fixtures import btc_companion, sept_2026_failed_breakout
@@ -571,16 +572,7 @@ class PrototypeRuntime:
             health["status"] = "fixture"
         forecast = self.forecast(symbol, as_of=as_of or last_close, persist=should_persist, snap=snap)
         metrics = self.metrics(symbol, as_of=as_of or last_close)
-        chart = [
-            {
-                "time": int(c.open_time.timestamp()),
-                "open": c.open,
-                "high": c.high,
-                "low": c.low,
-                "close": c.close,
-            }
-            for c in candles[-chart_limit:]
-        ]
+        chart = _chart_rows(candles, chart_limit)
         hint = None
         if self.use_fixture:
             from packages.fixtures import bounce_start_index, sept_2026_failed_breakout
@@ -616,6 +608,33 @@ def _origin_stamp(value: datetime | str | None) -> str:
     if stamp.tzinfo is None:
         stamp = stamp.replace(tzinfo=timezone.utc)
     return stamp.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _chart_rows(candles, chart_limit: int) -> list[dict[str, Any]]:
+    """OHLCV plus EMA20/50 from closes known at each bar. Later bars cannot move earlier EMAs."""
+    visible = [c for c in candles if getattr(c, "is_closed", True)]
+    closes = [c.close for c in visible]
+    ema20s = ema(closes, 20) if closes else []
+    ema50s = ema(closes, 50) if closes else []
+    window = visible[-chart_limit:]
+    offset = len(visible) - len(window)
+    rows: list[dict[str, Any]] = []
+    for i, candle in enumerate(window):
+        idx = offset + i
+        row: dict[str, Any] = {
+            "time": int(candle.open_time.timestamp()),
+            "open": candle.open,
+            "high": candle.high,
+            "low": candle.low,
+            "close": candle.close,
+            "volume": candle.volume,
+        }
+        if idx < len(ema20s):
+            row["ema20"] = ema20s[idx]
+        if idx < len(ema50s):
+            row["ema50"] = ema50s[idx]
+        rows.append(row)
+    return rows
 
 
 def _visible_closed(candles, as_of: datetime | None) -> list:
