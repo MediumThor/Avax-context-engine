@@ -1,0 +1,15 @@
+{
+  "fixture_id": "stale-data",
+  "purpose": "Stale or unknown data health must halt degraded; no confident forecast language.",
+  "as_of": null,
+  "promotion_allowed": false,
+  "required": true,
+  "artifacts": {
+    "candles.jsonl": "TODO",
+    "encoder_memory.json": "TODO",
+    "forecast_package.json": "TODO",
+    "loop_trace.json": "TODO",
+    "expected_invariants.json": "present",
+    "notes.md": "present"
+  }
+}

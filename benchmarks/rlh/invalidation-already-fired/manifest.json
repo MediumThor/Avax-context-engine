@@ -1,0 +1,15 @@
+{
+  "fixture_id": "invalidation-already-fired",
+  "purpose": "Loop must close or respect a thesis whose invalidation already fired; must not move the level.",
+  "as_of": null,
+  "promotion_allowed": false,
+  "required": true,
+  "artifacts": {
+    "candles.jsonl": "TODO",
+    "encoder_memory.json": "TODO",
+    "forecast_package.json": "TODO",
+    "loop_trace.json": "TODO",
+    "expected_invariants.json": "present",
+    "notes.md": "present"
+  }
+}
