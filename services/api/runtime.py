@@ -27,6 +27,9 @@ from packages.models.outcomes import mature_outcomes
 SOURCE = "binance-vision"
 FEATURE_SCHEMA = "1"
 QUANTILE_LOOKBACK = 400
+LIVE_LOOKBACK_DAYS = 10
+LIVE_FRESH_SECONDS = 6 * 60
+LIVE_PULL_MIN_INTERVAL = 15
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
 
 
@@ -52,6 +55,8 @@ class PrototypeRuntime:
         self.source_label = "fixture" if self.use_fixture else SOURCE
         self._snap_cache: dict[tuple, object] = {}
         self._metrics_cache: dict[tuple, dict] = {}
+        self._last_pull: dict[str, datetime] = {}
+        self._live_error: str | None = None
         if self.use_fixture:
             self._seed_fixture()
 
@@ -66,28 +71,67 @@ class PrototypeRuntime:
         self.source_label = "fixture"
 
     def _ensure(self, symbol: str) -> None:
-        existing = self.store.load(self.source_label if self.use_fixture else SOURCE, symbol, "5m")
-        if existing:
-            return
         if self.use_fixture:
-            self._seed_fixture()
+            existing = self.store.load("fixture", symbol, "5m")
+            if not existing:
+                self._seed_fixture()
+            return
+        self._refresh_live(symbol)
+
+    def _pull_live_candles(self, symbol: str, after: datetime | None = None) -> list:
+        from packages.market_data import BinanceVisionClient
+
+        client = BinanceVisionClient(timeout=20.0)
+        try:
+            if after is None:
+                return list(client.iter_recent_days(symbol, "5m", LIVE_LOOKBACK_DAYS))
+            start_ms = int(after.timestamp() * 1000)
+            end_ms = int(_now().timestamp() * 1000)
+            return [c for c in client.fetch_klines(symbol, "5m", start_ms, end_ms) if c.is_closed]
+        finally:
+            client.close()
+
+    def _pull_last_price(self, symbol: str) -> float:
+        from packages.market_data import BinanceVisionClient
+
+        client = BinanceVisionClient(timeout=8.0)
+        try:
+            return client.fetch_last_price(symbol)
+        finally:
+            client.close()
+
+    def _refresh_live(self, symbol: str) -> None:
+        """Append newly closed Binance 5m bars. Never silently become the fixture."""
+        existing = self.store.load(SOURCE, symbol, "5m")
+        now = _now()
+        last_close = existing[-1].close_time() if existing else None
+        if last_close and (now - last_close).total_seconds() < LIVE_FRESH_SECONDS:
+            self.source_label = SOURCE
+            return
+        last_pull = self._last_pull.get(symbol)
+        if last_pull and (now - last_pull).total_seconds() < LIVE_PULL_MIN_INTERVAL:
+            if not existing:
+                raise RuntimeError(self._live_error or f"live market data unavailable for {symbol}")
             return
         try:
-            from packages.market_data import BinanceVisionClient
-
-            client = BinanceVisionClient(timeout=12.0)
-            try:
-                candles = list(client.iter_recent_days(symbol, "5m", 10))
-            finally:
-                client.close()
+            candles = self._pull_live_candles(symbol, after=existing[-1].open_time if existing else None)
+            self._last_pull[symbol] = now
             if candles:
                 self.store.insert_many(SOURCE, candles)
                 self.source_label = SOURCE
+                self._live_error = None
                 return
-        except Exception:
-            pass
-        self.use_fixture = True
-        self._seed_fixture()
+            if existing:
+                return
+            raise RuntimeError(f"no live candles returned for {symbol}")
+        except RuntimeError:
+            raise
+        except Exception as exc:
+            self._last_pull[symbol] = now
+            self._live_error = str(exc)
+            if existing:
+                return
+            raise RuntimeError(f"live market data unavailable for {symbol}: {exc}") from exc
 
     def candles(self, symbol: str, as_of: datetime | None = None, limit: int = 400):
         self._ensure(symbol)
@@ -248,28 +292,44 @@ class PrototypeRuntime:
         return report
 
     def health_brief(self, symbol: str = "AVAXUSDT") -> dict:
-        source = "fixture" if self.use_fixture else SOURCE
-        existing = self.store.load(source, symbol, "5m")
-        if not existing:
-            if self.use_fixture:
-                self._ensure(symbol)
-                existing = self.store.load("fixture", symbol, "5m")
-            else:
-                return {"status": "unknown", "age_seconds": None, "last_close": None, "source": self.source_label}
-        last_close = existing[-1].close_time()
-        health = freshness(last_close)
         if self.use_fixture:
+            self._ensure(symbol)
+            existing = self.store.load("fixture", symbol, "5m")
+            if not existing:
+                return {"status": "unknown", "age_seconds": None, "last_close": None, "source": "fixture"}
+            health = freshness(existing[-1].close_time())
             health["status"] = "fixture"
-        health["source"] = "fixture" if self.use_fixture else SOURCE
+            health["source"] = "fixture"
+            return health
+        try:
+            self._refresh_live(symbol)
+        except RuntimeError as exc:
+            return {
+                "status": "unknown",
+                "age_seconds": None,
+                "last_close": None,
+                "source": SOURCE,
+                "error": str(exc),
+            }
+        existing = self.store.load(SOURCE, symbol, "5m")
+        if not existing:
+            return {"status": "unknown", "age_seconds": None, "last_close": None, "source": SOURCE}
+        health = freshness(existing[-1].close_time())
+        health["source"] = SOURCE
+        if self._live_error:
+            health["pull_error"] = self._live_error
         return health
 
-    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 240, persist: bool | None = None) -> dict:
+    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 576, persist: bool | None = None) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, 400))
+        if not candles:
+            raise RuntimeError(f"no candles available for {symbol}")
         snap = self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
         last_close = candles[-1].close_time()
         health = freshness(last_close)
         if self.use_fixture:
             health["status"] = "fixture"
+        health["source"] = "fixture" if self.use_fixture else SOURCE
         should_persist = persist if persist is not None else as_of is None
         forecast = self.forecast(symbol, as_of=as_of or last_close, persist=should_persist, snap=snap)
         metrics = self.metrics(symbol, as_of=as_of or last_close)
@@ -290,12 +350,21 @@ class PrototypeRuntime:
             full = sept_2026_failed_breakout(symbol) if symbol == "AVAXUSDT" else []
             if full:
                 hint = full[bounce_start_index(full) - 1].close_time().isoformat()
+        last_price = candles[-1].close
+        price_source = "last_close"
+        if not self.use_fixture and as_of is None:
+            try:
+                last_price = self._pull_last_price(symbol)
+                price_source = "ticker"
+            except Exception:
+                price_source = "last_close"
         payload = {
             "symbol": symbol,
             "source": "fixture" if self.use_fixture else SOURCE,
             "as_of": snap.as_of.isoformat(),
             "health": health,
-            "last_price": candles[-1].close,
+            "last_price": last_price,
+            "price_source": price_source,
             "snapshot": snap.to_dict(),
             "interpretation": snap.interpretation,
             "forecast": forecast,

@@ -87,11 +87,13 @@ def system() -> dict:
 
 
 @app.get("/api/v1/market/{symbol}")
-def market(symbol: str, as_of: str | None = Query(default=None), limit: int = Query(default=240, ge=50, le=1000)) -> dict:
+def market(symbol: str, as_of: str | None = Query(default=None), limit: int = Query(default=576, ge=50, le=1000)) -> dict:
     try:
         return get_runtime().market_payload(symbol.upper(), as_of=_parse_as_of(as_of), chart_limit=limit)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/api/v1/forecast/current")
