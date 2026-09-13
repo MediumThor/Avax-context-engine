@@ -112,3 +112,16 @@ Finish criteria:
 - branch committed and pushed; no GitHub PR opened (Watcher opens it)
 - no merge; no forecast-accuracy claims
 ```
+
+## Completion
+
+Status: implemented on `cursor/wave2-16-replay-d941`. Watcher opens the PR.
+
+Files:
+- `packages/context_engine/replay.py`
+- `tests/test_replay.py`
+- `wiki/tasks/WAVE2-16-replay.md`
+
+Tests (`python -m pytest -q tests/test_replay.py tests/test_context_engine.py tests/test_leakage.py`): 12 passed.
+
+No `packages/contracts/**` change. Persistence is content-addressed canonical JSON, not a durable store.
