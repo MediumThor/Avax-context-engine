@@ -8,7 +8,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 | --- | --- |
 | 0 — Foundation/governance | In progress: Constitution, RLH schemas, CI, layout, pins |
 | 1 — Data/replay | Integrity helpers + snapshot replay + fixture/Binance Vision ingest on `main` |
-| 2 — Context Engine | Pivots/zones/regime/thesis/patterns/cross-market + `as_of` filter; live snapshot now also attaches leakage-safe analogs / pattern summaries / fib candidates (this branch). September dump sealed as `benchmarks/rlh/avax-2026-09-failed-8/candles.jsonl`. Thesis ledger and zone lifecycle still do not drive `build_snapshot`. |
+| 2 — Context Engine | Pivots/zones/regime/patterns/cross-market/analogs + live snapshot theses with frozen invalidation (this branch). Zone lifecycle still does not drive `build_snapshot`. |
 | 3 — Forecasting | Journaled next-10 quantiles + walk-forward vs drift20 on `main` (`80a4d70`); challenger now training on `avax.features.mtf.v1` (this branch, not promoted) |
 | 4 — Journal/evaluation | Journal + walk-forward baseline MAE; this branch adds walk-forward Brier/ECE/coverage for empirical P(up) and residual q10–q90 when n is sufficient. Not a promotion claim. |
 | 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; not wired to live forecasts |

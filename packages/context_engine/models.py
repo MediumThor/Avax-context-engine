@@ -84,6 +84,7 @@ class MarketSnapshot:
     analogs: tuple[dict[str, Any], ...] = field(default_factory=tuple)
     pattern_hypotheses: tuple[dict[str, Any], ...] = field(default_factory=tuple)
     fib_levels: tuple[dict[str, Any], ...] = field(default_factory=tuple)
+    theses: tuple[dict[str, Any], ...] = field(default_factory=tuple)
 
     def to_dict(self) -> dict:
         return asdict(self)

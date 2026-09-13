@@ -108,6 +108,8 @@ Example:
 
 Invalidation rules are immutable for that thesis version. If analysis changes, close the old thesis and create a new one. Each thesis also records whether it is aligned, countertrend, mixed, or unknown relative to its parent-timeframe regime.
 
+`ContextEngine.build_snapshot` rebuilds a leakage-safe ledger from closed bars known at `as_of` and attaches compact `theses` summaries. A 5m observation cannot fire a 4h invalidation. Competing bull and bear versions may stay active until their own frozen rules fire.
+
 ## Pattern hypotheses
 
 Pattern modules may emit hypotheses for:
