@@ -71,3 +71,17 @@ Helpers exist, tests green, store.py untouched, no live trading credentials, PR 
 | `audit_ohlcv(records)` | combined `IntegrityReport` |
 
 No schema owner change. Integrity reports are additive diagnostics; they do not mutate candles.
+
+## Completion report
+
+- **What changed:** Added read-only `packages/market_data/integrity.py` helpers for UTC 5m gap detection, duplicate `open_time`s (including conflicting payloads), OHLC/non-finite/negative-volume violations, and a manifest SHA-256 that reuses `CandleStore._payload` plus newline-delimited hashing. Store is not rewritten.
+- **Files changed:**
+  - `packages/market_data/integrity.py` (new)
+  - `tests/test_data_integrity.py` (new)
+  - `wiki/tasks/WAVE2-01-integrity.md` (this file)
+- **Tests run:** `python3 -m pytest tests/test_data_integrity.py tests/test_market_data.py tests/test_leakage.py tests/test_context_engine.py tests/test_baselines.py tests/test_journal.py tests/test_evaluator.py -q` → **16 passed**.
+- **Metrics before/after:** No forecasting metrics. Before: no series integrity helpers. After: synthetic contiguous series is clean; 2-bar gap, duplicate/conflict, unaligned stamp, and OHLC/NaN/negative-volume cases fail closed; checksum equals `CandleStore.manifest` on the same chronological series.
+- **Known limitations:** Helpers do not fetch live Binance data (acceptance is synthetic). `Candle` construction already rejects many OHLC errors, so invalid-bar tests use raw mappings. Payload JSON is sensitive to `int` vs `float` (`100` vs `100.0`) because it delegates to `CandleStore._payload`. Unaligned bars are flagged in addition to the missing aligned slot. Empty series is `ok` with zero expected slots.
+- **Documentation updated:** this task contract only (`Data-Contracts.md` unchanged; no schema owner change).
+- **Contract/schema changed:** no. Additive diagnostic types only (`IntegrityIssue`, `IntegrityReport`).
+- **Recommended next task:** Agent 01/34 wire `audit_ohlcv` into freshness/health so replay and `/health` surface gap counts; Agent 36 can add a leakage probe that mutates a future 5m bar and asserts the pre-`as_of` manifest is unchanged.

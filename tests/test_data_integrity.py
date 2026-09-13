@@ -20,7 +20,17 @@ def _t(i: int, *, offset_seconds: int = 0) -> datetime:
 
 def _candle(i: int, close: float = 10.0, *, offset_seconds: int = 0) -> Candle:
     open_time = _t(i, offset_seconds=offset_seconds)
-    return Candle("AVAXUSDT", "5m", open_time, close, close + 0.1, close - 0.1, close, 100 + i)
+    # Float volume matches store REAL round-trip / CandleStore._payload JSON.
+    return Candle(
+        "AVAXUSDT",
+        "5m",
+        open_time,
+        float(close),
+        float(close + 0.1),
+        float(close - 0.1),
+        float(close),
+        float(100 + i),
+    )
 
 
 def _contiguous(n: int = 12) -> list[Candle]:
@@ -73,16 +83,7 @@ def test_detects_unaligned_open_time():
 def test_detects_duplicate_open_times_and_conflicts():
     base = _contiguous(8)
     duplicate = _candle(2, 10.02)
-    conflict = Candle(
-        "AVAXUSDT",
-        "5m",
-        _t(2),
-        11.0,
-        11.1,
-        10.9,
-        11.0,
-        999.0,
-    )
+    conflict = Candle("AVAXUSDT", "5m", _t(2), 11.0, 11.1, 10.9, 11.0, 999.0)
     same_payload = audit_ohlcv([*base, duplicate])
     assert not same_payload.ok
     dupes = same_payload.of_kind("duplicate")
@@ -144,7 +145,9 @@ def test_manifest_checksum_matches_store_payload_hashing(tmp_path):
     store = CandleStore(tmp_path / "integrity.db")
     assert store.insert_many("test", shuffled) == 20
     stored = store.manifest("test", "AVAXUSDT", "5m")
+    loaded = store.load("test", "AVAXUSDT", "5m")
     assert manifest_sha256(shuffled) == stored.sha256
+    assert manifest_sha256(loaded) == stored.sha256
     assert verify_manifest_sha256(series, stored.sha256)
     assert canonical_payload(series[0]) == CandleStore._payload(series[0])
     store.close()
