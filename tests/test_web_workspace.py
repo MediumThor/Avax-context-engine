@@ -13,6 +13,7 @@ def test_desktop_workspace_keeps_chart_visible():
     assert ".workspace>.chartPanel,.workspace>.rail{min-height:0;max-height:100%}" in css
     assert ".chart{flex:1 1 auto;height:auto;min-height:280px;background:#0a0d12}" in css
     assert "overscroll-behavior:contain" in css
+    assert ".rail>*{flex:0 0 auto}" in css
     assert "grid-template-columns:minmax(0,1fr) 340px" in css
     assert app.index("<h2>Thesis</h2>") < app.index("<h2>Forecast · next 10</h2>")
     assert app.count("<h2>Thesis</h2>") == 1

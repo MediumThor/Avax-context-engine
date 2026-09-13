@@ -12,6 +12,7 @@ Constitution §12 and UI-Directive require the main chart and thesis rail on the
 
 Allowed write scope:
 - apps/web/src/styles.css
+- apps/web/src/App.tsx
 - tests/test_web_workspace.py
 - wiki/UI-Directive.md
 - wiki/tasks/WAVE2-17-sticky-chart-rail.md
