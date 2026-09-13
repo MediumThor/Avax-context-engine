@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/recursive/encoder-memory.schema.json",
+  "title": "EncoderMemory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "symbol",
+    "as_of",
+    "context_snapshot_id",
+    "forecast_package_id",
+    "data_manifest_id",
+    "feature_schema_version",
+    "context_engine_version",
+    "timeframe_slices",
+    "zone_ids",
+    "hypothesis_ids",
+    "cross_market",
+    "health",
+    "content_hash"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "schema_version": { "type": "string", "const": "1" },
+    "symbol": { "type": "string", "minLength": 1 },
+    "as_of": { "type": "string", "format": "date-time" },
+    "context_snapshot_id": { "type": "string", "minLength": 1 },
+    "forecast_package_id": { "type": "string", "minLength": 1 },
+    "data_manifest_id": { "type": "string", "minLength": 1 },
+    "feature_schema_version": { "type": "string", "minLength": 1 },
+    "context_engine_version": { "type": "string", "minLength": 1 },
+    "timeframe_slices": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["1w", "1d", "4h", "1h", "15m", "5m"],
+      "properties": {
+        "1w": { "$ref": "#/$defs/timeframeSlice" },
+        "1d": { "$ref": "#/$defs/timeframeSlice" },
+        "4h": { "$ref": "#/$defs/timeframeSlice" },
+        "1h": { "$ref": "#/$defs/timeframeSlice" },
+        "15m": { "$ref": "#/$defs/timeframeSlice" },
+        "5m": { "$ref": "#/$defs/timeframeSlice" }
+      }
+    },
+    "zone_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "hypothesis_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "cross_market": { "type": "object" },
+    "health": {
+      "type": "string",
+      "enum": ["valid", "degraded", "stale", "unknown"]
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  },
+  "$defs": {
+    "timeframeSlice": {
+      "type": "object",
+      "required": ["regime"],
+      "properties": {
+        "regime": {
+          "type": "string",
+          "enum": [
+            "bullish",
+            "bearish",
+            "neutral",
+            "transition_up",
+            "transition_down",
+            "unknown"
+          ]
+        },
+        "last_transition_id": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    }
+  }
+}

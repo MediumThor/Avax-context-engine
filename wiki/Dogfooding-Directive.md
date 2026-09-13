@@ -48,7 +48,7 @@ Tag dogfood findings as:
 - `DATA` — bad/missing/stale source data;
 - `STATE` — incorrect Context Engine state;
 - `MODEL` — forecast/calibration issue;
-- `HARNESS` — explanation/reasoning issue;
+- `HARNESS` — explanation/reasoning / Recursive Learning Harness loop issue;
 - `UI` — presentation/navigation issue;
 - `EVAL` — scoring/benchmark issue;
 - `OPS` — reliability/observability issue.
@@ -59,7 +59,7 @@ Any repeated or consequential failure must become one or more of:
 - deterministic unit test;
 - historical regression replay;
 - benchmark slice;
-- harness evaluation fixture;
+- harness / RLH evaluation fixture under `benchmarks/rlh/`;
 - visual regression.
 
 The September 2026 AVAX failed-breakout episode is the founding dogfood regression.
@@ -76,7 +76,10 @@ Monitor for:
 - model disagreement spikes;
 - stale incumbent model;
 - context-state churn;
-- data-source gaps.
+- data-source gaps;
+- `max_depth` becoming the majority halt reason;
+- exact-replay canary failures;
+- 5m loops describing a higher-timeframe reversal without a ledger event.
 
 Do not retrain or promote solely because one forecast was wrong.
 

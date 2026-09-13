@@ -59,7 +59,7 @@ Example:
 
 This means a lower-timeframe relief rally inside a bearish higher-timeframe regime, not a global bullish reversal.
 
-The harness should explain this distinction explicitly.
+The harness should explain this distinction explicitly. The Recursive Learning Harness must preserve this parent/child split in `EncoderMemory` and in `s_t`; see [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
 
 ## Meaningful state-change events
 

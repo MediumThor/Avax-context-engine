@@ -56,9 +56,11 @@ The Forecast Engine combines:
 
 It outputs horizons +1 through +10 five-minute candles as distributions, not exact prophecies.
 
-### 5. Internal AI Harness
+### 5. Internal AI Harness / Recursive Learning Harness
 
 The custom harness reads structured data through tools. It does not receive screenshots as its primary source of truth.
+
+It is specified as a **Recursive Learning Harness**: a causal encoder (Context Engine + leakage-safe features) plus an all-token recurrent `LoopStep` that uses the same transition for observed facts and generated reasoning. See [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
 
 Tools expose:
 
@@ -69,9 +71,10 @@ Tools expose:
 - model ensemble outputs;
 - historical analogs;
 - prediction journal performance;
-- current data health.
+- current data health;
+- loop state / cite / halt.
 
-The harness produces concise explanations, challenge/counter-thesis analysis and operator summaries. It may propose experiments, never falsify measured confidence.
+The harness produces concise explanations, challenge/counter-thesis analysis and operator summaries. It may propose experiments, never falsify measured confidence. Every production loop is budgeted, halted, and journaled as a `LoopTrace` before outcomes are known.
 
 ### 6. Evaluation Engine
 
@@ -112,7 +115,8 @@ No trade execution in v1.
 /apps/web                 React/TSX UI
 /services/api             FastAPI gateway
 /services/context         deterministic context engine
-/services/harness         internal AI tool harness
+/services/harness         recursive learning harness (custom LoopStep)
+/packages/contracts/recursive  LoopTrace / EncoderMemory / halt schemas
 /services/evaluator       prediction scoring + reports
 /adapters/freqtrade       Freqtrade/FreqAI integration
 /packages/contracts       JSON/Pydantic/TS schemas
@@ -133,8 +137,8 @@ No trade execution in v1.
 4. Context Engine processes state transition.
 5. Feature assembler builds leakage-safe feature snapshot.
 6. Forecast Engine produces horizon distributions.
-7. Context Engine + AI harness produce explanation snapshot.
-8. Prediction journal writes forecast before next candle outcome.
+7. Context Engine + Recursive Learning Harness produce a journaled `LoopTrace` from frozen `EncoderMemory`.
+8. Prediction journal writes forecast **and** loop trace before next candle outcome.
 9. UI refreshes.
 10. As horizons mature, evaluator appends outcome scores.
 11. Continuous-improvement agents inspect aggregate evidence and propose experiments.

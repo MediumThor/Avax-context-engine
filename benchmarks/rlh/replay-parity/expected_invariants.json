@@ -1,0 +1,5 @@
+{
+  "rebuild_policy": "exact",
+  "live_hash_equals_replay_hash": true,
+  "reveal_future": false
+}

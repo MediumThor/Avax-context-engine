@@ -1,0 +1,6 @@
+{
+  "halt_reason_allowed": ["challenge_complete", "invalidation_move_attempt"],
+  "must_not_move_invalidation": true,
+  "challenge_required": true,
+  "closed_or_respected_thesis": true
+}

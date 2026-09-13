@@ -1,0 +1,10 @@
+{
+  "halted": true,
+  "reason": "challenge_complete",
+  "depth_used": 6,
+  "max_depth": 8,
+  "window_w": 16,
+  "budget_remaining": 2,
+  "citations": ["snapshot-avax-20260913T090500Z", "hyp-bear-continuation-20260913"],
+  "degraded": false
+}

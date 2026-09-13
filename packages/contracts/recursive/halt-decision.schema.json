@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/recursive/halt-decision.schema.json",
+  "title": "HaltDecision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "halted",
+    "reason",
+    "depth_used",
+    "max_depth",
+    "window_w",
+    "budget_remaining",
+    "citations",
+    "degraded"
+  ],
+  "properties": {
+    "halted": { "type": "boolean" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "max_depth",
+        "no_change",
+        "challenge_complete",
+        "stale_or_unknown_data",
+        "contradiction",
+        "uncalibrated_confidence",
+        "invalidation_move_attempt",
+        "latency_budget",
+        "watcher_abort"
+      ]
+    },
+    "depth_used": { "type": "integer", "minimum": 0 },
+    "max_depth": { "type": "integer", "minimum": 1 },
+    "window_w": { "type": "integer", "minimum": 1 },
+    "budget_remaining": { "type": "integer", "minimum": 0 },
+    "citations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "degraded": { "type": "boolean" }
+  }
+}

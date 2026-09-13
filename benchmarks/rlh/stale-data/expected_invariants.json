@@ -1,0 +1,6 @@
+{
+  "halt_reason": "stale_or_unknown_data",
+  "degraded": true,
+  "no_confident_forecast_language": true,
+  "confidence_source": "insufficient-data"
+}
