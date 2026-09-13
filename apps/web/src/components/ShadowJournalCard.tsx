@@ -4,10 +4,16 @@ export function ShadowJournalCard({
   shadow,
   replay,
   severed,
+  draining = false,
+  drainError = null,
+  onDrain,
 }: {
   shadow?: ShadowJournalStatus
   replay: boolean
   severed: boolean
+  draining?: boolean
+  drainError?: string | null
+  onDrain?: () => void
 }) {
   if (!shadow) {
     return (
@@ -68,6 +74,12 @@ export function ShadowJournalCard({
       <p className="muted">
         {note} Existing quantile rows are not rewritten. Catch-up is baseline.drift20 only.
       </p>
+      {onDrain && !replay && !severed && gap && (
+        <button type="button" className="ghost" onClick={onDrain} disabled={draining}>
+          {draining ? 'Draining drift20 rows…' : 'Drain up to 200 drift20 rows'}
+        </button>
+      )}
+      {drainError && <p className="killError">{drainError}</p>}
     </section>
   )
 }

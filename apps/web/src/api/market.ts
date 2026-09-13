@@ -1,4 +1,4 @@
-import type { MarketPayload } from './types'
+import type { MarketPayload, ShadowJournalStatus } from './types'
 
 const base = import.meta.env.VITE_API_BASE ?? ''
 
@@ -9,4 +9,17 @@ export async function fetchMarket(symbol = 'AVAXUSDT', asOf?: string | null): Pr
   const res = await fetch(`${base}/api/v1/market/${symbol}${qs ? `?${qs}` : ''}`)
   if (!res.ok) throw new Error(await res.text())
   return res.json() as Promise<MarketPayload>
+}
+
+export async function drainShadowJournal(
+  symbol = 'AVAXUSDT',
+  budget = 200,
+): Promise<ShadowJournalStatus> {
+  const params = new URLSearchParams({ symbol, budget: String(budget) })
+  const res = await fetch(`${base}/api/v1/journal/catchup?${params}`, { method: 'POST' })
+  if (res.status === 423) {
+    throw new Error('Kill switch blocks journal drain. No rows written.')
+  }
+  if (!res.ok) throw new Error(await res.text())
+  return res.json() as Promise<ShadowJournalStatus>
 }

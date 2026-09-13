@@ -20,6 +20,9 @@ Allowed write scope:
 - wiki/UI-Directive.md
 - wiki/tasks/WAVE2-00-journal-remaining-ui.md
 
+Depends on:
+- PR 54 (`POST /api/v1/journal/catchup`) now on main `762e7b2`
+
 Forbidden write scope:
 - CONSTITUTION.md
 - packages/contracts/recursive/**

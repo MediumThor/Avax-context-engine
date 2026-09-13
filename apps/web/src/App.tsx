@@ -8,7 +8,7 @@ import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { LoopTraceCard } from './components/LoopTraceCard'
 import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
-import { fetchMarket } from './api/market'
+import { drainShadowJournal, fetchMarket } from './api/market'
 import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
 import './styles.css'
 
@@ -38,6 +38,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [sheet, setSheet] = useState<SheetPanel>(() => readSheet())
+  const [draining, setDraining] = useState(false)
+  const [drainError, setDrainError] = useState<string | null>(null)
   const asOf = useMemo(() => readAsOf(), [])
 
   useEffect(() => {
@@ -130,6 +132,21 @@ export default function App() {
     const url = new URL(window.location.href)
     url.searchParams.delete('as_of')
     window.location.assign(url.toString())
+  }
+
+  async function drainJournal() {
+    if (!market || market.replay || severed || draining) return
+    setDraining(true)
+    setDrainError(null)
+    try {
+      await drainShadowJournal(market.symbol)
+      const next = await fetchMarket(market.symbol, asOf)
+      setMarket(next)
+    } catch (err: unknown) {
+      setDrainError(err instanceof Error ? err.message : 'journal drain failed')
+    } finally {
+      setDraining(false)
+    }
   }
 
   function selectSheet(next: SheetPanel) {
@@ -326,7 +343,14 @@ export default function App() {
               />
             )}
           </div>
-          <ShadowJournalCard shadow={shadow} replay={Boolean(market?.replay)} severed={severed} />
+          <ShadowJournalCard
+            shadow={shadow}
+            replay={Boolean(market?.replay)}
+            severed={severed}
+            draining={draining}
+            drainError={drainError}
+            onDrain={drainJournal}
+          />
           <section className="card" data-sheet="journal">
             <h2>Replay</h2>
             <p className="muted">September 2026 failed-breakout process check: 4H must hold through the 5m bounce.</p>
