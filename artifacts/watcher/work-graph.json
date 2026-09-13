@@ -1,0 +1,101 @@
+{
+  "watcher": "00",
+  "canonical_branch": "main",
+  "updated_at": "2026-09-13T10:25:00Z",
+  "definition_of_done_status": {
+    "1_real_avax_ingest": "partial",
+    "2_mtf_context_no_leakage": "partial",
+    "3_freqai_train_forecast": "missing",
+    "4_baseline_ml_compare": "partial",
+    "5_next_10_forecasts": "partial",
+    "6_journal_before_outcomes": "partial",
+    "7_score_outcomes": "partial",
+    "8_walk_forward": "missing",
+    "9_calibration": "missing",
+    "10_historical_analogs": "missing",
+    "11_recursive_harness": "this_pr",
+    "12_challenge_invalidation": "this_pr",
+    "13_september_failed_8_regression": "partial",
+    "14_react_terminal": "scaffold",
+    "15_forecast_fan_overlays": "missing",
+    "16_health_visible": "partial",
+    "17_kill_switch": "on_main",
+    "18_ci_passes": "on_main",
+    "19_leakage_red_team": "this_pr",
+    "20_wiki_matches_code": "partial",
+    "21_historical_simulation_report": "missing",
+    "22_shadow_live_dogfood": "missing",
+    "23_no_external_execution": "pass",
+    "24_main_contains_accepted_work": "watcher_queue"
+  },
+  "classification": {
+    "real": [
+      "CONSTITUTION.md + wiki directives",
+      "typed RLH JSON schemas + contract tests",
+      "CandleStore immutability + Binance Vision client",
+      "ContextEngine EMA/pivot/zone snapshot + parent bias",
+      "ForecastJournal append-only sqlite",
+      "zero/drift baselines",
+      "kill switch API + UI",
+      "CI constitution + pytest + web build"
+    ],
+    "scaffolded": [
+      "FreqAI adapter / strategy stub",
+      "React shell with demo candles (PR 8 replacing with honest slice)",
+      "API /loops/run stub",
+      "RLH OWNER files without implementations (replaced in this PR)",
+      "benchmarks/rlh invariants without candles.jsonl"
+    ],
+    "missing": [
+      "walk-forward evaluator",
+      "calibration / ECE",
+      "FreqAI training run",
+      "analog retrieval",
+      "forecast fan UI",
+      "thesis ledger persistence",
+      "second pivot method + zone lifecycle",
+      "shadow-live loop"
+    ],
+    "do_not_overlap": [
+      "PR 8 cursor/honest-market-slice-ee66: App.tsx, api/runtime.py, baselines, journal, sept2026 fixtures package, engine.py"
+    ]
+  },
+  "active_locks": [
+    {
+      "path": "apps/web/src/App.tsx",
+      "owner": "PR-8 honest-market-slice",
+      "status": "in_flight"
+    },
+    {
+      "path": "services/api/main.py",
+      "owner": "PR-8 honest-market-slice",
+      "status": "in_flight"
+    },
+    {
+      "path": "packages/contracts/recursive/",
+      "owner": "Agent 25 (accepted on main)",
+      "status": "locked"
+    },
+    {
+      "path": "services/harness/**",
+      "owner": "Agent 00 wave2 RLH core (this branch)",
+      "status": "this_pr"
+    }
+  ],
+  "wave2_parallel_safe": [
+    {"agent": "03", "task": "feature assembler", "scope": ["packages/features/**", "tests/features/**"]},
+    {"agent": "06", "task": "walk-forward", "scope": ["packages/evaluator/walkforward.py", "tests/test_walkforward.py"]},
+    {"agent": "07", "task": "calibration", "scope": ["packages/evaluator/calibration.py", "tests/test_calibration.py"]},
+    {"agent": "10", "task": "second pivot method", "scope": ["packages/context_engine/pivots_atr.py", "tests/test_pivots_atr.py"]},
+    {"agent": "11", "task": "zone lifecycle", "scope": ["packages/context_engine/zones.py", "tests/test_zones.py"]},
+    {"agent": "12", "task": "fibonacci", "scope": ["packages/context_engine/fibonacci.py", "tests/test_fibonacci.py"]},
+    {"agent": "14", "task": "cross-market", "scope": ["packages/context_engine/cross_market.py", "tests/test_cross_market.py"]},
+    {"agent": "15", "task": "thesis ledger", "scope": ["packages/context_engine/thesis.py", "tests/test_thesis.py"]},
+    {"agent": "16", "task": "deterministic replay", "scope": ["packages/context_engine/replay.py", "tests/test_replay.py"]},
+    {"agent": "02", "task": "FreqAI bootstrap", "scope": ["adapters/freqtrade/**", "scripts/bootstrap_freqtrade.sh"]},
+    {"agent": "20", "task": "forecast fan component", "scope": ["apps/web/src/components/ForecastFan.tsx", "apps/web/src/components/ForecastFan.test.tsx"]},
+    {"agent": "08", "task": "OSS scout", "scope": ["wiki/Open-Source-Research-Log.md"]},
+    {"agent": "35", "task": "benchmark registry", "scope": ["benchmarks/registry/**"]},
+    {"agent": "37", "task": "forecast replay red team", "scope": ["tests/replay/**"]}
+  ]
+}
