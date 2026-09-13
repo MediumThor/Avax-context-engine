@@ -39,7 +39,8 @@ def test_drain_writes_more_drift20_than_request_budget(tmp_path, monkeypatch):
         if row["id"] in sha_by_id:
             assert row["sha256"] == sha_by_id[row["id"]]
         if row["model_id"] == SHADOW_CATCHUP_MODEL:
-            assert row["payload"]["horizons"][0]["p_close_above_origin"] is None
+            p = row["payload"]["horizons"][0]["p_close_above_origin"]
+            assert p is None or 0.0 <= p <= 1.0
     runtime.close()
     reset_runtime()
 
@@ -99,6 +100,7 @@ def test_multi_round_drain_can_empty_without_extra_quantiles(tmp_path, monkeypat
         if row["id"] in sha_by_id:
             assert row["sha256"] == sha_by_id[row["id"]]
         if row["model_id"] == SHADOW_CATCHUP_MODEL:
-            assert row["payload"]["horizons"][0]["p_close_above_origin"] is None
+            p = row["payload"]["horizons"][0]["p_close_above_origin"]
+            assert p is None or 0.0 <= p <= 1.0
     runtime.close()
     reset_runtime()

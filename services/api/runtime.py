@@ -20,6 +20,7 @@ from packages.journal import ForecastJournal
 from packages.market_data import CandleStore
 from packages.models import (
     InsufficientHistory,
+    attach_empirical_signed_p,
     attach_simple_return_aliases_payload,
     emit_baseline_forecast,
     emit_quantile_forecast,
@@ -477,7 +478,9 @@ class PrototypeRuntime:
         for index in missing[:budget]:
             prefix = matureable[: index + 1]
             try:
-                payload = self._with_data_source(emit_baseline_forecast(prefix))
+                payload = self._with_data_source(
+                    attach_empirical_signed_p(emit_baseline_forecast(prefix), prefix)
+                )
             except ValueError:
                 continue
             stamp = _origin_stamp(payload["forecasted_at"])
@@ -578,7 +581,8 @@ class PrototypeRuntime:
             )
         except InsufficientHistory:
             payload = emit_baseline_forecast(window if len(window) >= 21 else visible)
-        return attach_simple_return_aliases_payload(payload)
+        hist = window if len(window) >= 21 else visible
+        return attach_empirical_signed_p(attach_simple_return_aliases_payload(payload), hist)
 
     def _attach_mtf_feature_snapshot(
         self,
