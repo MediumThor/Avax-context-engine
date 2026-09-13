@@ -92,3 +92,20 @@ Causal zigzag over closed candles:
 - Does not wire this method into `ContextEngine` (engine.py is forbidden).
 - Does not add UI overlays or forecast numbers.
 - Sensitivity benchmark vs window pivots is a follow-up (needs a shared eval owner).
+
+## Completion report (Agent 10)
+
+- What changed: added causal ATR/zigzag confirmed pivots as a second method. Window `confirmed_pivots` is unchanged.
+- Files changed:
+  - `packages/context_engine/pivots_atr.py` (new)
+  - `tests/test_pivots_atr.py` (new)
+  - `wiki/tasks/WAVE2-10-pivots.md` (this file)
+- Tests: `python3 -m pytest -q tests/test_pivots_atr.py` — 12 passed. Also `tests/test_context_engine.py` and `tests/test_leakage.py` still pass.
+- Metrics before/after: not a forecast model; no accuracy claims. Method count 1 → 2 (window + ATR/zigzag).
+- Limitations: not wired into `ContextEngine`; last unconfirmed candidate is omitted by design; no head-to-head benchmark yet.
+- Docs: this task contract. No schema change; reuses existing `Pivot`.
+- Contract/schema changed: no.
+- Recommended next task: Watcher-owned compare of window vs ATR pivots on a frozen replay, then an engine owner may consume `atr_zigzag_pivots(..., as_of=T)` without replacing window pivots.
+- Branch: `cursor/wave2-10-atr-pivots-c433`
+- Compare: https://github.com/MediumThor/Avax-context-engine/compare/main...cursor/wave2-10-atr-pivots-c433
+- `gh pr create` failed (resource not accessible). Watcher should open the PR.
