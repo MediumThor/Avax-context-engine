@@ -1,0 +1,10 @@
+{
+  "engaged": false,
+  "engaged_at": null,
+  "reset_at": null,
+  "reason": null,
+  "actor": null,
+  "severed_task_ids": [],
+  "effects": [],
+  "events": []
+}
