@@ -13,7 +13,7 @@ The repository is no longer documentation-only. It contains a tested prototype s
 | Area | Present on `main` | Still required for its gate |
 | --- | --- | --- |
 | Governance | Constitution, agent rules, Watcher artifacts, task contracts, kill switch | Keep roster/status synchronized with accepted main SHAs |
-| Data | Binance public fetch/store helpers and tests | Canonical manifests, gaps/duplicates, durable raw store, deterministic replay API, full source policy |
+| Data | Binance public fetch/store helpers and tests; live `_ensure` refreshes closed 5m bars and fail-closes instead of seeding the fixture | Canonical manifests, gaps/duplicates, durable raw store, deterministic replay API, full source policy |
 | Context | Indicator, resampling, pivot/zone lifecycle in `build_snapshot`, parent-child, leakage-safe snapshot analogs, sealed Sept dump, competing snapshot theses, insert-only journaled thesis invalidation | Versioned transitions / full fingerprint remain incomplete |
 | Forecast | Baseline helpers, FreqAI adapter/config, evaluator metrics | Canonical feature/forecast contracts, walk-forward runner, quantiles/calibration, model ensemble, reproducible manifests |
 | Journal | SQLite forecast/outcome prototype plus append-only `loop_traces`, insert-only `theses`, and capped drift20 shadow catch-up of mature-able 5m origins | Every 5m close still not filled in one request; production storage adapter |

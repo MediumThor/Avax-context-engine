@@ -44,6 +44,8 @@ Every service exposes health information including:
 
 Aggregate health must be available through `/health` and the Web App.
 
+Live ingest (`AVAX_USE_FIXTURE` unset/0) pulls closed 5m bars from Binance Vision and refreshes incrementally. A failed first pull is HTTP 503. It must not silently seed the September fixture or label fixture bars `LIVE`. Existing live bars may be served stale if a refresh fails; `age_seconds` tells the truth. `AVAX_USE_FIXTURE=1` remains the explicit fixture path. The Web App polls `/api/v1/market/{symbol}` every 20s when `source` is `binance-vision`.
+
 The recursive agent kill switch is an operability control, not a model parameter. The Web App header **Pause predictions** button calls `GET/POST /api/v1/agents/kill-switch` and `POST /api/v1/agents/kill-switch/reset`. Engaged state must appear in `/health` and must skip new live forecast journal writes.
 
 ## Logging

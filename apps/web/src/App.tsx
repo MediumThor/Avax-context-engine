@@ -94,6 +94,17 @@ export default function App() {
   }, [needsMarket, route.dest, route.symbol, fetchAsOf])
 
   useEffect(() => {
+    if (route.dest !== 'market' || fetchAsOf) return
+    if (market?.source !== 'binance-vision') return
+    const id = window.setInterval(() => {
+      fetchMarket(route.symbol, null)
+        .then(setMarket)
+        .catch((err: unknown) => setError(err instanceof Error ? err.message : 'market unavailable'))
+    }, 20_000)
+    return () => window.clearInterval(id)
+  }, [route.dest, route.symbol, fetchAsOf, market?.source])
+
+  useEffect(() => {
     if (route.dest !== 'more') return
     fetchSystem()
       .then(setSystem)

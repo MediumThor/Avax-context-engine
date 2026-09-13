@@ -30,6 +30,10 @@ from packages.models.outcomes import mature_outcomes
 
 SOURCE = "binance-vision"
 FEATURE_SCHEMA = "1"
+
+
+class LiveDataUnavailable(RuntimeError):
+    """Live Binance Vision pull failed. Do not seed the September fixture."""
 QUANTILE_LOOKBACK = 400
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
 SHADOW_CATCHUP_BUDGET = 24
@@ -73,29 +77,51 @@ class PrototypeRuntime:
         self.store.insert_many("fixture", btc_companion(avax))
         self.source_label = "fixture"
 
-    def _ensure(self, symbol: str) -> None:
-        existing = self.store.load(self.source_label if self.use_fixture else SOURCE, symbol, "5m")
-        if existing:
-            return
-        if self.use_fixture:
-            self._seed_fixture()
-            return
-        try:
-            from packages.market_data import BinanceVisionClient
+    def _pull_closed_live(self, symbol: str, *, start: datetime | None = None) -> list:
+        """Closed 5m bars only. Callers must not treat an open bar as known."""
+        from packages.market_data import BinanceVisionClient
 
-            client = BinanceVisionClient(timeout=12.0)
-            try:
-                candles = list(client.iter_recent_days(symbol, "5m", 10))
-            finally:
-                client.close()
-            if candles:
-                self.store.insert_many(SOURCE, candles)
-                self.source_label = SOURCE
+        client = BinanceVisionClient(timeout=12.0)
+        try:
+            if start is None:
+                rows = list(client.iter_recent_days(symbol, "5m", 10))
+            else:
+                end = datetime.now(timezone.utc)
+                rows = [
+                    candle
+                    for candle in client.fetch_klines(
+                        symbol,
+                        "5m",
+                        int(start.timestamp() * 1000),
+                        int(end.timestamp() * 1000),
+                    )
+                    if candle.is_closed
+                ]
+        except Exception as exc:
+            raise LiveDataUnavailable(str(exc)) from exc
+        finally:
+            client.close()
+        return rows
+
+    def _ensure(self, symbol: str) -> None:
+        if self.use_fixture:
+            existing = self.store.load("fixture", symbol, "5m")
+            if not existing:
+                self._seed_fixture()
+            return
+        existing = self.store.load(SOURCE, symbol, "5m")
+        try:
+            start = existing[-1].open_time if existing else None
+            pulled = self._pull_closed_live(symbol, start=start)
+        except LiveDataUnavailable:
+            if existing:
                 return
-        except Exception:
-            pass
-        self.use_fixture = True
-        self._seed_fixture()
+            raise
+        if not pulled and not existing:
+            raise LiveDataUnavailable(f"Binance Vision returned no closed {symbol} 5m bars")
+        if pulled:
+            self.store.insert_many(SOURCE, pulled)
+        self.source_label = SOURCE
 
     def candles(self, symbol: str, as_of: datetime | None = None, limit: int = 400):
         self._ensure(symbol)
