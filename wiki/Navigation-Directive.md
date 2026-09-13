@@ -20,22 +20,25 @@ Subsections:
 - Journal
 - Accuracy
 
-### `/replay/:snapshotId`
-Historical point-in-time replay. The operator can view exactly what the system knew at a forecast timestamp, then reveal subsequent candles separately.
+### `/replay/:symbol`
+Historical point-in-time replay for a symbol (`/replay/AVAXUSDT?as_of=`). The operator can view exactly what the system knew at a forecast timestamp. A `/market/:symbol?as_of=` deep link canonicalizes to this dest. Tapping Replay without `as_of` uses `replay_hint_as_of` from the last market payload (fixture pre-bounce). Tapping Market clears replay.
 
 Must also render the journaled `LoopTrace`: depth used, halt reason, citations, challenge result, and encoder-vs-SWA conflicts. Revealing future candles must not re-run `D_φ` against those candles. See [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
 
+### `/accuracy`
+Primary walk-forward AccuracyPanel. Scores come from the market metrics payload. Missing Brier/ECE stay "not yet scored". This dest does not invent a generic accuracy percentage.
+
 ### `/benchmarks`
-Walk-forward and regression benchmark explorer.
+Walk-forward and regression benchmark explorer. Not implemented in the current shell; More says so explicitly.
 
 ### `/models`
-Incumbent/challenger registry, versions, feature schemas, calibration and promotion history.
+Incumbent/challenger registry, versions, feature schemas, calibration and promotion history. Not implemented in the current shell.
 
 ### `/health`
-Data-source health, missing candles, model freshness, journal status, service status.
+`GET /health` plus `GET /api/v1/system`: data-source health, kill-switch, last close, service status. No fabricated ECE/accuracy.
 
-### `/system`
-Context state/event explorer, agent-generated artifacts, build version, upstream dependency pins, kill-switch state.
+### `/more` (also `/system`)
+Project operations: execution stays off, harness/kill-switch summary, journal remaining if already loaded, constitution reminders. `/system` canonicalizes to `/more`.
 
 The prototype shell keeps the **Pause predictions** control on the sticky market header so it is never more than one glance away.
 
@@ -57,9 +60,11 @@ The phone implementation defines navigation behavior. Use a compact bottom navig
 - Health
 - More
 
+The prototype shell implements those five dests with `history.pushState` / `popstate` (no react-router). `/` and unknown dests canonicalize to `/market/AVAXUSDT`. Tap targets are ≥44px.
+
 Within Market, use a bottom sheet or segmented control for Structure / Forecast / Thesis / Journal.
 
-Tablet and desktop may render the same destinations as a side rail or top-level workspace navigation, but route names, selected state, deep links, and browser history behavior remain identical.
+Tablet and desktop render the same destinations as a left rail. Route names, selected state, deep links, and browser history behavior remain identical.
 
 ## Deep-link contract
 

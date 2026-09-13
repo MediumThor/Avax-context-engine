@@ -4,43 +4,68 @@ import { AgentKillSwitch } from './components/AgentKillSwitch'
 import { ForecastFan } from './components/ForecastFan'
 import { ContextOverlays, type OverlayEvent, type OverlayZone } from './components/ContextOverlays'
 import { ContextEvidence } from './components/ContextEvidence'
-import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
+import { AccuracyPanel } from './components/AccuracyPanel'
 import { LoopTraceCard } from './components/LoopTraceCard'
 import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
+import { fetchSystem, type SystemPayload } from './api/health'
 import { drainShadowJournal, fetchMarket } from './api/market'
-import type { MarketPayload, StructuralZone, SwingPivot, TimeframeState } from './api/types'
+import type { MarketPayload, SwingPivot, TimeframeState } from './api/types'
+import { accuracySlicesFromMarket } from './accuracy/fromMarket'
+import { DestNav } from './nav/DestNav'
+import {
+  buildHref,
+  destRoute,
+  hrefNeedsCanonicalize,
+  parseLocation,
+  type DestId,
+  type RouteState,
+  type SheetPanel,
+  SHEET_LABELS,
+  SHEET_PANELS,
+} from './nav/destinations'
+import { AccuracyView } from './views/AccuracyView'
+import { HealthView } from './views/HealthView'
+import { MoreView } from './views/MoreView'
 import './styles.css'
 
 const TF_ORDER = ['1w', '1d', '4h', '1h', '15m', '5m']
-const SHEET_PANELS = ['context', 'forecast', 'thesis', 'journal'] as const
-type SheetPanel = (typeof SHEET_PANELS)[number]
-const SHEET_LABELS: Record<SheetPanel, string> = {
-  context: 'Context',
-  forecast: 'Forecast',
-  thesis: 'Thesis',
-  journal: 'Journal',
-}
 
-function readAsOf(): string | null {
-  return new URLSearchParams(window.location.search).get('as_of')
-}
-
-function readSheet(): SheetPanel {
-  const raw = new URLSearchParams(window.location.search).get('panel')
-  return (SHEET_PANELS as readonly string[]).includes(raw ?? '') ? (raw as SheetPanel) : 'context'
+function readRoute(): RouteState {
+  return parseLocation(window.location.pathname, window.location.search)
 }
 
 export default function App() {
+  const [route, setRoute] = useState<RouteState>(() => readRoute())
   const [kill, setKill] = useState<KillSwitchState | null>(null)
   const [killError, setKillError] = useState<string | null>(null)
   const [market, setMarket] = useState<MarketPayload | null>(null)
+  const [system, setSystem] = useState<SystemPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [sheet, setSheet] = useState<SheetPanel>(() => readSheet())
   const [draining, setDraining] = useState(false)
   const [drainError, setDrainError] = useState<string | null>(null)
-  const asOf = useMemo(() => readAsOf(), [])
+
+  function applyRoute(next: RouteState, mode: 'push' | 'replace') {
+    const href = buildHref(next)
+    if (mode === 'replace') window.history.replaceState({}, '', href)
+    else window.history.pushState({}, '', href)
+    setRoute(next)
+  }
+
+  useEffect(() => {
+    const canon = hrefNeedsCanonicalize(window.location.pathname, window.location.search)
+    if (canon) {
+      window.history.replaceState({}, '', canon)
+      setRoute(readRoute())
+    }
+  }, [])
+
+  useEffect(() => {
+    const onPop = () => setRoute(readRoute())
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   useEffect(() => {
     fetchKillSwitch()
@@ -48,14 +73,41 @@ export default function App() {
       .catch((err: unknown) => setKillError(err instanceof Error ? err.message : 'kill switch unreachable'))
   }, [])
 
+  const needsMarket = route.dest === 'market' || route.dest === 'replay' || route.dest === 'accuracy'
+  const fetchAsOf = route.dest === 'replay' ? route.asOf : null
+
   useEffect(() => {
+    if (!needsMarket) {
+      setLoading(false)
+      return
+    }
+    if (route.dest === 'replay' && !fetchAsOf) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
-    fetchMarket('AVAXUSDT', asOf)
+    fetchMarket(route.symbol, fetchAsOf)
       .then(setMarket)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'market unavailable'))
       .finally(() => setLoading(false))
-  }, [asOf])
+  }, [needsMarket, route.dest, route.symbol, fetchAsOf])
+
+  useEffect(() => {
+    if (route.dest !== 'more') return
+    fetchSystem()
+      .then(setSystem)
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'system unavailable'))
+  }, [route.dest])
+
+  useEffect(() => {
+    if (route.dest !== 'replay' || route.asOf) return
+    const hint = market?.replay_hint_as_of
+    if (!hint) return
+    const next = { ...route, asOf: hint }
+    window.history.replaceState({}, '', buildHref(next))
+    setRoute(next)
+  }, [route.dest, route.asOf, route.symbol, route.panel, market?.replay_hint_as_of])
 
   const severed = Boolean(kill?.engaged)
   const health = market?.health.status ?? 'unknown'
@@ -153,45 +205,10 @@ export default function App() {
     }
     return out
   }, [market])
-  const accuracySlices: AccuracySlice[] = useMemo(() => {
-    const horizons = market?.metrics.horizons
-    if (!horizons) return []
-    return Object.entries(horizons).map(([h, block]) => {
-      const journaledPoint = block.drift20?.source === 'journal'
-      const sameSource =
-        !journaledPoint || block.zero?.source === 'journal' || block.zero?.source === block.drift20?.source
-      return {
-        horizon: Number(h),
-        n:
-          (journaledPoint ? block.drift20?.sample_count : null) ??
-          block.probability?.sample_count ??
-          block.sample_count ??
-          null,
-        mae: block.drift20?.mae ?? null,
-        rmse: block.drift20?.rmse ?? null,
-        brier: block.probability?.brier ?? null,
-        ece: block.probability?.ece ?? null,
-        coverage: block.interval?.coverage ?? null,
-        baseline_delta:
-          sameSource && block.zero?.mae != null && block.drift20?.mae != null
-            ? block.drift20.mae - block.zero.mae
-            : null,
-      }
-    })
-  }, [market])
+  const accuracySlices = useMemo(() => accuracySlicesFromMarket(market), [market])
 
-  function openReplay() {
-    const hint = market?.replay_hint_as_of
-    if (!hint) return
-    const url = new URL(window.location.href)
-    url.searchParams.set('as_of', hint)
-    window.location.assign(url.toString())
-  }
-
-  function exitReplay() {
-    const url = new URL(window.location.href)
-    url.searchParams.delete('as_of')
-    window.location.assign(url.toString())
+  function goDest(dest: DestId) {
+    applyRoute(destRoute(dest, route, market?.replay_hint_as_of ?? null), 'push')
   }
 
   async function drainJournal() {
@@ -200,7 +217,7 @@ export default function App() {
     setDrainError(null)
     try {
       await drainShadowJournal(market.symbol)
-      const next = await fetchMarket(market.symbol, asOf)
+      const next = await fetchMarket(market.symbol, fetchAsOf)
       setMarket(next)
     } catch (err: unknown) {
       setDrainError(err instanceof Error ? err.message : 'journal drain failed')
@@ -210,15 +227,14 @@ export default function App() {
   }
 
   function selectSheet(next: SheetPanel) {
-    setSheet(next)
-    const url = new URL(window.location.href)
-    if (next === 'context') url.searchParams.delete('panel')
-    else url.searchParams.set('panel', next)
-    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
+    applyRoute({ ...route, panel: next }, 'replace')
   }
 
+  const showMarket = route.dest === 'market' || route.dest === 'replay'
+  const sheet = route.panel
+
   return (
-    <main className={`shell ${severed ? 'severed' : ''}`}>
+    <main className={`shell dest-${route.dest} ${severed ? 'severed' : ''}`}>
       <header className="topbar">
         <div>
           <span className="eyebrow">AVAX / USDT · main</span>
@@ -246,211 +262,234 @@ export default function App() {
           Prediction agents are paused. Last journaled forecast remains; no new forecast or loop is written until resume.
         </div>
       )}
-      {market?.replay && (
+      {route.dest === 'replay' && (
         <div className="banner replay" role="status">
-          Replay at {market.as_of}. Future candles after this timestamp are hidden. <button type="button" className="quiet" onClick={exitReplay}>Exit replay</button>
+          Replay at {market?.as_of ?? route.asOf ?? 'pending hint'}. Future candles after this timestamp are hidden.{' '}
+          <button type="button" className="quiet" onClick={() => goDest('market')}>
+            Exit replay
+          </button>
         </div>
       )}
-      <section className="workspace">
-        <div className="chartPanel">
-          <div className="chartHeader">
-            <strong>{market ? `$${market.last_price.toFixed(2)}` : '—'}</strong>
-            {last && market && (
-              <span className={last.close >= market.candles[0].close ? 'bullish' : 'negative'}>
-                5m
-              </span>
-            )}
-            <span className="muted">{market?.source ?? ''}</span>
-          </div>
-          <div className="regimeStrip" aria-label="Regime by timeframe">
-            {regimes.map((state) => (
-              <span className={`regimeChip ${state.regime}`} key={`strip-${state.timeframe}`}>
-                {state.timeframe} {state.regime}
-              </span>
-            ))}
-          </div>
-          {loading && <p className="pad muted">Loading market state…</p>}
-          {error && <p className="pad killError">{error}</p>}
-          {market && (
-            <MarketChart
-              candles={market.candles}
-              zones={overlayZones}
-              pivots={chartPivots}
-              events={overlayEvents}
-              className="chart"
+      <div className="destLayout">
+        <DestNav route={route} onNavigate={goDest} journalGap={journalGap} />
+        <div className="destBody">
+          {route.dest === 'accuracy' && (
+            <AccuracyView
+              slices={accuracySlices}
+              modelId={market?.forecast.forecast.model_id ?? 'baseline.drift20'}
+              loading={loading}
+              error={error}
+              asOf={market?.as_of ?? null}
             />
           )}
-          {market && (
-            <ContextOverlays
-              zones={overlayZones}
-              events={overlayEvents}
-              priceMin={Math.min(...market.candles.map((c) => c.low))}
-              priceMax={Math.max(...market.candles.map((c) => c.high))}
-              timeStart={market.candles[0]?.time}
-              timeEnd={market.candles.at(-1)?.time}
-              aria-label="Structural zones from the Context Engine snapshot"
-            />
+          {route.dest === 'health' && <HealthView />}
+          {route.dest === 'more' && (
+            <MoreView system={system} shadow={shadow} loading={loading} error={error} />
+          )}
+          {showMarket && (
+            <section className="workspace">
+              <div className="chartPanel">
+                <div className="chartHeader">
+                  <strong>{market ? `$${market.last_price.toFixed(2)}` : '—'}</strong>
+                  {last && market && (
+                    <span className={last.close >= market.candles[0].close ? 'bullish' : 'negative'}>
+                      5m
+                    </span>
+                  )}
+                  <span className="muted">{market?.source ?? ''}</span>
+                </div>
+                <div className="regimeStrip" aria-label="Regime by timeframe">
+                  {regimes.map((state) => (
+                    <span className={`regimeChip ${state.regime}`} key={`strip-${state.timeframe}`}>
+                      {state.timeframe} {state.regime}
+                    </span>
+                  ))}
+                </div>
+                {loading && <p className="pad muted">Loading market state…</p>}
+                {error && <p className="pad killError">{error}</p>}
+                {market && (
+                  <MarketChart
+                    candles={market.candles}
+                    zones={overlayZones}
+                    pivots={chartPivots}
+                    events={overlayEvents}
+                    className="chart"
+                  />
+                )}
+                {market && (
+                  <ContextOverlays
+                    zones={overlayZones}
+                    events={overlayEvents}
+                    priceMin={Math.min(...market.candles.map((c) => c.low))}
+                    priceMax={Math.max(...market.candles.map((c) => c.high))}
+                    timeStart={market.candles[0]?.time}
+                    timeEnd={market.candles.at(-1)?.time}
+                    aria-label="Structural zones from the Context Engine snapshot"
+                  />
+                )}
+              </div>
+              <aside className="rail" data-active-sheet={sheet}>
+                <nav className="sheetTabs" role="tablist" aria-label="Market analysis">
+                  {SHEET_PANELS.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className="sheetTab"
+                      role="tab"
+                      id={`sheet-tab-${id}`}
+                      aria-selected={sheet === id}
+                      aria-controls={`sheet-panel-${id}`}
+                      onClick={() => selectSheet(id)}
+                    >
+                      {SHEET_LABELS[id]}
+                      {id === 'journal' && journalGap != null && (
+                        <span className="sheetBadge" aria-label={`${journalGap} remaining journal origins`}>
+                          {journalGap}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </nav>
+                <section className="card" data-sheet="context" id="sheet-panel-context" role="tabpanel" aria-labelledby="sheet-tab-context">
+                  <h2>Regime stack</h2>
+                  {regimes.map((state) => (
+                    <div className="row" key={state.timeframe}>
+                      <span>{state.timeframe}</span>
+                      <b className={state.regime}>{state.regime}</b>
+                    </div>
+                  ))}
+                  <p className="muted">{market?.interpretation || 'Waiting for snapshot.'}</p>
+                </section>
+                <section className="card" data-sheet="thesis" id="sheet-panel-thesis" role="tabpanel" aria-labelledby="sheet-tab-thesis">
+                  <h2>Thesis</h2>
+                  {(market?.snapshot.theses ?? []).length === 0 && (
+                    <p className="muted">{market?.interpretation || 'No competing theses at this as_of.'}</p>
+                  )}
+                  {(market?.snapshot.theses ?? []).map((thesis) => (
+                    <div className={`thesis ${thesis.direction === 'bear' ? 'bear' : 'bull'}`} key={thesis.id}>
+                      <b>
+                        {thesis.timeframe} {thesis.direction} · {thesis.status}
+                      </b>
+                      <p>
+                        {thesis.kind} · {thesis.regime_relation ?? 'unknown'} · {thesis.note}
+                        {thesis.ledger === 'journaled' ? ' · ledger journaled' : ''}
+                      </p>
+                      {(thesis.invalidation_rules ?? []).map((rule) => (
+                        <p key={rule.id}>
+                          Invalidation ({rule.timeframe}): {rule.kind} {rule.price.toFixed(3)} — frozen at open
+                        </p>
+                      ))}
+                    </div>
+                  ))}
+                </section>
+                <section className="card" data-sheet="forecast" id="sheet-panel-forecast" role="tabpanel" aria-labelledby="sheet-tab-forecast">
+                  <h2>Forecast · next 10</h2>
+                  <p className="muted">
+                    {severed
+                      ? 'Predictions paused. Journaled forecast stays as written; no new forecast is written until resume.'
+                      : market?.forecast.forecast.notes || 'No journaled forecast yet.'}
+                  </p>
+                  {market && (
+                    <ForecastFan
+                      horizons={market.forecast.forecast.horizons}
+                      originClose={market.last_price}
+                      symbol={market.symbol}
+                      forecastedAt={market.as_of}
+                      health={
+                        !market.forecast.journaled
+                          ? 'unknown'
+                          : market.forecast.forecast.horizons.some(
+                                (row) =>
+                                  typeof row.q10_cum_return === 'number' ||
+                                  typeof row.q10_cum_log_return === 'number',
+                              )
+                            ? 'valid'
+                            : 'degraded'
+                      }
+                      emptyReason="Quantile envelope is not drawn until q10/q50/q90 are journaled. A drift20 point path is not a distribution."
+                    />
+                  )}
+                </section>
+                <div className="sheetStack" data-sheet="forecast">
+                  {market?.forecast.loop && <LoopTraceCard loop={market.forecast.loop} />}
+                </div>
+                <section className="card" data-sheet="forecast">
+                  <h2>Walk-forward scores</h2>
+                  <AccuracyPanel
+                    slices={accuracySlices}
+                    baselineName="drift20 vs zero"
+                    baselineDeltaMetric="mae"
+                    modelId={market?.forecast.forecast.model_id ?? 'baseline.drift20'}
+                    coverageInterval="q10–q90 residual vs drift20"
+                  />
+                </section>
+                <section className="card" data-sheet="context">
+                  <h2>Zones</h2>
+                  <p className="muted">
+                    Lifecycle from closed bars on each timeframe. Bounds are frozen. Status is not confidence.
+                  </p>
+                  {overlayZones.length === 0 && <p className="muted">No tracked zones at this as_of.</p>}
+                  {overlayZones.slice(0, 8).map((zone) => (
+                    <div className="row analogRow" key={zone.id}>
+                      <span>
+                        {(zone.timeframes ?? []).join('/') || 'tf'} {zone.role}
+                      </span>
+                      <span className="muted">
+                        {zone.lower.toFixed(3)}–{zone.upper.toFixed(3)} · {zone.status ?? 'active'}
+                        {zone.provenance?.notes ? ` · ${zone.provenance.notes}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </section>
+                <section className="card" data-sheet="context">
+                  <h2>Swings</h2>
+                  <p className="muted">
+                    Confirmed window extrema (left/right 3). Price is the extreme, not a forecast. A marker
+                    appears on the pane only when that open is in the visible 5m window.
+                  </p>
+                  {(market?.snapshot.timeframes['5m']?.swing_pivots ?? []).length === 0 && (
+                    <p className="muted">No confirmed 5m swings at this as_of.</p>
+                  )}
+                  {[...(market?.snapshot.timeframes['5m']?.swing_pivots ?? [])].slice(-8).reverse().map((pivot) => (
+                    <div className="row analogRow" key={`${pivot.kind}-${pivot.time}`}>
+                      <span>
+                        5m {pivot.kind} {pivot.price.toFixed(3)}
+                      </span>
+                      <span className="muted">known {pivot.known_at}</span>
+                    </div>
+                  ))}
+                </section>
+                <div className="sheetStack" data-sheet="context">
+                  {market && (
+                    <ContextEvidence
+                      analogs={market.snapshot.analogs ?? []}
+                      patterns={market.snapshot.pattern_hypotheses ?? []}
+                      fibLevels={market.snapshot.fib_levels ?? []}
+                    />
+                  )}
+                </div>
+                <ShadowJournalCard
+                  shadow={shadow}
+                  replay={Boolean(market?.replay) || route.dest === 'replay'}
+                  severed={severed}
+                  draining={draining}
+                  drainError={drainError}
+                  onDrain={drainJournal}
+                />
+                <section className="card" data-sheet="journal">
+                  <h2>Replay</h2>
+                  <p className="muted">September 2026 failed-breakout process check: 4H must hold through the 5m bounce.</p>
+                  {market?.replay_hint_as_of && route.dest !== 'replay' && (
+                    <button type="button" className="ghost" onClick={() => goDest('replay')}>
+                      Replay pre-bounce
+                    </button>
+                  )}
+                </section>
+              </aside>
+            </section>
           )}
         </div>
-        <aside className="rail" data-active-sheet={sheet}>
-          <nav className="sheetTabs" role="tablist" aria-label="Market analysis">
-            {SHEET_PANELS.map((id) => (
-              <button
-                key={id}
-                type="button"
-                className="sheetTab"
-                role="tab"
-                id={`sheet-tab-${id}`}
-                aria-selected={sheet === id}
-                aria-controls={`sheet-panel-${id}`}
-                onClick={() => selectSheet(id)}
-              >
-                {SHEET_LABELS[id]}
-                {id === 'journal' && journalGap != null && (
-                  <span className="sheetBadge" aria-label={`${journalGap} remaining journal origins`}>
-                    {journalGap}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-          <section className="card" data-sheet="context" id="sheet-panel-context" role="tabpanel" aria-labelledby="sheet-tab-context">
-            <h2>Regime stack</h2>
-            {regimes.map((state) => (
-              <div className="row" key={state.timeframe}>
-                <span>{state.timeframe}</span>
-                <b className={state.regime}>{state.regime}</b>
-              </div>
-            ))}
-            <p className="muted">{market?.interpretation || 'Waiting for snapshot.'}</p>
-          </section>
-          <section className="card" data-sheet="thesis" id="sheet-panel-thesis" role="tabpanel" aria-labelledby="sheet-tab-thesis">
-            <h2>Thesis</h2>
-            {(market?.snapshot.theses ?? []).length === 0 && (
-              <p className="muted">{market?.interpretation || 'No competing theses at this as_of.'}</p>
-            )}
-            {(market?.snapshot.theses ?? []).map((thesis) => (
-              <div className={`thesis ${thesis.direction === 'bear' ? 'bear' : 'bull'}`} key={thesis.id}>
-                <b>
-                  {thesis.timeframe} {thesis.direction} · {thesis.status}
-                </b>
-                <p>
-                  {thesis.kind} · {thesis.regime_relation ?? 'unknown'} · {thesis.note}
-                  {thesis.ledger === 'journaled' ? ' · ledger journaled' : ''}
-                </p>
-                {(thesis.invalidation_rules ?? []).map((rule) => (
-                  <p key={rule.id}>
-                    Invalidation ({rule.timeframe}): {rule.kind} {rule.price.toFixed(3)} — frozen at open
-                  </p>
-                ))}
-              </div>
-            ))}
-          </section>
-          <section className="card" data-sheet="forecast" id="sheet-panel-forecast" role="tabpanel" aria-labelledby="sheet-tab-forecast">
-            <h2>Forecast · next 10</h2>
-            <p className="muted">
-              {severed
-                ? 'Predictions paused. Journaled forecast stays as written; no new forecast is written until resume.'
-                : market?.forecast.forecast.notes || 'No journaled forecast yet.'}
-            </p>
-            {market && (
-              <ForecastFan
-                horizons={market.forecast.forecast.horizons}
-                originClose={market.last_price}
-                symbol={market.symbol}
-                forecastedAt={market.as_of}
-                health={
-                  !market.forecast.journaled
-                    ? 'unknown'
-                    : market.forecast.forecast.horizons.some(
-                          (row) =>
-                            typeof row.q10_cum_return === 'number' ||
-                            typeof row.q10_cum_log_return === 'number',
-                        )
-                      ? 'valid'
-                      : 'degraded'
-                }
-                emptyReason="Quantile envelope is not drawn until q10/q50/q90 are journaled. A drift20 point path is not a distribution."
-              />
-            )}
-          </section>
-          <div className="sheetStack" data-sheet="forecast">
-            {market?.forecast.loop && <LoopTraceCard loop={market.forecast.loop} />}
-          </div>
-          <section className="card" data-sheet="forecast">
-            <h2>Walk-forward scores</h2>
-            <AccuracyPanel
-              slices={accuracySlices}
-              baselineName="drift20 vs zero"
-              baselineDeltaMetric="mae"
-              modelId={market?.forecast.forecast.model_id ?? 'baseline.drift20'}
-              coverageInterval="q10–q90 residual vs drift20"
-            />
-          </section>
-          <section className="card" data-sheet="context">
-            <h2>Zones</h2>
-            <p className="muted">
-              Lifecycle from closed bars on each timeframe. Bounds are frozen. Status is not confidence.
-            </p>
-            {overlayZones.length === 0 && <p className="muted">No tracked zones at this as_of.</p>}
-            {overlayZones.slice(0, 8).map((zone) => (
-              <div className="row analogRow" key={zone.id}>
-                <span>
-                  {(zone.timeframes ?? []).join('/') || 'tf'} {zone.role}
-                </span>
-                <span className="muted">
-                  {zone.lower.toFixed(3)}–{zone.upper.toFixed(3)} · {zone.status ?? 'active'}
-                  {zone.provenance?.notes ? ` · ${zone.provenance.notes}` : ''}
-                </span>
-              </div>
-            ))}
-          </section>
-          <section className="card" data-sheet="context">
-            <h2>Swings</h2>
-            <p className="muted">
-              Confirmed window extrema (left/right 3). Price is the extreme, not a forecast. A marker
-              appears on the pane only when that open is in the visible 5m window.
-            </p>
-            {(market?.snapshot.timeframes['5m']?.swing_pivots ?? []).length === 0 && (
-              <p className="muted">No confirmed 5m swings at this as_of.</p>
-            )}
-            {[...(market?.snapshot.timeframes['5m']?.swing_pivots ?? [])].slice(-8).reverse().map((pivot) => (
-              <div className="row analogRow" key={`${pivot.kind}-${pivot.time}`}>
-                <span>
-                  5m {pivot.kind} {pivot.price.toFixed(3)}
-                </span>
-                <span className="muted">known {pivot.known_at}</span>
-              </div>
-            ))}
-          </section>
-          <div className="sheetStack" data-sheet="context">
-            {market && (
-              <ContextEvidence
-                analogs={market.snapshot.analogs ?? []}
-                patterns={market.snapshot.pattern_hypotheses ?? []}
-                fibLevels={market.snapshot.fib_levels ?? []}
-              />
-            )}
-          </div>
-          <ShadowJournalCard
-            shadow={shadow}
-            replay={Boolean(market?.replay)}
-            severed={severed}
-            draining={draining}
-            drainError={drainError}
-            onDrain={drainJournal}
-          />
-          <section className="card" data-sheet="journal">
-            <h2>Replay</h2>
-            <p className="muted">September 2026 failed-breakout process check: 4H must hold through the 5m bounce.</p>
-            {market?.replay_hint_as_of && !market.replay && (
-              <button type="button" className="ghost" onClick={openReplay}>
-                Replay pre-bounce
-              </button>
-            )}
-          </section>
-        </aside>
-      </section>
+      </div>
     </main>
   )
 }

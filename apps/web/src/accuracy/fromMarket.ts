@@ -1,0 +1,29 @@
+import type { MarketPayload } from '../api/types'
+import type { AccuracySlice } from '../components/AccuracyPanel'
+
+export function accuracySlicesFromMarket(market: MarketPayload | null): AccuracySlice[] {
+  const horizons = market?.metrics.horizons
+  if (!horizons) return []
+  return Object.entries(horizons).map(([h, block]) => {
+    const journaledPoint = block.drift20?.source === 'journal'
+    const sameSource =
+      !journaledPoint || block.zero?.source === 'journal' || block.zero?.source === block.drift20?.source
+    return {
+      horizon: Number(h),
+      n:
+        (journaledPoint ? block.drift20?.sample_count : null) ??
+        block.probability?.sample_count ??
+        block.sample_count ??
+        null,
+      mae: block.drift20?.mae ?? null,
+      rmse: block.drift20?.rmse ?? null,
+      brier: block.probability?.brier ?? null,
+      ece: block.probability?.ece ?? null,
+      coverage: block.interval?.coverage ?? null,
+      baseline_delta:
+        sameSource && block.zero?.mae != null && block.drift20?.mae != null
+          ? block.drift20.mae - block.zero.mae
+          : null,
+    }
+  })
+}
