@@ -30,7 +30,7 @@ def _series(symbol: str, n: int, last_open: datetime, last_close: float = 7.31) 
 
 
 def test_live_failure_does_not_become_fixture(tmp_path, monkeypatch):
-    def boom(self, symbol: str, after=None):
+    def boom(self, symbol: str, after=None, *, timeframe: str = "5m"):
         raise OSError("binance down")
 
     monkeypatch.setattr(PrototypeRuntime, "_pull_live_candles", boom)
@@ -49,7 +49,9 @@ def test_stale_store_appends_new_closed_candles(tmp_path, monkeypatch):
     stale = _series("AVAXUSDT", 40, stale_last, last_close=7.28)
     fresh = _series("AVAXUSDT", 3, last_open, last_close=7.31)
 
-    def pull(self, symbol: str, after=None):
+    def pull(self, symbol: str, after=None, *, timeframe: str = "5m"):
+        if timeframe != "5m":
+            return _series(symbol, 40, last_open, last_close=7.31 if symbol == "AVAXUSDT" else 100.0)
         if symbol != "AVAXUSDT":
             return _series(symbol, 40, last_open, last_close=100.0)
         return fresh
@@ -70,7 +72,7 @@ def test_fresh_store_skips_network_pull(tmp_path, monkeypatch):
     existing = _series("AVAXUSDT", 30, last_open, last_close=7.305)
     calls = {"n": 0}
 
-    def pull(self, symbol: str, after=None):
+    def pull(self, symbol: str, after=None, *, timeframe: str = "5m"):
         calls["n"] += 1
         raise AssertionError("fresh bars must not pull")
 
@@ -88,7 +90,7 @@ def test_api_live_market_is_binance_not_fixture(tmp_path, monkeypatch):
     avax = _series("AVAXUSDT", 180, last_open, last_close=7.308)
     btc = _series("BTCUSDT", 180, last_open, last_close=115000.0)
 
-    def pull(self, symbol: str, after=None):
+    def pull(self, symbol: str, after=None, *, timeframe: str = "5m"):
         return btc if symbol == "BTCUSDT" else avax
 
     monkeypatch.setenv("AVAX_USE_FIXTURE", "0")
@@ -110,7 +112,7 @@ def test_api_live_market_is_binance_not_fixture(tmp_path, monkeypatch):
 
 
 def test_api_live_failure_is_503_not_fixture(tmp_path, monkeypatch):
-    def boom(self, symbol: str, after=None):
+    def boom(self, symbol: str, after=None, *, timeframe: str = "5m"):
         raise OSError("binance down")
 
     monkeypatch.setenv("AVAX_USE_FIXTURE", "0")
