@@ -1,0 +1,3 @@
+agent: 26
+task: RLH-26
+scope: services/harness/encoder/**

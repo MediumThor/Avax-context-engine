@@ -49,7 +49,7 @@ Agent 00 reads every task contract and completion report. It has authority to re
 
 ### 25-30 Internal AI Harness / Recursive Learning Harness
 
-Ready-to-copy contracts: [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md). Directive: [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
+Ready-to-copy contracts: [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md). Live roster: [`Agent-Roster.md`](Agent-Roster.md). Directive: [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
 
 - 25 Tool + loop schema steward (only writer of `packages/contracts/recursive/` per batch)
 - 26 EncoderMemory builder and retrieval

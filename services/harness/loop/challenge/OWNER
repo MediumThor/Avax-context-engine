@@ -1,0 +1,3 @@
+agent: 28
+task: RLH-28
+scope: services/harness/loop/challenge/**

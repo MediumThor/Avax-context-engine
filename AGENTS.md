@@ -19,7 +19,7 @@ Before editing anything, every agent must:
 - Agents 01-08: data, FreqAI, features, modeling, simulation.
 - Agents 09-16: Context Engine, structure, regimes, patterns, thesis ledger.
 - Agents 17-24: web UI, charts, navigation, UX, accessibility.
-- Agents 25-30: internal AI harness / Recursive Learning Harness, tools, memory, explanation layer.
+- Agents 25-30: internal AI harness / Recursive Learning Harness, tools, memory, explanation layer. Wave 1 roster: `wiki/Agent-Roster.md`..
 - Agents 31-35: infrastructure, APIs, observability, CI, reproducibility.
 - Agents 36-39: independent QA, dogfooding, red-team, benchmark replication.
 

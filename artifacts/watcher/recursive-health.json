@@ -1,0 +1,12 @@
+{
+  "status": "wave1-launched",
+  "harness_version": null,
+  "last_loop_trace_at": null,
+  "last_exact_replay_canary": null,
+  "halt_reason_mix": {},
+  "replay_mismatch_count": 0,
+  "promotion_frozen": false,
+  "notes": [
+    "Wave 1 launched. No live LoopTrace yet. Canary undefined until Agent 27 journals a replay-parity fixture."
+  ]
+}
