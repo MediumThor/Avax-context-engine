@@ -20,7 +20,7 @@
   .destBody .workspace{height:100%;max-height:100%}
 }
 @media(min-width:901px){
-  .destNav{flex-direction:column;width:128px;padding:0 10px 0 0}
-  .destBtn{width:100%;justify-content:flex-start;padding:10px 12px}
+  .destNav{flex-direction:column;justify-content:flex-start;align-items:stretch;width:132px;padding:0 10px 0 0;gap:4px}
+  .destBtn{flex:0 0 auto;width:100%;justify-content:flex-start;padding:10px 12px}
   .destBody .workspace{height:100%;max-height:100%}
 }
