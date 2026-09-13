@@ -22,6 +22,8 @@ Current live path journals the ForecastPackage, runs one bounded loop, then appe
 
 Live persist also catch-up-journals missing closed 5m origins whose h=10 outcome is already known, using `baseline.drift20` only, capped at 24 rows per request. `POST /api/v1/journal/catchup` drains more of the same gap (default 200, max 500) without emitting a quantile or running a loop. Existing quantile rows are not rewritten. Replay and the kill switch write nothing (423 on the drain endpoint). This is not a promotion claim.
 
+The market payload includes `forecast.shadow_journal` with `wrote`, `remaining`, and `model_id`. The workspace Journal panel and health line show those counts when present. Remaining is a coverage gap, not an accuracy score. Replay and the kill switch do not scan remaining; the UI must not treat a zero on those paths as "caught up."
+
 Live snapshots also insert competing theses into the `theses` table. The same thesis id cannot change `invalidation_fingerprint`. Replay and the kill switch do not insert. `GET /api/v1/theses/{id}` returns the frozen row or 404.
 
 Future candles arriving before the forecast record is durable is a journal failure.

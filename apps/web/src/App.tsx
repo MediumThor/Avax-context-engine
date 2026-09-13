@@ -6,6 +6,7 @@ import { ContextOverlays, type OverlayZone } from './components/ContextOverlays'
 import { ContextEvidence } from './components/ContextEvidence'
 import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { LoopTraceCard } from './components/LoopTraceCard'
+import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { fetchMarket } from './api/market'
 import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
@@ -56,6 +57,8 @@ export default function App() {
   const severed = Boolean(kill?.engaged)
   const health = market?.health.status ?? 'unknown'
   const live = health === 'live' && !severed
+  const shadow = market?.forecast.shadow_journal
+  const journalGap = shadow && shadow.remaining > 0 ? shadow.remaining : null
   const regimes = TF_ORDER.map((tf) => market?.snapshot.timeframes[tf]).filter(
     (state): state is TimeframeState => Boolean(state),
   )
@@ -156,6 +159,7 @@ export default function App() {
                   : health === 'stale'
                     ? `STALE · as of ${market?.as_of ?? ''}`
                     : 'DATA UNAVAILABLE'}
+            {!severed && journalGap != null ? ` · journal gap ${journalGap}` : ''}
           </div>
           <AgentKillSwitch state={kill} error={killError} onChange={setKill} />
         </div>
@@ -214,6 +218,11 @@ export default function App() {
                 onClick={() => selectSheet(id)}
               >
                 {SHEET_LABELS[id]}
+                {id === 'journal' && journalGap != null && (
+                  <span className="sheetBadge" aria-label={`${journalGap} remaining journal origins`}>
+                    {journalGap}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
@@ -317,7 +326,8 @@ export default function App() {
               />
             )}
           </div>
-          <section className="card" data-sheet="journal" id="sheet-panel-journal" role="tabpanel" aria-labelledby="sheet-tab-journal">
+          <ShadowJournalCard shadow={shadow} replay={Boolean(market?.replay)} severed={severed} />
+          <section className="card" data-sheet="journal">
             <h2>Replay</h2>
             <p className="muted">September 2026 failed-breakout process check: 4H must hold through the 5m bounce.</p>
             {market?.replay_hint_as_of && !market.replay && (
