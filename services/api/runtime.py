@@ -34,8 +34,25 @@ from packages.models.outcomes import mature_outcomes
 
 SOURCE = "binance-vision"
 FEATURE_SCHEMA = "1"
-CHART_SOURCE_LIMIT = 8000
+BARS_PER_DAY_5M = 288
+DEFAULT_LIVE_LOOKBACK_DAYS = 90
+MIN_LIVE_LOOKBACK_DAYS = 10
+MAX_LIVE_LOOKBACK_DAYS = 180
 DEFAULT_CHART_TF = "5m"
+
+
+def live_lookback_days() -> int:
+    raw = os.environ.get("AVAX_LIVE_LOOKBACK_DAYS", str(DEFAULT_LIVE_LOOKBACK_DAYS))
+    try:
+        days = int(raw)
+    except (TypeError, ValueError):
+        days = DEFAULT_LIVE_LOOKBACK_DAYS
+    return max(MIN_LIVE_LOOKBACK_DAYS, min(days, MAX_LIVE_LOOKBACK_DAYS))
+
+
+def chart_source_limit() -> int:
+    """5m bars kept for HTF resample. Incomplete higher-TF buckets are still dropped."""
+    return live_lookback_days() * BARS_PER_DAY_5M
 
 
 class LiveDataUnavailable(RuntimeError):
@@ -96,10 +113,11 @@ class PrototypeRuntime:
         """Closed 5m bars only. Callers must not treat an open bar as known."""
         from packages.market_data import BinanceVisionClient
 
-        client = BinanceVisionClient(timeout=12.0)
+        first_pull = start is None
+        client = BinanceVisionClient(timeout=30.0 if first_pull else 12.0)
         try:
-            if start is None:
-                rows = list(client.iter_recent_days(symbol, "5m", 10))
+            if first_pull:
+                rows = list(client.iter_recent_days(symbol, "5m", live_lookback_days()))
             else:
                 end = datetime.now(timezone.utc)
                 rows = [
@@ -749,7 +767,7 @@ class PrototypeRuntime:
         persist: bool | None = None,
         chart_timeframe: str = DEFAULT_CHART_TF,
     ) -> dict:
-        candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, CHART_SOURCE_LIMIT))
+        candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, chart_source_limit()))
         last_close = candles[-1].close_time()
         should_persist = persist if persist is not None else as_of is None
         snap = self.snapshot(
