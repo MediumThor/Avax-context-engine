@@ -6,11 +6,23 @@ Operate the repository as a continuously improving multi-agent engineering syste
 
 The project supports up to 40 active agents. Concurrency is useful only when write scopes, contracts and review authority are explicit.
 
+## Mainline operating mode
+
+`main` is the single persistent product branch.
+
+Agents may use isolated worktrees or temporary branches for collision avoidance, but accepted changes are integrated into `main` as soon as their bounded task passes review. There is no long-lived staging branch and no delayed release train during rapid prototyping.
+
+The operating rule is:
+
+`latest main -> isolated task work -> bounded tests/review -> immediate main integration -> post-integration tests -> next task`
+
+Every new task begins from the latest `main`. Every completion report ends with the accepted `main` commit SHA. Temporary branches are implementation scratch space, not project state.
+
 ## Agent 00 — Watcher
 
-Agent 00 is always reserved for the Watcher. It does not primarily build features. It observes work, detects conflicts, verifies evidence, reprompts weak agents, and integrates accepted work.
+Agent 00 is always reserved for the Watcher. It does not primarily build features. It observes work, detects conflicts, verifies evidence, reprompts weak agents, and integrates accepted work directly into `main`.
 
-Agent 00 reads every task contract and completion report. It has authority to reject or quarantine work.
+Agent 00 reads every task contract and completion report. It has authority to reject or quarantine work. It also prevents accepted work from remaining stranded on temporary branches.
 
 ## Recommended lanes
 
@@ -51,7 +63,7 @@ Agent 00 reads every task contract and completion report. It has authority to re
 
 Ready-to-copy contracts: [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md). Live roster: [`Agent-Roster.md`](Agent-Roster.md). Directive: [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
 
-- 25 Tool + loop schema steward (only writer of `packages/contracts/recursive/` per batch)
+- 25 Tool + loop schema steward
 - 26 EncoderMemory builder and retrieval
 - 27 Same-transition `LoopStep` / `D_φ`
 - 28 Counter-thesis / challenge / invalidation loop step
@@ -80,7 +92,9 @@ Every assigned task begins with a markdown contract:
 ```md
 Task: <one outcome>
 Agent: <nn>
-Branch: agent/<nn>-<slug>
+Base: latest main
+Isolation: <worktree or temporary branch if required>
+Integration target: main
 Inputs: <docs/code/data>
 Allowed write scope: <paths>
 Forbidden write scope: <paths>
@@ -88,25 +102,27 @@ Dependencies: <contracts/interfaces>
 Acceptance tests: <commands + expected outcomes>
 Metrics gate: <if applicable>
 Docs to update: <paths>
-Finish criteria: <observable result>
+Finish criteria: <observable result on main>
 ```
 
 ## Concurrency rules
 
 1. No two agents may own the same file path simultaneously unless one is read-only.
 2. Schema/API files have a single designated owner per batch.
-3. A dependent agent must code against an accepted contract, not an imagined interface.
+3. A dependent agent must code against an accepted contract already represented on `main`, not an imagined interface.
 4. If a task discovers the contract is wrong, stop and file a contract-change proposal rather than silently diverging.
-5. Long tasks should be decomposed into mergeable increments.
-6. Experimental models never directly replace production defaults; they publish evaluation artifacts first.
+5. Long tasks are decomposed into increments that can be integrated into `main` quickly.
+6. Experimental models never directly replace accepted defaults; they publish evaluation artifacts first.
+7. Agent 00 serializes conflicting integrations and reruns relevant tests after each mainline update.
+8. If a temporary branch becomes stale, reconcile onto current `main`; do not preserve stale branch semantics for convenience.
 
 ## Continuous loop
 
 The living-project cycle is:
 
-`observe -> issue/task -> isolated implementation -> local tests -> simulation / loop replay -> completion report -> watcher review -> integration -> live/dry observation + LoopTrace journal -> matured LoopOutcome -> new evidence -> next issue`
+`observe -> issue/task -> isolated implementation -> local tests -> simulation / loop replay -> watcher review -> main integration -> post-integration verification -> live/dry observation + LoopTrace journal -> matured LoopOutcome -> new evidence -> next issue`
 
-Watcher automatically prioritizes:
+Watcher prioritizes:
 
 1. data corruption or leakage;
 2. broken build/test;
@@ -117,7 +133,9 @@ Watcher automatically prioritizes:
 
 ## Competition mode
 
-For uncertain research questions, Agent 00 may assign the same objective to 2-5 agents using different approaches. Examples:
+For uncertain research questions, Agent 00 may assign the same objective to 2-5 agents using different approaches. Competitors remain isolated until evaluation, but only the selected or deliberately ensembled result is integrated into `main`.
+
+Examples:
 
 - pivot algorithms;
 - support-zone clustering;
@@ -142,12 +160,14 @@ Reprompting is preferred to broad rewrites.
 
 ## Integration gate
 
-A change can be integrated only when:
+A change can be integrated into `main` only when:
 
 - Constitution compliance passes;
-- tests pass;
+- required tests pass;
 - no data leakage is detected;
 - relevant docs are updated;
-- metrics do not regress outside an approved experimental branch;
+- metrics do not regress outside an explicitly experimental task;
 - Watcher can reproduce the result;
 - UI claims match evaluator output.
+
+After integration, the relevant smoke/regression tests run against `main`. If they fail, the Watcher fixes or reverts the bounded change immediately rather than allowing a broken mainline to accumulate.
