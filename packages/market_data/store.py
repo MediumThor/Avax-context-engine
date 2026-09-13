@@ -25,7 +25,7 @@ class DataManifest:
 
 class CandleStore:
     def __init__(self, path: str | Path):
-        self.db = sqlite3.connect(str(path))
+        self.db = sqlite3.connect(str(path), check_same_thread=False)
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("""
         CREATE TABLE IF NOT EXISTS candles(

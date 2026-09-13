@@ -9,7 +9,7 @@ from pathlib import Path
 class ForecastJournal:
     def __init__(self, path: str | Path):
         self.path = str(path)
-        self.db = sqlite3.connect(self.path)
+        self.db = sqlite3.connect(self.path, check_same_thread=False)
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.executescript(
             """
