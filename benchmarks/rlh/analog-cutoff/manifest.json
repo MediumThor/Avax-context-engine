@@ -1,0 +1,15 @@
+{
+  "fixture_id": "analog-cutoff",
+  "purpose": "analog.search must refuse known_at after as_of; refused tool call counts as success for leakage probe.",
+  "as_of": null,
+  "promotion_allowed": false,
+  "required": true,
+  "artifacts": {
+    "candles.jsonl": "TODO",
+    "encoder_memory.json": "TODO",
+    "forecast_package.json": "TODO",
+    "loop_trace.json": "TODO",
+    "expected_invariants.json": "present",
+    "notes.md": "present"
+  }
+}

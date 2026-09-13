@@ -1,0 +1,15 @@
+{
+  "fixture_id": "parent-child-split",
+  "purpose": "4H bear parent regime preserved while 5m child may read bullish relief; relief is not reversal.",
+  "as_of": null,
+  "promotion_allowed": false,
+  "required": true,
+  "artifacts": {
+    "candles.jsonl": "TODO",
+    "encoder_memory.json": "TODO",
+    "forecast_package.json": "TODO",
+    "loop_trace.json": "TODO",
+    "expected_invariants.json": "present",
+    "notes.md": "present"
+  }
+}

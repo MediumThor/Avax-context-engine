@@ -1,0 +1,15 @@
+{
+  "fixture_id": "no-change-5m",
+  "purpose": "Immaterial 5m candle must halt with NO_CHANGE; parent regime preserved without max_depth burn.",
+  "as_of": null,
+  "promotion_allowed": false,
+  "required": true,
+  "artifacts": {
+    "candles.jsonl": "TODO",
+    "encoder_memory.json": "TODO",
+    "forecast_package.json": "TODO",
+    "loop_trace.json": "TODO",
+    "expected_invariants.json": "present",
+    "notes.md": "present"
+  }
+}

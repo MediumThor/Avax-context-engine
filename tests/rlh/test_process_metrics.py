@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from services.evaluator.rlh.metrics import score_trace
-from services.evaluator.rlh.runner import run_fixture_dir
+from services.evaluator.rlh.runner import REQUIRED_FIXTURES, run_fixture_dir
 
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLE = ROOT / "packages" / "contracts" / "recursive" / "examples" / "loop-trace.example.json"
@@ -67,15 +67,23 @@ def test_uncalibrated_percent_fails():
 
 
 def test_required_fixtures_exist():
-    for name in (
-        "avax-2026-09-failed-8",
-        "no-change-5m",
-        "stale-data",
-        "invalidation-already-fired",
-        "model-disagreement",
-        "parent-child-split",
-        "analog-cutoff",
-        "replay-parity",
-    ):
-        result = run_fixture_dir(FIXTURES / name)
+    for name in REQUIRED_FIXTURES:
+        fixture_dir = FIXTURES / name
+        assert (fixture_dir / "manifest.json").is_file()
+        assert (fixture_dir / "notes.md").is_file()
+        result = run_fixture_dir(fixture_dir)
         assert result["expected"]
+        manifest = json.loads((fixture_dir / "manifest.json").read_text())
+        assert manifest["fixture_id"] == name
+        assert manifest["promotion_allowed"] is False
+
+
+def test_incomplete_fixtures_cannot_report_passed():
+    for name in REQUIRED_FIXTURES:
+        fixture_dir = FIXTURES / name
+        assert not (fixture_dir / "loop_trace.json").exists(), f"{name} should be incomplete in v1"
+        result = run_fixture_dir(fixture_dir)
+        assert result["passed"] is False
+        assert result["status"] in ("incomplete", "invariants_only")
+        if result["status"] == "incomplete":
+            assert result.get("blocking_reason") == "loop_trace.json missing"
