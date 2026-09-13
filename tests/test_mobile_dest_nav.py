@@ -22,6 +22,7 @@ def test_five_destinations_are_named_and_routed():
     assert "aria-label=\"Chart timeframe\"" in app
     assert "Market" in wiki and "Replay" in wiki and "Accuracy" in wiki
     assert "Health" in wiki and "More" in wiki
+    assert "SECONDARY_DESTS = ['benchmarks', 'models']" in dests
 
 
 def test_invalid_dest_and_as_of_plus_are_canonical():

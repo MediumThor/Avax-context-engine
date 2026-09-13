@@ -16,6 +16,7 @@ from packages.harness.kill_switch import (
     reset,
     switch_path,
 )
+from services.api.catalog import list_benchmarks, list_models
 from services.api.runtime import LiveDataUnavailable, get_runtime
 
 app = FastAPI(title="AVAX Context Engine API", version="0.2.0")
@@ -189,6 +190,16 @@ def journal_catchup(
     except AgentsSevered as exc:
         raise HTTPException(status_code=423, detail=str(exc)) from exc
     return get_runtime().drain_shadow_journal(symbol.upper(), budget=budget, rounds=rounds)
+
+
+@app.get("/api/v1/benchmarks")
+def benchmarks() -> dict:
+    return list_benchmarks()
+
+
+@app.get("/api/v1/models")
+def models() -> dict:
+    return list_models()
 
 
 @app.get("/api/v1/theses/{thesis_id}")

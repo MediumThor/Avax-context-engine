@@ -28,7 +28,9 @@ import {
   TF_MINUTES,
 } from './nav/destinations'
 import { AccuracyView } from './views/AccuracyView'
+import { BenchmarksView } from './views/BenchmarksView'
 import { HealthView } from './views/HealthView'
+import { ModelsView } from './views/ModelsView'
 import { MoreView } from './views/MoreView'
 import './styles.css'
 
@@ -319,8 +321,16 @@ export default function App() {
             />
           )}
           {route.dest === 'health' && <HealthView />}
+          {route.dest === 'benchmarks' && <BenchmarksView />}
+          {route.dest === 'models' && <ModelsView />}
           {route.dest === 'more' && (
-            <MoreView system={system} shadow={shadow} loading={loading} error={error} />
+            <MoreView
+              system={system}
+              shadow={shadow}
+              loading={loading}
+              error={error}
+              onNavigate={goDest}
+            />
           )}
           {showMarket && (
             <section className="workspace">

@@ -29,10 +29,10 @@ Must also render the journaled `LoopTrace`: depth used, halt reason, citations, 
 Primary walk-forward AccuracyPanel. Scores come from the market metrics payload. Missing Brier/ECE stay "not yet scored". This dest does not invent a generic accuracy percentage.
 
 ### `/benchmarks`
-Walk-forward and regression benchmark explorer. Not implemented in the current shell; More says so explicitly.
+Walk-forward and regression benchmark explorer. Secondary dest (not a sixth bottom-nav item). Reads `GET /api/v1/benchmarks` from the registry. Draft entries stay unsealed. No invented ECE/MAE.
 
 ### `/models`
-Incumbent/challenger registry, versions, feature schemas, calibration and promotion history. Not implemented in the current shell.
+Incumbent/challenger registry. Secondary dest from More. Reads `GET /api/v1/models`. Incumbent is `baseline.drift20`. Research quantile/probability rows stay `promotion_allowed: false`.
 
 ### `/health`
 `GET /health` plus `GET /api/v1/system`: data-source health, kill-switch, last close, service status. No fabricated ECE/accuracy.
