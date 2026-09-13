@@ -27,16 +27,18 @@ export function MarketChart({ candles, className }: Props) {
       wickDownColor: '#ff5964',
     })
     series.setData(candles.map((c) => ({ ...c, time: c.time as never })))
-    const ema20 = candles.filter((c) => typeof c.ema20 === 'number' && Number.isFinite(c.ema20))
-    if (ema20.length) {
-      chart.addSeries(LineSeries, { color: '#8cb4ff', lineWidth: 2, priceLineVisible: false }).setData(
-        ema20.map((c) => ({ time: c.time as never, value: c.ema20 as number })),
-      )
-    }
-    const ema50 = candles.filter((c) => typeof c.ema50 === 'number' && Number.isFinite(c.ema50))
-    if (ema50.length) {
-      chart.addSeries(LineSeries, { color: '#f0c36a', lineWidth: 2, priceLineVisible: false }).setData(
-        ema50.map((c) => ({ time: c.time as never, value: c.ema50 as number })),
+    const emaLayers: Array<{ key: keyof Candle; color: string; width: 1 | 2 }> = [
+      { key: 'ema9', color: '#d6a4ff', width: 1 },
+      { key: 'ema20', color: '#8cb4ff', width: 2 },
+      { key: 'ema50', color: '#f0c36a', width: 2 },
+      { key: 'ema100', color: '#6fbf9a', width: 1 },
+      { key: 'ema200', color: '#9aa5b3', width: 1 },
+    ]
+    for (const layer of emaLayers) {
+      const points = candles.filter((c) => typeof c[layer.key] === 'number' && Number.isFinite(c[layer.key]))
+      if (!points.length) continue
+      chart.addSeries(LineSeries, { color: layer.color, lineWidth: layer.width, priceLineVisible: false }).setData(
+        points.map((c) => ({ time: c.time as never, value: c[layer.key] as number })),
       )
     }
     const volumes = candles.filter((c) => typeof c.volume === 'number' && Number.isFinite(c.volume))

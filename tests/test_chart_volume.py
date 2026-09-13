@@ -15,7 +15,7 @@ def test_market_candles_include_positive_volume(tmp_path):
     assert all("volume" in row for row in candles)
     assert all(row["volume"] > 0 for row in candles)
     assert candles[0]["volume"] != candles[-1]["volume"]
-    assert all("ema20" in row and "ema50" in row for row in candles)
+    assert all(all(f"ema{span}" in row for span in (9, 20, 50, 100, 200)) for row in candles)
     runtime.close()
     reset_runtime()
 
@@ -37,7 +37,8 @@ def test_chart_ema_ignores_future_closes():
         )
     ]
     after = _chart_rows(mutated, 80)
-    assert [row["ema20"] for row in before[:-1]] == [row["ema20"] for row in after[:-1]]
-    assert [row["ema50"] for row in before[:-1]] == [row["ema50"] for row in after[:-1]]
+    for span in (9, 20, 50, 100, 200):
+        key = f"ema{span}"
+        assert [row[key] for row in before[:-1]] == [row[key] for row in after[:-1]]
     expected = ema([c.close for c in series], 20)
     assert before[-1]["ema20"] == expected[-1]
