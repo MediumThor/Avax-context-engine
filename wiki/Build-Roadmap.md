@@ -17,7 +17,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 
 Honest slice on `main` (`811ea80`):
 
-1. Market page defaults to live Binance Vision candles + ticker last price, and incrementally refreshes closed 5m bars. The September 2026 fixture is explicit (`AVAX_USE_FIXTURE=1`) only. It never labels fixture/stale data `LIVE`, and a failed live pull must not silently become the fixture.
+1. Market page defaults to live Binance Vision candles + ticker last price, and incrementally refreshes closed 5m bars. Chart granularity is switchable (`5m`/`15m`/`1H`/`4H`/`1D`/`1W`) without rewriting the regime stack. The September 2026 fixture is explicit (`AVAX_USE_FIXTURE=1`) only. It never labels fixture/stale data `LIVE`, and a failed live pull must not silently become the fixture.
 2. Forecasts are journaled before outcomes. When enough matured train origins exist, `p_close_above_origin` is an empirical signed base rate (`empirical_signed_base_rate.v1`), not a fabricated confidence percentage. Outcomes append later without rewriting the forecast row.
 3. Reported baseline numbers are walk-forward only, with `sample_count`. Zero-model direction abstains.
 4. Replay `?as_of=` / `/api/v1/replay/{symbol}` hides later candles. The 5m relief bounce must not flip 4H.

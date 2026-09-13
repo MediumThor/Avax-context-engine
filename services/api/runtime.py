@@ -30,7 +30,18 @@ QUANTILE_LOOKBACK = 400
 LIVE_LOOKBACK_DAYS = 10
 LIVE_FRESH_SECONDS = 6 * 60
 LIVE_PULL_MIN_INTERVAL = 15
+CHART_TIMEFRAMES = ("5m", "15m", "1h", "4h", "1d", "1w")
+TF_MINUTES = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
+CHART_LOOKBACK_DAYS = {"5m": 10, "15m": 20, "1h": 60, "4h": 180, "1d": 400, "1w": 900}
+CHART_LIMITS = {"5m": 576, "15m": 384, "1h": 336, "4h": 240, "1d": 250, "1w": 200}
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
+
+
+def normalize_chart_timeframe(value: str | None) -> str:
+    tf = (value or "5m").lower()
+    if tf not in CHART_TIMEFRAMES:
+        raise ValueError("timeframe must be one of 5m, 15m, 1h, 4h, 1d, 1w")
+    return tf
 
 
 def _now() -> datetime:
@@ -78,16 +89,18 @@ class PrototypeRuntime:
             return
         self._refresh_live(symbol)
 
-    def _pull_live_candles(self, symbol: str, after: datetime | None = None) -> list:
+    def _pull_live_candles(self, symbol: str, after: datetime | None = None, *, timeframe: str = "5m") -> list:
         from packages.market_data import BinanceVisionClient
 
+        tf = normalize_chart_timeframe(timeframe)
+        days = CHART_LOOKBACK_DAYS.get(tf, LIVE_LOOKBACK_DAYS)
         client = BinanceVisionClient(timeout=20.0)
         try:
             if after is None:
-                return list(client.iter_recent_days(symbol, "5m", LIVE_LOOKBACK_DAYS))
+                return list(client.iter_recent_days(symbol, tf, days))
             start_ms = int(after.timestamp() * 1000)
             end_ms = int(_now().timestamp() * 1000)
-            return [c for c in client.fetch_klines(symbol, "5m", start_ms, end_ms) if c.is_closed]
+            return [c for c in client.fetch_klines(symbol, tf, start_ms, end_ms) if c.is_closed]
         finally:
             client.close()
 
@@ -100,22 +113,29 @@ class PrototypeRuntime:
         finally:
             client.close()
 
-    def _refresh_live(self, symbol: str) -> None:
-        """Append newly closed Binance 5m bars. Never silently become the fixture."""
-        existing = self.store.load(SOURCE, symbol, "5m")
+    def _refresh_live(self, symbol: str, timeframe: str = "5m") -> None:
+        """Append newly closed Binance bars. Never silently become the fixture."""
+        tf = normalize_chart_timeframe(timeframe)
+        existing = self.store.load(SOURCE, symbol, tf)
         now = _now()
         last_close = existing[-1].close_time() if existing else None
-        if last_close and (now - last_close).total_seconds() < LIVE_FRESH_SECONDS:
+        fresh_seconds = LIVE_FRESH_SECONDS if tf == "5m" else TF_MINUTES[tf] * 60 + 60
+        if last_close and (now - last_close).total_seconds() < fresh_seconds:
             self.source_label = SOURCE
             return
-        last_pull = self._last_pull.get(symbol)
+        pull_key = f"{symbol}:{tf}"
+        last_pull = self._last_pull.get(pull_key)
         if last_pull and (now - last_pull).total_seconds() < LIVE_PULL_MIN_INTERVAL:
             if not existing:
-                raise RuntimeError(self._live_error or f"live market data unavailable for {symbol}")
+                raise RuntimeError(self._live_error or f"live market data unavailable for {symbol} {tf}")
             return
         try:
-            candles = self._pull_live_candles(symbol, after=existing[-1].open_time if existing else None)
-            self._last_pull[symbol] = now
+            candles = self._pull_live_candles(
+                symbol,
+                after=existing[-1].open_time if existing else None,
+                timeframe=tf,
+            )
+            self._last_pull[pull_key] = now
             if candles:
                 self.store.insert_many(SOURCE, candles)
                 self.source_label = SOURCE
@@ -123,21 +143,70 @@ class PrototypeRuntime:
                 return
             if existing:
                 return
-            raise RuntimeError(f"no live candles returned for {symbol}")
+            raise RuntimeError(f"no live candles returned for {symbol} {tf}")
         except RuntimeError:
             raise
         except Exception as exc:
-            self._last_pull[symbol] = now
+            self._last_pull[pull_key] = now
             self._live_error = str(exc)
             if existing:
                 return
-            raise RuntimeError(f"live market data unavailable for {symbol}: {exc}") from exc
+            raise RuntimeError(f"live market data unavailable for {symbol} {tf}: {exc}") from exc
 
     def candles(self, symbol: str, as_of: datetime | None = None, limit: int = 400):
         self._ensure(symbol)
         source = "fixture" if self.use_fixture else SOURCE
         xs = self.store.load_upto(source, symbol, "5m", as_of) if as_of else self.store.load(source, symbol, "5m")
         return xs[-limit:]
+
+    def chart_candles(
+        self,
+        symbol: str,
+        timeframe: str = "5m",
+        as_of: datetime | None = None,
+        limit: int | None = None,
+    ):
+        """Closed bars for chart display only. Does not rebuild the regime stack."""
+        tf = normalize_chart_timeframe(timeframe)
+        cap = limit or CHART_LIMITS[tf]
+        if self.use_fixture:
+            base = self.candles(symbol, as_of=as_of, limit=8000)
+            if tf == "5m":
+                return base[-cap:]
+            from packages.context_engine.resample import resample_closed
+
+            return resample_closed(base, TF_MINUTES[tf], tf)[-cap:]
+        self._refresh_live(symbol, tf)
+        source = SOURCE
+        xs = self.store.load_upto(source, symbol, tf, as_of) if as_of else self.store.load(source, symbol, tf)
+        return xs[-cap:]
+
+    def chart_payload(
+        self,
+        symbol: str,
+        timeframe: str = "5m",
+        as_of: datetime | None = None,
+        limit: int | None = None,
+    ) -> dict:
+        candles = self.chart_candles(symbol, timeframe, as_of=as_of, limit=limit)
+        return {
+            "symbol": symbol,
+            "timeframe": normalize_chart_timeframe(timeframe),
+            "source": "fixture" if self.use_fixture else SOURCE,
+            "as_of": candles[-1].close_time().isoformat() if candles else None,
+            "candles": [
+                {
+                    "time": int(c.open_time.timestamp()),
+                    "open": c.open,
+                    "high": c.high,
+                    "low": c.low,
+                    "close": c.close,
+                }
+                for c in candles
+            ],
+            "replay": as_of is not None,
+            "execution_enabled": False,
+        }
 
     def snapshot(self, symbol: str, as_of: datetime | None = None):
         avax = self.candles(symbol, as_of=as_of, limit=8000)
@@ -320,7 +389,14 @@ class PrototypeRuntime:
             health["pull_error"] = self._live_error
         return health
 
-    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 576, persist: bool | None = None) -> dict:
+    def market_payload(
+        self,
+        symbol: str,
+        as_of: datetime | None = None,
+        chart_limit: int = 576,
+        persist: bool | None = None,
+        chart_timeframe: str = "5m",
+    ) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, 400))
         if not candles:
             raise RuntimeError(f"no candles available for {symbol}")
@@ -333,6 +409,8 @@ class PrototypeRuntime:
         should_persist = persist if persist is not None else as_of is None
         forecast = self.forecast(symbol, as_of=as_of or last_close, persist=should_persist, snap=snap)
         metrics = self.metrics(symbol, as_of=as_of or last_close)
+        chart_tf = normalize_chart_timeframe(chart_timeframe)
+        chart_bars = self.chart_candles(symbol, chart_tf, as_of=as_of, limit=chart_limit)
         chart = [
             {
                 "time": int(c.open_time.timestamp()),
@@ -341,7 +419,7 @@ class PrototypeRuntime:
                 "low": c.low,
                 "close": c.close,
             }
-            for c in candles[-chart_limit:]
+            for c in chart_bars
         ]
         hint = None
         if self.use_fixture:
@@ -370,6 +448,7 @@ class PrototypeRuntime:
             "forecast": forecast,
             "metrics": metrics,
             "candles": chart,
+            "chart_timeframe": chart_tf,
             "replay": as_of is not None,
             "replay_hint_as_of": hint,
             "execution_enabled": False,

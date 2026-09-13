@@ -5,8 +5,9 @@ import { ForecastFan } from './components/ForecastFan'
 import { ContextOverlays } from './components/ContextOverlays'
 import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
-import { fetchMarket } from './api/market'
-import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
+import { fetchChartCandles, fetchMarket } from './api/market'
+import type { Candle, MarketPayload, StructuralZone, TimeframeState } from './api/types'
+import { TimeframeSwitcher, isChartTimeframe, type ChartTimeframe } from './components/TimeframeSwitcher'
 import './styles.css'
 
 const TF_ORDER = ['1w', '1d', '4h', '1h', '15m', '5m']
@@ -16,10 +17,24 @@ function readAsOf(): string | null {
   return new URLSearchParams(window.location.search).get('as_of')
 }
 
+function readTf(): ChartTimeframe {
+  const raw = new URLSearchParams(window.location.search).get('tf')
+  return isChartTimeframe(raw) ? raw : '5m'
+}
+
+function writeTf(tf: ChartTimeframe) {
+  const url = new URL(window.location.href)
+  if (tf === '5m') url.searchParams.delete('tf')
+  else url.searchParams.set('tf', tf)
+  window.history.replaceState({}, '', url)
+}
+
 export default function App() {
   const [kill, setKill] = useState<KillSwitchState | null>(null)
   const [killError, setKillError] = useState<string | null>(null)
   const [market, setMarket] = useState<MarketPayload | null>(null)
+  const [chartCandles, setChartCandles] = useState<Candle[] | null>(null)
+  const [chartTf, setChartTf] = useState<ChartTimeframe>(readTf)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const asOf = useMemo(() => readAsOf(), [])
@@ -59,13 +74,46 @@ export default function App() {
     }
   }, [asOf])
 
+  useEffect(() => {
+    let cancelled = false
+    async function loadChart() {
+      try {
+        const body = await fetchChartCandles('AVAXUSDT', chartTf, asOf)
+        if (!cancelled) {
+          setChartCandles(body.candles)
+          setError(null)
+        }
+      } catch (err: unknown) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'chart unavailable')
+      }
+    }
+    void loadChart()
+    if (asOf) return () => {
+      cancelled = true
+    }
+    const timer = window.setInterval(() => {
+      void loadChart()
+    }, LIVE_POLL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [asOf, chartTf])
+
+  function selectTf(tf: ChartTimeframe) {
+    if (tf === chartTf) return
+    writeTf(tf)
+    setChartTf(tf)
+  }
+
   const severed = Boolean(kill?.engaged)
   const health = market?.health.status ?? 'unknown'
   const live = health === 'live' && !severed
   const regimes = TF_ORDER.map((tf) => market?.snapshot.timeframes[tf]).filter(
     (state): state is TimeframeState => Boolean(state),
   )
-  const last = market?.candles.at(-1)
+  const displayed = chartCandles ?? market?.candles ?? []
+  const last = displayed.at(-1)
   const overlayZones = useMemo(() => {
     if (!market) return []
     const seen = new Set<string>()
@@ -152,24 +200,25 @@ export default function App() {
         <div className="chartPanel">
           <div className="chartHeader">
             <strong>{market ? `$${market.last_price.toFixed(2)}` : '—'}</strong>
-            {last && market && (
-              <span className={last.close >= market.candles[0].close ? 'bullish' : 'negative'}>
-                5m
+            {last && displayed[0] && (
+              <span className={last.close >= displayed[0].close ? 'bullish' : 'negative'}>
+                {chartTf === '15m' || chartTf === '5m' ? chartTf : chartTf.toUpperCase()}
               </span>
             )}
             <span className="muted">
               {market?.source ?? ''}
               {market?.price_source === 'ticker' ? ' · last trade' : ''}
             </span>
+            <TimeframeSwitcher value={chartTf} onChange={selectTf} />
           </div>
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}
-          {market && <MarketChart candles={market.candles} className="chart" />}
-          {market && (
+          {displayed.length > 0 && <MarketChart candles={displayed} className="chart" />}
+          {displayed.length > 0 && (
             <ContextOverlays
               zones={overlayZones}
-              priceMin={Math.min(...market.candles.map((c) => c.low))}
-              priceMax={Math.max(...market.candles.map((c) => c.high))}
+              priceMin={Math.min(...displayed.map((c) => c.low))}
+              priceMax={Math.max(...displayed.map((c) => c.high))}
               aria-label="Structural zones from the Context Engine snapshot"
             />
           )}
@@ -178,10 +227,16 @@ export default function App() {
           <section className="card">
             <h2>Regime stack</h2>
             {regimes.map((state) => (
-              <div className="row" key={state.timeframe}>
-                <span>{state.timeframe}</span>
+              <button
+                type="button"
+                className={`row tfRow ${chartTf === state.timeframe ? 'selected' : ''}`}
+                key={state.timeframe}
+                onClick={() => isChartTimeframe(state.timeframe) && selectTf(state.timeframe)}
+                aria-pressed={chartTf === state.timeframe}
+              >
+                <span>{state.timeframe === '15m' || state.timeframe === '5m' ? state.timeframe : state.timeframe.toUpperCase()}</span>
                 <b className={state.regime}>{state.regime}</b>
-              </div>
+              </button>
             ))}
             <p className="muted">{market?.interpretation || 'Waiting for snapshot.'}</p>
           </section>

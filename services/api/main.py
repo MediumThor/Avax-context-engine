@@ -16,7 +16,7 @@ from packages.harness.kill_switch import (
     reset,
     switch_path,
 )
-from services.api.runtime import get_runtime
+from services.api.runtime import get_runtime, normalize_chart_timeframe
 
 app = FastAPI(title="AVAX Context Engine API", version="0.2.0")
 app.add_middleware(
@@ -86,10 +86,47 @@ def system() -> dict:
     }
 
 
-@app.get("/api/v1/market/{symbol}")
-def market(symbol: str, as_of: str | None = Query(default=None), limit: int = Query(default=576, ge=50, le=1000)) -> dict:
+def _parse_timeframe(value: str | None) -> str:
     try:
-        return get_runtime().market_payload(symbol.upper(), as_of=_parse_as_of(as_of), chart_limit=limit)
+        return normalize_chart_timeframe(value)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/market/{symbol}/candles")
+def market_candles(
+    symbol: str,
+    timeframe: str = Query(default="5m"),
+    as_of: str | None = Query(default=None),
+    limit: int | None = Query(default=None, ge=20, le=1000),
+) -> dict:
+    try:
+        return get_runtime().chart_payload(
+            symbol.upper(),
+            timeframe=_parse_timeframe(timeframe),
+            as_of=_parse_as_of(as_of),
+            limit=limit,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/v1/market/{symbol}")
+def market(
+    symbol: str,
+    as_of: str | None = Query(default=None),
+    limit: int = Query(default=576, ge=50, le=1000),
+    timeframe: str = Query(default="5m"),
+) -> dict:
+    try:
+        return get_runtime().market_payload(
+            symbol.upper(),
+            as_of=_parse_as_of(as_of),
+            chart_limit=limit,
+            chart_timeframe=_parse_timeframe(timeframe),
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:

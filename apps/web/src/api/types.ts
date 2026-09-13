@@ -69,6 +69,7 @@ export interface MarketPayload {
     >
   }
   candles: Candle[]
+  chart_timeframe?: string
   replay: boolean
   replay_hint_as_of?: string | null
   execution_enabled: boolean

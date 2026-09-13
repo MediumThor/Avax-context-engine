@@ -40,5 +40,5 @@ export function MarketChart({candles,className}:Props){
     chartRef.current?.timeScale().fitContent()
   },[candles])
 
-  return <div ref={host} className={className} aria-label="AVAX market chart" />
+  return <div ref={host} className={className} aria-label="AVAX market chart" role="img" />
 }
