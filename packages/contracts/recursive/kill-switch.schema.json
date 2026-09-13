@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/recursive/kill-switch.schema.json",
+  "title": "AgentKillSwitch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "engaged",
+    "engaged_at",
+    "reset_at",
+    "reason",
+    "actor",
+    "severed_task_ids",
+    "effects",
+    "events"
+  ],
+  "properties": {
+    "engaged": { "type": "boolean" },
+    "engaged_at": { "type": ["string", "null"] },
+    "reset_at": { "type": ["string", "null"] },
+    "reason": { "type": ["string", "null"] },
+    "actor": { "type": ["string", "null"] },
+    "severed_task_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "effects": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "events": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

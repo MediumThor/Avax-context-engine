@@ -27,6 +27,7 @@ SCHEMA_FILES = {
     "loop-trace": "loop-trace.schema.json",
     "replay-package": "replay-package.schema.json",
     "loop-outcome": "loop-outcome.schema.json",
+    "kill-switch": "kill-switch.schema.json",
 }
 
 REQUIRED_FIXTURES = [

@@ -2,7 +2,7 @@
 
 Launch these contracts after this foundation merges. Agent 00 watches the batch. Do not start two writers on `packages/contracts/recursive/` in the same wave.
 
-**Wave 1 is assigned.** Live locks, branches, and model (Grok 4.6): [`Agent-Roster.md`](Agent-Roster.md). Executable contracts: [`tasks/`](tasks/). Do not re-launch a lane that is `active`.
+**Prototype mode:** implement these contracts on **`main`**. Isolated lane branches are retired. Live roster: [`Agent-Roster.md`](Agent-Roster.md). The UI kill switch severs all of this work. Do not re-launch a lane on a side branch.
 
 Copy a block into a Cursor task. Change only the branch slug if needed. Cloud agents that must use `cursor/<slug>-<id>` keep the same write scope.
 

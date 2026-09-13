@@ -19,7 +19,7 @@ Before editing anything, every agent must:
 - Agents 01-08: data, FreqAI, features, modeling, simulation.
 - Agents 09-16: Context Engine, structure, regimes, patterns, thesis ledger.
 - Agents 17-24: web UI, charts, navigation, UX, accessibility.
-- Agents 25-30: internal AI harness / Recursive Learning Harness, tools, memory, explanation layer. Wave 1 roster: `wiki/Agent-Roster.md`..
+- Agents 25-30: internal AI harness / Recursive Learning Harness, tools, memory, explanation layer. Live roster: `wiki/Agent-Roster.md`.
 - Agents 31-35: infrastructure, APIs, observability, CI, reproducibility.
 - Agents 36-39: independent QA, dogfooding, red-team, benchmark replication.
 
@@ -28,6 +28,10 @@ Numbers are lanes, not permanent identities. The Watcher may reassign lanes.
 ## Branch/worktree rule
 
 Agents must work on isolated branches or worktrees named `agent/<nn>-<task>`. Never let multiple agents write the same file concurrently. Shared contracts must be changed by a designated schema owner and reviewed by Agent 00.
+
+### Prototype mode (current)
+
+Rapid prototyping lands on **`main`**. Do not open parallel lane branches for RLH wave 1. The frontend **recursive agent kill switch** severs all launched agent work without deleting journals. Constitution rules (no leakage, no fake accuracy, no real execution) still apply.
 
 ## Required output for every task
 

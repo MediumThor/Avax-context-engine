@@ -86,6 +86,18 @@ Acceptance:
 
 Prefer a narrower retry over a new architecture.
 
+## Operator kill switch
+
+The UI kill switch is an emergency stop the operator can fire without waiting for Watcher review. It must:
+
+- persist in `artifacts/watcher/kill-switch.json`;
+- mark roster tasks `severed`;
+- freeze promotion;
+- refuse new `LoopStep` / `/api/v1/loops/run` work;
+- leave journals immutable.
+
+Watcher treats an engaged switch as `watcher_abort` for any in-flight loop. Reset is logged; it is not a silent unmute.
+
 ## Emergency stop
 
 Freeze RLH promotion and surface `loops/health` red when:

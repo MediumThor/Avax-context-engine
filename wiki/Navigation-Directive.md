@@ -35,7 +35,9 @@ Incumbent/challenger registry, versions, feature schemas, calibration and promot
 Data-source health, missing candles, model freshness, journal status, service status.
 
 ### `/system`
-Context state/event explorer, agent-generated artifacts, build version, upstream dependency pins.
+Context state/event explorer, agent-generated artifacts, build version, upstream dependency pins, kill-switch state.
+
+The prototype shell keeps the kill switch on the primary workspace so it is never more than one glance away.
 
 ## Navigation rules
 

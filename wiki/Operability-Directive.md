@@ -41,6 +41,8 @@ Every service exposes health information including:
 
 Aggregate health must be available through `/health` and UI.
 
+The recursive agent kill switch is an operability control, not a model parameter. `GET/POST /api/v1/agents/kill-switch` and `POST /api/v1/agents/kill-switch/reset` are the API. Engaged state must appear in `/health`.
+
 ## Logging
 
 Structured JSON logs in services. Include:
