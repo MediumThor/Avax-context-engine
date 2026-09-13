@@ -133,7 +133,9 @@ export function inspectForecastHorizons(
     const q10 = source.q10_cum_return
     const q50 = source.q50_cum_return
     const q90 = source.q90_cum_return
-    const expected = source.expected_cum_return
+    const expected = isFiniteNumber(source.expected_cum_log_return)
+      ? source.expected_cum_log_return
+      : source.expected_cum_return
     const p = source.p_close_above_origin
 
     if (!isFiniteNumber(q10) || !isFiniteNumber(q50) || !isFiniteNumber(q90)) {

@@ -43,3 +43,21 @@ def interval_coverage(actual, lower, upper) -> float:
 def direction_accuracy(actual_return, predicted_return) -> float:
     a, p = _pairs(actual_return, predicted_return)
     return sum(float((x >= 0) == (y >= 0)) for x,y in zip(a,p))/len(a)
+
+
+def signed_direction_accuracy(actual_return, predicted_return) -> dict:
+    """Direction hits only where the model predicted a non-zero sign. Zeros abstain."""
+    a, p = _pairs(actual_return, predicted_return)
+    decided = [(x, y) for x, y in zip(a, p) if y != 0]
+    abstentions = len(a) - len(decided)
+    if not decided:
+        return {"accuracy": None, "sample_count": 0, "abstentions": abstentions, "decided": 0}
+    hits = sum(float((x > 0) == (y > 0)) for x, y in decided)
+    return {
+        "accuracy": hits / len(decided),
+        "sample_count": len(decided),
+        "abstentions": abstentions,
+        "decided": len(decided),
+        "metric": "signed_direction_accuracy",
+        "zero_predictions_are_abstentions": True,
+    }

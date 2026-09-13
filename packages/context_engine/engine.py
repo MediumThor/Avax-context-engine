@@ -7,12 +7,20 @@ from .models import Candle, MarketSnapshot, TimeframeState
 from .resample import resample_closed
 from .structure import cluster_zones, confirmed_pivots, swing_state
 
-TIMEFRAMES: dict[str, int] = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440}
+TIMEFRAMES: dict[str, int] = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
 
 
 class ContextEngine:
-    def build_snapshot(self, candles_5m: list[Candle]) -> MarketSnapshot:
+    def build_snapshot(
+        self,
+        candles_5m: list[Candle],
+        *,
+        as_of=None,
+        cross_market: dict | None = None,
+    ) -> MarketSnapshot:
         closed = [c for c in candles_5m if c.is_closed]
+        if as_of is not None:
+            closed = [c for c in closed if c.close_time() <= as_of]
         if not closed:
             raise ValueError("Need at least one closed candle")
         symbol = closed[-1].symbol
@@ -22,7 +30,24 @@ class ContextEngine:
             if candles:
                 states[tf] = self._state_for(candles, tf)
         states = self._apply_parent_context(states)
-        return MarketSnapshot(symbol=symbol, as_of=closed[-1].open_time, timeframes=states)
+        parent = next((states[tf].regime for tf in ("1w", "1d", "4h", "1h") if tf in states and states[tf].regime in {"bullish", "bearish"}), "unknown")
+        child = states.get("5m")
+        opposite = {
+            "bullish": {"bearish", "transition_down"},
+            "bearish": {"bullish", "transition_up"},
+        }
+        interpretation = ""
+        if child and parent in opposite and child.regime in opposite[parent]:
+            interpretation = f"5m {child.regime} is relief/countertrend inside {parent} higher-timeframe regime, not a reversal"
+        elif parent in {"bullish", "bearish"}:
+            interpretation = f"higher-timeframe regime {parent}; 5m must not silently overwrite it"
+        return MarketSnapshot(
+            symbol=symbol,
+            as_of=closed[-1].close_time(),
+            timeframes=states,
+            cross_market=cross_market or {},
+            interpretation=interpretation,
+        )
 
     def _state_for(self, candles: list[Candle], timeframe: str) -> TimeframeState:
         closes = [c.close for c in candles]
@@ -59,23 +84,26 @@ class ContextEngine:
         zones = cluster_zones(pivots, close)
         supports = tuple(z for z in zones if z.role in {"support","mixed"} and z.upper <= close*1.01)
         resistances = tuple(z for z in zones if z.role in {"resistance","mixed"} and z.lower >= close*0.99)
+        # Timeframe as_of is the bar open (WAVE-2 replay/leakage contract).
+        # Knowability is enforced by filtering on close_time() before this call.
         return TimeframeState(timeframe=timeframe,as_of=candles[-1].open_time,close=close,regime=regime,swing_state=swing,volatility=volatility,ema20=e20,ema50=e50,ema200=e200,rsi14=rsis[-1],atr14=atrs[-1],support_zones=supports[-5:],resistance_zones=resistances[:5],evidence=tuple(evidence))
 
     def _apply_parent_context(self, states: dict[str, TimeframeState]) -> dict[str, TimeframeState]:
-        order = ["1d", "4h", "1h", "15m", "5m"]
+        order = ["1w", "1d", "4h", "1h", "15m", "5m"]
         out = dict(states)
         parent_regime: str | None = None
         for tf in order:
             state = out.get(tf)
-            if state is None: continue
+            if state is None:
+                continue
             evidence = list(state.evidence)
             regime = state.regime
-            if parent_regime in {"bullish","bearish"} and regime not in {parent_regime,"neutral"}:
+            if parent_regime in {"bullish", "bearish"} and regime not in {parent_regime, "neutral"}:
                 evidence.append(f"countertrend_to_parent_{parent_regime}")
-            if regime == "neutral" and parent_regime in {"bullish","bearish"}:
+            if regime == "neutral" and parent_regime in {"bullish", "bearish"}:
                 regime = "transition_up" if parent_regime == "bullish" else "transition_down"
                 evidence.append("neutral_child_inherits_transition_bias")
             out[tf] = replace(state, regime=regime, evidence=tuple(evidence))
-            if tf in {"1d","4h","1h"} and state.regime in {"bullish","bearish"}:
+            if tf in {"1w", "1d", "4h", "1h"} and state.regime in {"bullish", "bearish"}:
                 parent_regime = state.regime
         return out

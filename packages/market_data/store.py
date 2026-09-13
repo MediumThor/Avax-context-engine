@@ -25,7 +25,7 @@ class DataManifest:
 
 class CandleStore:
     def __init__(self, path: str | Path):
-        self.db = sqlite3.connect(str(path))
+        self.db = sqlite3.connect(str(path), check_same_thread=False)
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("""
         CREATE TABLE IF NOT EXISTS candles(
@@ -59,6 +59,9 @@ class CandleStore:
         rows=self.db.execute("SELECT open_time,open,high,low,close,volume FROM candles WHERE source=? AND symbol=? AND timeframe=? ORDER BY open_time",(source,symbol,timeframe)).fetchall()
         from datetime import datetime
         return [Candle(symbol,timeframe,datetime.fromisoformat(r[0]),r[1],r[2],r[3],r[4],r[5],True) for r in rows]
+
+    def load_upto(self, source: str, symbol: str, timeframe: str, as_of) -> list[Candle]:
+        return [c for c in self.load(source, symbol, timeframe) if c.close_time() <= as_of]
 
     def manifest(self, source: str, symbol: str, timeframe: str) -> DataManifest:
         candles=self.load(source,symbol,timeframe)

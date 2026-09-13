@@ -1,3 +1,3 @@
-from .baselines import evaluate_baselines
+from .baselines import emit_baseline_forecast, evaluate_baselines, walk_forward_baselines
 
-__all__ = ["evaluate_baselines"]
+__all__ = ["emit_baseline_forecast", "evaluate_baselines", "walk_forward_baselines"]

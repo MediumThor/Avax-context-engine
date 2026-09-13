@@ -2,18 +2,25 @@
 
 ## Current status
 
-Several phases have prototype code on `main`, but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
+Several phases have prototype code on `main` (`0876e71` WAVE-2 integrate), but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
 
 | Phase | Gate status on `main` |
 | --- | --- |
-| 0 — Foundation/governance | In progress: mainline controls, RLH schemas, CI, layout, and pins exist; canonical non-RLH contracts and locked frontend versions remain |
-| 1 — Data/replay | Prototype helpers/tests; gate open |
-| 2 — Context Engine | Prototype state/pivots/zones/tests; gate open |
-| 3 — Forecasting | Baseline and FreqAI scaffolding; gate open |
-| 4 — Journal/evaluation | SQLite/metric prototypes; gate open |
-| 5 — RLH | Schema/fixture/kill-switch foundation; active Wave R incomplete |
-| 6 — Web App | Prototype shell; mobile-first product gate open |
+| 0 — Foundation/governance | In progress: Constitution, RLH schemas, CI, layout, pins |
+| 1 — Data/replay | Integrity helpers + snapshot replay on `main`; honest live/fixture ingest is SLICE-001 |
+| 2 — Context Engine | Pivots/zones/regime/thesis/patterns/cross-market on `main`; engine `as_of` is SLICE-001 |
+| 3 — Forecasting | Feature assembler + FreqAI adapter + baselines; walk-forward of a trained model still open |
+| 4 — Journal/evaluation | Journal + walk-forward/calibration modules; honest journaled UI path is SLICE-001 |
+| 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; not wired to live forecasts |
+| 6 — Web App | Isolated ForecastFan / overlays / AccuracyPanel; shell honesty is SLICE-001 |
 | 7-10 | Not complete |
+
+SLICE-001 (this PR) is the Constitution-safe vertical cut:
+
+1. Market page reads real Binance Vision candles or the September 2026 fixture. It never labels fixture/stale data `LIVE`.
+2. Baseline `drift20` forecasts are journaled before outcomes, with `p_close_above_origin: null` until a calibrated model exists.
+3. Reported baseline numbers are walk-forward only, with `sample_count`. Zero-model direction abstains.
+4. Replay `?as_of=` / `/api/v1/replay/{symbol}` hides later candles. The 5m relief bounce must not flip 4H.
 
 Agent 00 updates status only after tests pass on an accepted `main` SHA.
 

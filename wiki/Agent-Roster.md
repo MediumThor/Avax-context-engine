@@ -44,11 +44,14 @@ The registry is the authority for live status. `launched` means a temporary impl
 
 | agent | task | status |
 | --- | --- | --- |
-| 00 | Watcher + kill switch | launched source; kill-switch implementation is on `main` |
-| 25 | Schema stubs | launched source; JSON schemas are on `main` |
-| 26–30 | Encoder / LoopStep / challenge / SWA / eval | launched sources; acceptance pending |
-| 33 | CI | launched source; acceptance pending |
-| 36 | Leakage probes | launched source; acceptance pending |
+| 00 | Watcher + kill switch + RLH core | on `main` (`0876e71` WAVE-2 integrate) |
+| 25 | Schema stubs | on `main` |
+| 26–30 | Encoder / LoopStep / challenge / SWA / eval | on `main` |
+| 33 | CI | on `main` |
+| 36 | Leakage probes | on `main` |
+| 17/04/09 | SLICE-001 honest market/forecast/replay | this PR (`cursor/honest-market-slice-ee66`) |
+
+SLICE-001 replaces the sine-wave `$7.26` / `DATA LIVE` shell with fixture-or-Binance candles, Context Engine `as_of` snapshots, journaled drift20 baselines, walk-forward MAE with sample counts, and a September 2026 4H-stability replay. Kill switch remains the hard stop. WAVE-2 modules (features, zones, replay, harness) are already on `main` and are not rewritten here.
 
 ## Wave 2
 
