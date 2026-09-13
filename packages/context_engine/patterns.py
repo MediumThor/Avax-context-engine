@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Iterable, Literal, Sequence
 
@@ -470,13 +470,16 @@ def classify_level_resolution(
     a reclaim; a reclaim requires an accepted breakdown and later accepted recovery.
     """
     xs = [c for c in usable_candles(candles, as_of) if c.timeframe == timeframe]
+    if len(xs) < 2:
+        return None
     start: int | None = None
     side: Literal["above", "below"] | None = None
-    for i, candle in enumerate(xs):
-        if candle.close > level:
+    for i in range(1, len(xs)):
+        prev, cur = xs[i - 1].close, xs[i].close
+        if prev <= level < cur:
             start, side = i, "above"
             break
-        if candle.close < level:
+        if prev >= level > cur:
             start, side = i, "below"
             break
     if start is None or side is None:
@@ -535,7 +538,6 @@ def _detect_continuation(
         ]
         confirm = (
             PatternRule("cont-confirm-hh", "close_above", last_h.price, timeframe, "same-TF close above last high"),
-            PatternRule("cont-confirm-pivot", "pivot_high_above", last_h.price, timeframe, "new confirmed higher high"),
         )
         invalid = (
             PatternRule("cont-invalid-ll", "close_below", last_l.price, timeframe, "same-TF close below last higher low"),
@@ -548,7 +550,6 @@ def _detect_continuation(
         ]
         confirm = (
             PatternRule("cont-confirm-ll", "close_below", last_l.price, timeframe, "same-TF close below last low"),
-            PatternRule("cont-confirm-pivot", "pivot_low_below", last_l.price, timeframe, "new confirmed lower low"),
         )
         invalid = (
             PatternRule("cont-invalid-hh", "close_above", last_h.price, timeframe, "same-TF close above last lower high"),
