@@ -76,7 +76,7 @@ export function ShadowJournalCard({
       </p>
       {onDrain && !replay && !severed && gap && (
         <button type="button" className="ghost" onClick={onDrain} disabled={draining}>
-          {draining ? 'Draining drift20 rows…' : 'Drain up to 200 drift20 rows'}
+          {draining ? 'Draining drift20 rows…' : 'Drain remaining drift20 rows'}
         </button>
       )}
       {drainError && <p className="killError">{drainError}</p>}

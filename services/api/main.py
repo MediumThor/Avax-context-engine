@@ -159,13 +159,14 @@ def get_loop(loop_id: str) -> dict:
 def journal_catchup(
     symbol: str = "AVAXUSDT",
     budget: int = Query(default=200, ge=1, le=500),
+    rounds: int = Query(default=20, ge=1, le=25),
 ) -> dict:
     """Drain missing mature-able 5m origins with drift20 only. No new quantile. No loop."""
     try:
         assert_not_severed()
     except AgentsSevered as exc:
         raise HTTPException(status_code=423, detail=str(exc)) from exc
-    return get_runtime().drain_shadow_journal(symbol.upper(), budget=budget)
+    return get_runtime().drain_shadow_journal(symbol.upper(), budget=budget, rounds=rounds)
 
 
 @app.get("/api/v1/theses/{thesis_id}")

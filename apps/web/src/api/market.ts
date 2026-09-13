@@ -14,8 +14,9 @@ export async function fetchMarket(symbol = 'AVAXUSDT', asOf?: string | null): Pr
 export async function drainShadowJournal(
   symbol = 'AVAXUSDT',
   budget = 200,
+  rounds = 20,
 ): Promise<ShadowJournalStatus> {
-  const params = new URLSearchParams({ symbol, budget: String(budget) })
+  const params = new URLSearchParams({ symbol, budget: String(budget), rounds: String(rounds) })
   const res = await fetch(`${base}/api/v1/journal/catchup?${params}`, { method: 'POST' })
   if (res.status === 423) {
     throw new Error('Kill switch blocks journal drain. No rows written.')

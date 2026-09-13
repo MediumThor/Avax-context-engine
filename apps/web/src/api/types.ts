@@ -139,6 +139,9 @@ export interface ShadowJournalStatus {
   wrote: number
   remaining: number
   model_id: string
+  rounds_used?: number
+  budget?: number
+  blocked?: boolean
 }
 
 export interface MarketPayload {
