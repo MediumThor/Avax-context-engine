@@ -104,6 +104,13 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
 }
 
+/** Simple return, or exp(log-return)-1 when only log fields were journaled. */
+function asSimpleReturn(simple: unknown, logRet: unknown): number | undefined {
+  if (isFiniteNumber(simple)) return simple
+  if (isFiniteNumber(logRet)) return Math.exp(logRet) - 1
+  return undefined
+}
+
 export function quantileOrderOk(q10: number, q50: number, q90: number): boolean {
   return q10 <= q50 && q50 <= q90
 }
@@ -130,12 +137,10 @@ export function inspectForecastHorizons(
     if (copies.length > 1) issues.push('duplicate-horizon')
 
     const source = copies[0]
-    const q10 = source.q10_cum_return
-    const q50 = source.q50_cum_return
-    const q90 = source.q90_cum_return
-    const expected = isFiniteNumber(source.expected_cum_log_return)
-      ? source.expected_cum_log_return
-      : source.expected_cum_return
+    const q10 = asSimpleReturn(source.q10_cum_return, source.q10_cum_log_return)
+    const q50 = asSimpleReturn(source.q50_cum_return, source.q50_cum_log_return)
+    const q90 = asSimpleReturn(source.q90_cum_return, source.q90_cum_log_return)
+    const expected = asSimpleReturn(source.expected_cum_return, source.expected_cum_log_return)
     const p = source.p_close_above_origin
 
     if (!isFiniteNumber(q10) || !isFiniteNumber(q50) || !isFiniteNumber(q90)) {

@@ -164,8 +164,8 @@ export default function App() {
             <h2>Forecast · next 10</h2>
             <p className="muted">
               {severed
-                ? 'Harness degraded. Baseline numbers stay journaled; no new loop will run.'
-                : market?.forecast.forecast.notes || 'Baseline drift20. No calibrated probability.'}
+                ? 'Harness degraded. Journaled forecast stays as written; no new loop will run.'
+                : market?.forecast.forecast.notes || 'No journaled forecast yet.'}
             </p>
             {market && (
               <ForecastFan
@@ -173,8 +173,18 @@ export default function App() {
                 originClose={market.last_price}
                 symbol={market.symbol}
                 forecastedAt={market.as_of}
-                health={market.forecast.journaled ? 'degraded' : 'unknown'}
-                emptyReason="Quantile envelope is not drawn until q10/q50/q90 are journaled. Drift path is a point forecast, not a distribution."
+                health={
+                  !market.forecast.journaled
+                    ? 'unknown'
+                    : market.forecast.forecast.horizons.some(
+                          (row) =>
+                            typeof row.q10_cum_return === 'number' ||
+                            typeof row.q10_cum_log_return === 'number',
+                        )
+                      ? 'valid'
+                      : 'degraded'
+                }
+                emptyReason="Quantile envelope is not drawn until q10/q50/q90 are journaled. A drift20 point path is not a distribution."
               />
             )}
           </section>

@@ -36,11 +36,14 @@ export interface ForecastHorizon {
   zero_cum_log_return?: number
   p_close_above_origin: number | null
   confidence_source?: string
-  /** Optional distribution / simple-return fields. Absent until a calibrated model exists. */
+  /** Optional distribution / simple-return fields. Absent until a distribution model is journaled. */
   expected_cum_return?: number | null
   q10_cum_return?: number | null
   q50_cum_return?: number | null
   q90_cum_return?: number | null
+  q10_cum_log_return?: number | null
+  q50_cum_log_return?: number | null
+  q90_cum_log_return?: number | null
 }
 
 export interface MarketPayload {

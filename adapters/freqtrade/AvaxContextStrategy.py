@@ -12,6 +12,11 @@ class AvaxContextStrategy(IStrategy):
     Target columns use the FreqAI `&-` prefix and are labels, not features.
     FreqAI remains infrastructure: this file does not claim out-of-sample
     superiority over project baselines.
+
+    WAVE2-05 journal-ready q10/q50/q90 log-return forecasts are emitted by
+    ``packages.models.freqai_quantiles`` / ``FreqtradeResearchAdapter``.
+    Full FreqAI training is not required for that research path. Do not change
+    these ``&-cum-ret-*`` labels silently.
     """
 
     timeframe = "5m"

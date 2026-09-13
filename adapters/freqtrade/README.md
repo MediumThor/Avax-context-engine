@@ -36,7 +36,7 @@ FreqAI is infrastructure, not a proven production model. This adapter does **not
 
 ## Research commands after bootstrap
 
-The adapter may only construct these subcommands, always with this config:
+The adapter may only construct these Freqtrade subcommands, always with this config:
 
 - `download-data`
 - `list-data`
@@ -45,3 +45,27 @@ The adapter may only construct these subcommands, always with this config:
 - `list-timeframes`
 
 Live trading, the Freqtrade webserver, and any exchange order API are out of scope for v1.
+
+## WAVE2-05 research quantile path
+
+Full FreqAI training is not required in CI. A leakage-safe LightGBM/sklearn-style
+wrapper with a pure-Python fallback emits journal-ready next-10 5m quantiles:
+
+```text
+PYTHONPATH=. python adapters/freqtrade/quantiles.py --help-research
+```
+
+Or from Python:
+
+```python
+from adapters.freqtrade import FreqtradeResearchAdapter
+payload = FreqtradeResearchAdapter().emit_research_quantile_forecast(candles, as_of=T)
+```
+
+Declared versions: LightGBM `>=4.5` and scikit-learn `>=1.5` when present;
+otherwise `empirical_residual_quantiles.v1`. Feature schema placeholder:
+`freqai.quantiles.features.v1`. Model id: `freqai.quantiles.research.v1`.
+
+The payload is ForecastPackage-shaped (`q10_cum_log_return` / `q50` / `q90`,
+`model_id`, `feature_schema_version`). It is not scored here and must not be
+treated as an accuracy or ECE result. Watcher wires journaling/API later.

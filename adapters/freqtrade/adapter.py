@@ -136,6 +136,15 @@ class FreqtradeResearchAdapter:
             raise ResearchOnlyViolation(f"freqtrade subcommand {name!r} is not in the research whitelist")
         return ["freqtrade", name, "--config", str(CONFIG_PATH), *args]
 
+    def emit_research_quantile_forecast(self, candles, as_of=None, **kwargs):
+        """Journal-ready q10/q50/q90 payload. No orders. No baseline claim."""
+        from adapters.freqtrade.quantiles import emit_research_quantile_forecast
+
+        payload = emit_research_quantile_forecast(candles, as_of=as_of, **kwargs)
+        payload["research_status"] = self.research_status()
+        payload["upstream_freqtrade_commit"] = self.pinned_commit
+        return payload
+
 
 def forbidden_methods() -> frozenset[str]:
     return FORBIDDEN_ADAPTER_METHODS

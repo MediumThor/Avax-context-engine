@@ -1,20 +1,32 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from packages.context_engine import ContextEngine
+from packages.features import FEATURE_SCHEMA_VERSION as MTF_FEATURE_SCHEMA
+from packages.features import assemble_features
 from packages.fixtures import btc_companion, sept_2026_failed_breakout
 from packages.harness.kill_switch import is_engaged
 from packages.journal import ForecastJournal
 from packages.market_data import CandleStore
-from packages.models import emit_baseline_forecast, walk_forward_baselines
+from packages.models import (
+    InsufficientHistory,
+    attach_simple_return_aliases_payload,
+    emit_baseline_forecast,
+    emit_quantile_forecast,
+    walk_forward_baselines,
+)
 
 
 SOURCE = "binance-vision"
 FEATURE_SCHEMA = "1"
+QUANTILE_LOOKBACK = 400
+_QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
 
 
 def _now() -> datetime:
@@ -116,9 +128,10 @@ class PrototypeRuntime:
 
     def forecast(self, symbol: str, as_of: datetime | None = None, persist: bool = True, snap=None) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=8000)
-        payload = emit_baseline_forecast(candles)
+        payload = self.emit_live_forecast(candles, as_of=as_of)
         snap = snap or self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
         snapshot_id = hashlib.sha256(repr(snap.to_dict()).encode()).hexdigest()[:16]
+        feature_schema = self._attach_mtf_feature_snapshot(payload, candles, as_of=as_of)
         manifest_id = None
         try:
             source = "fixture" if self.use_fixture else SOURCE
@@ -133,7 +146,7 @@ class PrototypeRuntime:
                 model_id=payload["model_id"],
                 payload=payload,
                 context_snapshot_id=snapshot_id,
-                feature_schema_version=FEATURE_SCHEMA,
+                feature_schema_version=feature_schema,
                 data_manifest_id=manifest_id,
             )
         latest = self.journal.latest(symbol)
@@ -141,8 +154,46 @@ class PrototypeRuntime:
             "forecast": payload,
             "journaled": latest is not None and latest["forecasted_at"] == payload["forecasted_at"],
             "context_snapshot_id": snapshot_id,
+            "feature_schema_version": feature_schema,
             "kill_switch_blocked_write": persist and is_engaged(),
         }
+
+    def emit_live_forecast(self, candles, as_of: datetime | None = None) -> dict[str, Any]:
+        """Prefer leakage-safe empirical quantiles; fall back to honest drift20."""
+        visible = _visible_closed(candles, as_of)
+        window = visible[-QUANTILE_LOOKBACK:] if len(visible) > QUANTILE_LOOKBACK else list(visible)
+        backend = os.environ.get("AVAX_QUANTILE_BACKEND", "python")
+        if backend not in _QUANTILE_BACKENDS:
+            backend = "python"
+        try:
+            payload = emit_quantile_forecast(window, as_of=as_of, backend=backend)  # type: ignore[arg-type]
+        except InsufficientHistory:
+            payload = emit_baseline_forecast(window if len(window) >= 21 else visible)
+        return attach_simple_return_aliases_payload(payload)
+
+    def _attach_mtf_feature_snapshot(
+        self,
+        payload: dict[str, Any],
+        candles,
+        as_of: datetime | None = None,
+    ) -> str:
+        try:
+            btc = []
+            try:
+                cutoff = as_of or candles[-1].close_time()
+                btc = self.candles("BTCUSDT", as_of=cutoff, limit=8000)
+            except Exception:
+                btc = []
+            snapshot = assemble_features(candles, as_of=as_of, btc_5m=btc or None)
+            feature_dict = snapshot.to_dict()
+            raw = json.dumps(feature_dict, sort_keys=True, separators=(",", ":"), allow_nan=False)
+            digest = hashlib.sha256(raw.encode()).hexdigest()[:16]
+            payload["mtf_feature_snapshot"] = feature_dict
+            payload["mtf_feature_schema_version"] = MTF_FEATURE_SCHEMA
+            payload["feature_snapshot_id"] = digest
+            return MTF_FEATURE_SCHEMA
+        except Exception:
+            return FEATURE_SCHEMA
 
     def metrics(self, symbol: str, as_of: datetime | None = None) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=8000)
@@ -221,6 +272,14 @@ class PrototypeRuntime:
             "execution_enabled": False,
         }
         return payload
+
+
+def _visible_closed(candles, as_of: datetime | None) -> list:
+    """Bars whose close is known at as_of. Lookback must use this tail, not the series end."""
+    closed = [c for c in candles if getattr(c, "is_closed", True)]
+    if as_of is None:
+        return closed
+    return [c for c in closed if c.close_time() <= as_of]
 
 
 _RUNTIME: dict[tuple[str, str, bool], PrototypeRuntime] = {}
