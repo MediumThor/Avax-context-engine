@@ -5,7 +5,7 @@
   "integration_target": "main",
   "branch_mode": "ephemeral-isolation-direct-main-integration",
   "watcher": "00",
-  "updated_at": "2026-09-13T10:34:00Z",
+  "updated_at": "2026-09-13T10:35:00Z",
   "notes": [
     "Wave 1 RLH Task agents produced no code. Agent 00 implements RLH 26-30+36 on cursor/watcher-wave2-rlh-core-8771.",
     "Do not write App.tsx, services/api/main.py, packages/models/baselines.py, packages/journal/journal.py, or packages/context_engine/engine.py until PR 8 merges or is rejected.",
@@ -80,8 +80,9 @@
       "id": "WAVE2-15",
       "agent": "15",
       "title": "Thesis ledger",
-      "status": "launched",
+      "status": "reviewed",
       "run_id": "bc-791f836d-35e3-516f-ac7c-b9740b555f27",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/12",
       "write_scope": ["packages/context_engine/thesis.py", "tests/test_thesis.py"]
     }
   ]
