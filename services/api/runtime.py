@@ -483,8 +483,11 @@ class PrototypeRuntime:
         shadow = self._journal_shadow_origins(
             symbol, candles, btc, as_of, manifest_id, budget=capped
         )
+        outcomes = mature_outcomes(self.journal, candles, symbol, as_of=as_of)
+        self._metrics_cache.clear()
         shadow["blocked"] = False
         shadow["budget"] = capped
+        shadow["outcomes"] = outcomes
         return shadow
 
     def emit_live_forecast(self, candles, as_of: datetime | None = None, btc=None) -> dict[str, Any]:
@@ -568,6 +571,20 @@ class PrototypeRuntime:
                 block["interval"] = merged_iv
             elif block.get("interval"):
                 block["interval"]["source"] = "walk_forward"
+            j_d20 = journal_h.get("drift20") or {}
+            if j_d20.get("mae") is not None:
+                merged_d20 = dict(block.get("drift20") or {})
+                merged_d20.update(j_d20)
+                merged_d20["source"] = "journal"
+                block["drift20"] = merged_d20
+                j_zero = journal_h.get("zero") or {}
+                if j_zero.get("mae") is not None:
+                    merged_zero = dict(block.get("zero") or {})
+                    merged_zero.update(j_zero)
+                    merged_zero["source"] = "journal"
+                    block["zero"] = merged_zero
+            elif block.get("drift20"):
+                block["drift20"]["source"] = "walk_forward"
         report["available"] = True
         report["symbol"] = symbol
         report["probability_calibration_ref"] = cal["calibration_ref"]
