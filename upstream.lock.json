@@ -1,0 +1,11 @@
+{
+  "freqtrade": {
+    "repo": "https://github.com/freqtrade/freqtrade.git",
+    "commit": "c064be5325ad6941a2789add795434e6a13dffe9",
+    "license": "GPL-3.0"
+  },
+  "lightweight_charts": {
+    "package": "lightweight-charts",
+    "license": "Apache-2.0"
+  }
+}

@@ -1,0 +1,7 @@
+import { MarketChart } from './components/MarketChart'
+import './styles.css'
+
+const demo=Array.from({length:80},(_,i)=>{const base=7.65-i*.004+Math.sin(i/4)*.03;return{time:1789286400+i*300,open:base+.01,high:base+.03,low:base-.03,close:base}})
+const regimes=[['1D','bearish'],['4H','bearish'],['1H','bearish'],['15m','transition_up'],['5m','neutral']]
+
+export default function App(){return <main className="shell"><header className="topbar"><div><span className="eyebrow">AVAX / USDT</span><h1>Context Engine</h1></div><div className="health"><span className="dot"/>DATA LIVE · READ ONLY</div></header><section className="workspace"><div className="chartPanel"><div className="chartHeader"><strong>$7.26</strong><span className="negative">−2.4%</span><span>5m</span></div><MarketChart candles={demo} className="chart"/></div><aside className="rail"><section className="card"><h2>Regime stack</h2>{regimes.map(([tf,r])=><div className="row" key={tf}><span>{tf}</span><b className={r}>{r}</b></div>)}</section><section className="card"><h2>Forecast · next 10</h2><p className="muted">Waiting for journaled model output.</p><div className="forecastPlaceholder"/></section><section className="card"><h2>Thesis ledger</h2><div className="thesis bear"><b>Bear continuation</b><p>Active until higher-timeframe reclaim.</p></div><div className="thesis bull"><b>Bull reversal</b><p>Unconfirmed.</p></div></section></aside></section></main>}

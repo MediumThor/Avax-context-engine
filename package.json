@@ -1,0 +1,6 @@
+{
+  "name":"avax-context-engine",
+  "private":true,
+  "workspaces":["apps/web"],
+  "scripts":{"web:dev":"npm --workspace apps/web run dev","web:build":"npm --workspace apps/web run build"}
+}

@@ -1,0 +1,15 @@
+{
+  "$schema":"https://schema.freqtrade.io/schema.json",
+  "dry_run":true,
+  "trading_mode":"futures",
+  "margin_mode":"isolated",
+  "max_open_trades":0,
+  "stake_currency":"USDT",
+  "stake_amount":100,
+  "timeframe":"5m",
+  "exchange":{"name":"binance","pair_whitelist":["AVAX/USDT:USDT","BTC/USDT:USDT","ETH/USDT:USDT"],"pair_blacklist":[]},
+  "pairlists":[{"method":"StaticPairList"}],
+  "freqai":{"enabled":true,"identifier":"avax-context-v0","train_period_days":180,"backtest_period_days":14,"live_retrain_hours":6,"purge_old_models":4,"feature_parameters":{"include_timeframes":["5m","15m","1h","4h"],"include_corr_pairlist":["BTC/USDT:USDT","ETH/USDT:USDT"],"include_shifted_candles":6,"indicator_periods_candles":[9,14,20,50,100,200],"label_period_candles":10,"principal_component_analysis":false,"plot_feature_importances":0},"data_split_parameters":{"test_size":0.0,"shuffle":false},"model_training_parameters":{}},
+  "initial_state":"stopped",
+  "force_entry_enable":false
+}

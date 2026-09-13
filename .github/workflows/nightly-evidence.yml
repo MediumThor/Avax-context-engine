@@ -1,0 +1,19 @@
+name: nightly-evidence
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 8 * * *'
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python -m pip install --upgrade pip pytest
+      - run: python -m pytest -q
+      - name: Living-project status
+        run: |
+          echo 'Nightly integrity pass complete.'
+          echo 'Real-data model evaluation is added once ingestion credentials/public source selection is finalized.'
