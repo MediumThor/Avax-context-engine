@@ -130,8 +130,10 @@ def test_failed_eight_is_pointer_only(entries: dict[str, dict]) -> None:
 def test_rejects_invented_numeric_score(entries: dict[str, dict], schema: dict) -> None:
     with pytest.raises(RegistryError, match="unexpected property"):
         validate_entry({**entries["avax-5m-next10.draft.json"], "mae": 0.12}, schema)
-    with pytest.raises(RegistryError, match="numeric field"):
+    with pytest.raises(RegistryError, match="result-like key"):
         assert_no_recorded_scores({"id": "avax-5m-next10", "mae": 0.12})
+    with pytest.raises(RegistryError, match="numeric field"):
+        assert_no_recorded_scores({"id": "avax-5m-next10", "sample_count": 1000})
 
 
 def test_rejects_missing_required_field(entries: dict[str, dict], schema: dict) -> None:

@@ -80,3 +80,40 @@ Review mode: strict-schema
 Competing task group: none
 Integration dependency: none
 Target main gate: `python3 benchmarks/registry/validate.py` and `python3 -m pytest benchmarks/registry/test_benchmark_registry.py`
+
+## Completion (Agent 35)
+
+Branch: `cursor/wave2-35-benchmark-registry-6d82`  
+Source main: `b6bbbf4dccb6bdd4dc98473ab4887679e282b8b7`
+
+What changed:
+- Versioned registry schema and README (how to add an entry; promotion needs Watcher + out-of-sample evidence).
+- Two DRAFT entries: core AVAX 5m next-10 forecast (metric names only; chronological walk-forward) and a pointer to the existing September 2026 failed ~$8 RLH fixture.
+- Stdlib validator plus collectable tests under `benchmarks/registry/` (not `tests/`).
+
+Exact files:
+- `benchmarks/registry/README.md`
+- `benchmarks/registry/schema.json`
+- `benchmarks/registry/validate.py`
+- `benchmarks/registry/test_benchmark_registry.py`
+- `benchmarks/registry/entries/avax-5m-next10.draft.json`
+- `benchmarks/registry/entries/avax-2026-09-failed-8.draft.json`
+- `wiki/tasks/WAVE2-35-registry.md`
+
+Tests:
+- `python3 benchmarks/registry/validate.py` — PASS (both drafts)
+- `python3 -m pytest benchmarks/registry/test_benchmark_registry.py` — 11 passed
+
+Metrics before/after: none recorded. No accuracy, ECE, coverage, or other numeric performance claims.
+
+Contract/schema: new registry schema only (`benchmarks/registry/schema.json`). No existing test or RLH fixture changed. `CONSTITUTION.md` untouched.
+
+Limitations:
+- Both entries remain `draft`; windows and numeric thresholds are unsealed by design.
+- `avax-5m-next10` has no data manifest yet (`start`/`end` null).
+- The failed-$8 pointer does not implement replay; the RLH fixture is still a stub.
+- Default repo pytest `testpaths` is `tests/`; invoke the registry module by path.
+- LearningCandidate / PromotionDecision machine schemas are still later work.
+
+Recommended next task:
+- Watcher reviews this branch and opens the PR. Later: Agent 06/01 attach a real data manifest so `avax-5m-next10` can be sealed; Agent 39 replicates once a scored run exists.
