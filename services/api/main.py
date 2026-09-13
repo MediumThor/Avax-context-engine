@@ -136,12 +136,15 @@ def post_kill_switch_reset(body: KillSwitchRequest) -> dict:
 
 
 @app.post("/api/v1/loops/run")
-def run_loop() -> dict:
+def run_loop(symbol: str = "AVAXUSDT", as_of: str | None = None) -> dict:
     try:
         assert_not_severed()
     except AgentsSevered as exc:
         raise HTTPException(status_code=423, detail=str(exc)) from exc
-    return {"accepted": True, "harness_version": "rlh-0.1.0", "note": "stub runner for prototype"}
+    parsed = _parse_as_of(as_of)
+    return get_runtime().run_harness_loop(
+        symbol.upper(), as_of=parsed, persist=parsed is None
+    )
 
 
 @app.get("/api/v1/loops/{loop_id}")

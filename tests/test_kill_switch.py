@@ -54,6 +54,11 @@ def test_api_kill_switch_blocks_loop_run(tmp_path: Path, monkeypatch: pytest.Mon
     monkeypatch.setenv("AVAX_KILL_SWITCH_PATH", str(tmp_path / "kill-switch.json"))
     monkeypatch.setenv("AVAX_WATCHER_TASKS_PATH", str(tmp_path / "active-tasks.json"))
     monkeypatch.setenv("AVAX_WATCHER_HEALTH_PATH", str(tmp_path / "recursive-health.json"))
+    monkeypatch.setenv("AVAX_MARKET_DB", str(tmp_path / "m.db"))
+    monkeypatch.setenv("AVAX_JOURNAL_DB", str(tmp_path / "j.db"))
+    from services.api.runtime import reset_runtime
+
+    reset_runtime()
     client = TestClient(app)
     assert client.get("/api/v1/agents/kill-switch").json()["engaged"] is False
     assert client.post("/api/v1/loops/run").status_code == 200
@@ -69,6 +74,7 @@ def test_api_kill_switch_blocks_loop_run(tmp_path: Path, monkeypatch: pytest.Mon
     assert reset_res.status_code == 200
     assert reset_res.json()["engaged"] is False
     assert client.post("/api/v1/loops/run").status_code == 200
+    reset_runtime()
 
 
 def test_header_pause_button_copy_exists():

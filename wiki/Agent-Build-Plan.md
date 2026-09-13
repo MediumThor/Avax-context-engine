@@ -17,7 +17,7 @@ The repository is no longer documentation-only. It contains a tested prototype s
 | Context | Indicator, resampling, pivot/zone lifecycle in `build_snapshot`, parent-child, leakage-safe snapshot analogs, sealed Sept dump, competing snapshot theses, insert-only journaled thesis invalidation | Versioned transitions / full fingerprint remain incomplete |
 | Forecast | Baseline helpers, FreqAI adapter/config, evaluator metrics | Canonical feature/forecast contracts, walk-forward runner, quantiles/calibration, model ensemble, reproducible manifests |
 | Journal | SQLite forecast/outcome prototype plus append-only `loop_traces` and insert-only `theses` | Recovery/atomicity tests; production storage adapter |
-| Recursive harness | EncoderMemory / LoopStep / challenge / SWA / probes; live forecast journals first, RETRIEVEs analog.search + theses, then appends LoopTrace | Replace `/loops/run` stub; evaluation of extra depth |
+| Recursive harness | EncoderMemory / LoopStep / challenge / SWA / probes; live forecast journals first, RETRIEVEs analog.search + theses, then appends LoopTrace; `/loops/run` retries that loop on a journaled forecast | Evaluation of extra depth; no extra quantile emit on the request path |
 | API | FastAPI health/system/kill-switch and loop-run stub | Typed market/context/forecast/journal/evaluation/replay APIs and generated client |
 | Web App | React/Vite prototype chart and kill-switch shell | Mobile-first workspace, live typed data, bottom sheet/navigation, overlays, forecast fan, replay, accuracy, health states |
 | Operations | Compose/CI/bootstrap prototypes | Reproducible full stack, persistent services, migrations, observability, clean recovery, release checks |
