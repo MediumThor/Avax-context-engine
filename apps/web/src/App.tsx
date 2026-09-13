@@ -50,6 +50,7 @@ export default function App() {
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
     fetchMarket('AVAXUSDT', asOf)
       .then(setMarket)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'market unavailable'))
