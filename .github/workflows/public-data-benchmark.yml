@@ -6,6 +6,14 @@ on:
         description: Historical days to fetch
         required: false
         default: '30'
+  push:
+    branches: ['foundation/**']
+    paths:
+      - 'packages/market_data/**'
+      - 'packages/models/**'
+      - 'scripts/fetch_history.py'
+      - 'scripts/run_baseline_benchmark.py'
+      - '.github/workflows/public-data-benchmark.yml'
   schedule:
     - cron: '37 7 * * 1'
 
