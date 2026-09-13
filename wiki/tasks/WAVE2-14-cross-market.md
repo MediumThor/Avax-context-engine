@@ -72,3 +72,66 @@ Watcher owner: Agent 00
 Review mode: strict-quant
 Competing task group: none
 Integration dependency: Agent 16 snapshot wiring; Agent 31 cross_market schema
+
+## Status
+
+Implemented on `cursor/wave2-14-cross-market-19ff` from latest `main` (`b6bbbf4`). Tests green.
+
+## Completion report
+
+### What changed
+
+Leakage-safe BTC/ETH/AVAX cross-market context module. Evaluation at T uses only closed candles with `open_time <= T`. Series are aligned on exact `open_time`. A missing candle is `unknown`; the module does not interpolate, forward-fill, or compact a gapped window into consecutive returns.
+
+Emits:
+
+- 1-bar and window relative strength (focal log return minus reference log return) for AVAX/BTC, AVAX/ETH, ETH/BTC
+- Pearson correlation and OLS beta over a consecutive lookback (default 24; tests use 8)
+- synchronized breakout / synchronized breakdown / decoupled / quiet flags
+- BTC return-sign regime and gap-aware realized-vol expansion/compression
+- optional native `AVAXBTC` 1-bar log return when that series is aligned
+
+Schema version: `avax.cross_market.v1`. No trade execution. `engine.py` is unchanged; Agent 16 can wire `CrossMarketState.to_dict()` into `MarketStateSnapshot.cross_market`.
+
+### Exact files changed
+
+- `packages/context_engine/cross_market.py`
+- `tests/test_cross_market.py`
+- `wiki/tasks/WAVE2-14-cross-market.md`
+
+### Tests run
+
+```
+python3 -m pytest -q tests/test_cross_market.py
+python3 -m pytest -q tests/test_context_engine.py tests/test_leakage.py tests/test_cross_market.py
+```
+
+- `tests/test_cross_market.py`: **14 passed**
+- with existing context/leakage: **18 passed**
+
+Covered: exact-alignment RS; missing BTC at T is unknown (not last-print fill); gap in window makes corr/beta unknown (not compacted intersection); future BTC/AVAX mutation does not change state at T; unclosed BTC bar ignored; ETH absent degrades overall health; native AVAXBTC alignment; naive `as_of` rejected.
+
+### Metrics before/after
+
+Not applicable. No model training, no accuracy claims, no walk-forward scores.
+
+### Known limitations
+
+- Not wired into `ContextEngine.build_snapshot` (engine.py is out of scope).
+- `btc_regime` is a window log-return heuristic, not Agent 09's multi-timeframe BTC regime machine.
+- Rolling corr/beta require a complete exact grid of `window+1` stamps; short history is `degraded`, not estimated.
+- Window relative strength uses endpoints only; corr/beta require every intermediate stamp.
+- Shared `MarketStateSnapshot.cross_market` OpenAPI/Pydantic contract remains Agent 31.
+
+### Documentation updated
+
+- `wiki/tasks/WAVE2-14-cross-market.md` (contract + this report)
+
+### Contract/schema change
+
+Additive only: `avax.cross_market.v1` snapshot dict. Does not mutate RLH JSON schemas or `engine.py` snapshot shape.
+
+### Recommended next task
+
+Agent 16: attach `build_cross_market(...).to_dict()` to versioned snapshots/fingerprints with the same `as_of` cutoff. Agent 31: freeze the `cross_market` object in the canonical MarketStateSnapshot schema. Agent 09: replace the BTC return-sign heuristic with the accepted BTC timeframe regime when that module lands.
+
