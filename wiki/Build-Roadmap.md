@@ -9,7 +9,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 | 0 — Foundation/governance | In progress: Constitution, RLH schemas, CI, layout, pins |
 | 1 — Data/replay | Integrity helpers + snapshot replay + fixture/Binance Vision ingest on `main` |
 | 2 — Context Engine | Pivots/zones/regime/thesis/patterns/cross-market + `as_of` filter on `main` |
-| 3 — Forecasting | Feature assembler + FreqAI adapter + honest drift20 + journaled next-10 empirical quantiles on `main` (`d725c60`); walk-forward vs drift20 in flight |
+| 3 — Forecasting | Journaled next-10 quantiles + walk-forward vs drift20 on `main` (`80a4d70`); challenger now training on `avax.features.mtf.v1` (this branch, not promoted) |
 | 4 — Journal/evaluation | Journal + walk-forward baseline MAE; live path now attaching `avax.features.mtf.v1` (this branch) |
 | 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; not wired to live forecasts |
 | 6 — Web App | ForecastFan / overlays / AccuracyPanel mounted; fan draws only when q10/q50/q90 are journaled |

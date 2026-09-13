@@ -128,7 +128,12 @@ class PrototypeRuntime:
 
     def forecast(self, symbol: str, as_of: datetime | None = None, persist: bool = True, snap=None) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=8000)
-        payload = self.emit_live_forecast(candles, as_of=as_of)
+        btc: list = []
+        try:
+            btc = self.candles("BTCUSDT", as_of=as_of or candles[-1].close_time(), limit=8000)
+        except Exception:
+            btc = []
+        payload = self.emit_live_forecast(candles, as_of=as_of, btc=btc)
         snap = snap or self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
         snapshot_id = hashlib.sha256(repr(snap.to_dict()).encode()).hexdigest()[:16]
         feature_schema = self._attach_mtf_feature_snapshot(payload, candles, as_of=as_of)
@@ -158,15 +163,22 @@ class PrototypeRuntime:
             "kill_switch_blocked_write": persist and is_engaged(),
         }
 
-    def emit_live_forecast(self, candles, as_of: datetime | None = None) -> dict[str, Any]:
+    def emit_live_forecast(self, candles, as_of: datetime | None = None, btc=None) -> dict[str, Any]:
         """Prefer leakage-safe empirical quantiles; fall back to honest drift20."""
         visible = _visible_closed(candles, as_of)
         window = visible[-QUANTILE_LOOKBACK:] if len(visible) > QUANTILE_LOOKBACK else list(visible)
+        btc_visible = _visible_closed(btc or [], as_of)
+        btc_window = btc_visible[-QUANTILE_LOOKBACK:] if len(btc_visible) > QUANTILE_LOOKBACK else list(btc_visible)
         backend = os.environ.get("AVAX_QUANTILE_BACKEND", "python")
         if backend not in _QUANTILE_BACKENDS:
             backend = "python"
         try:
-            payload = emit_quantile_forecast(window, as_of=as_of, backend=backend)  # type: ignore[arg-type]
+            payload = emit_quantile_forecast(
+                window,
+                as_of=as_of,
+                backend=backend,  # type: ignore[arg-type]
+                btc_5m=btc_window or None,
+            )
         except InsufficientHistory:
             payload = emit_baseline_forecast(window if len(window) >= 21 else visible)
         return attach_simple_return_aliases_payload(payload)
