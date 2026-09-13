@@ -124,6 +124,11 @@ The Watcher should maintain machine-readable artifacts when automation is implem
 
 The integration queue targets `main` only. Generated artifacts should not become hand-edited source of truth.
 
+Live work graph and wiki-vs-code audit for the current cycle:
+
+- [`../artifacts/watcher/work-graph.json`](../artifacts/watcher/work-graph.json)
+- [`../artifacts/watcher/implementation-audit.json`](../artifacts/watcher/implementation-audit.json)
+
 ## Promotion authority
 
 A model or context algorithm is promoted only after:
