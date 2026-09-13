@@ -8,6 +8,7 @@ from .indicators import atr, ema, realized_volatility, rsi
 from .models import Candle, MarketSnapshot, TimeframeState
 from .patterns import hypotheses_at
 from .resample import resample_closed
+from .snapshot_theses import build_snapshot_theses
 from .structure import cluster_zones, confirmed_pivots, swing_state
 
 TIMEFRAMES: dict[str, int] = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
@@ -74,6 +75,17 @@ class ContextEngine:
             fib_levels = tuple(level.to_dict() for level in fib.levels[:8])
         except Exception:
             fib_levels = ()
+        theses = ()
+        try:
+            theses = build_snapshot_theses(
+                closed,
+                as_of=as_of_snap,
+                state_for=self._state_for,
+                parent_regime=parent,
+                child_regime=child.regime if child else None,
+            )
+        except Exception:
+            theses = ()
         return MarketSnapshot(
             symbol=symbol,
             as_of=as_of_snap,
@@ -83,6 +95,7 @@ class ContextEngine:
             analogs=analogs,
             pattern_hypotheses=patterns,
             fib_levels=fib_levels,
+            theses=theses,
         )
 
     def _state_for(self, candles: list[Candle], timeframe: str) -> TimeframeState:

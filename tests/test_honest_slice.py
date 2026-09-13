@@ -163,6 +163,11 @@ def test_api_fixture_market_is_not_live(tmp_path, monkeypatch):
     assert prob.get("brier") is not None
     assert 0.0 <= prob["brier"] <= 1.0
     assert body["metrics"].get("promotion_allowed") is False
+    theses = body["snapshot"].get("theses") or []
+    bears = [t for t in theses if t.get("direction") == "bear" and t.get("timeframe") == "4h"]
+    assert bears
+    assert bears[0]["status"] == "active"
+    assert bears[0]["invalidation_rules"][0]["timeframe"] == "4h"
     analogs = body["snapshot"].get("analogs") or []
     assert analogs
     for row in analogs:

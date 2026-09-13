@@ -63,6 +63,31 @@ export interface PatternHypothesisSummary {
   score_provenance: string
 }
 
+export interface ThesisRuleSummary {
+  id: string
+  kind: string
+  price: number
+  timeframe: string
+  description?: string
+}
+
+export interface ThesisSummary {
+  id: string
+  direction: 'bull' | 'bear'
+  kind: string
+  status: string
+  timeframe: string
+  regime_relation?: string
+  created_at: string
+  closed_at?: string | null
+  closure_reason?: string | null
+  evidence?: string[]
+  counter_evidence?: string[]
+  invalidation_rules?: ThesisRuleSummary[]
+  confirmation_rules?: ThesisRuleSummary[]
+  note?: string
+}
+
 export interface FibLevelSummary {
   kind: string
   ratio: number
@@ -86,6 +111,7 @@ export interface MarketPayload {
     analogs?: AnalogMatch[]
     pattern_hypotheses?: PatternHypothesisSummary[]
     fib_levels?: FibLevelSummary[]
+    theses?: ThesisSummary[]
   }
   interpretation: string
   forecast: { forecast: { horizons: ForecastHorizon[]; model_id: string; notes: string }; journaled: boolean }
