@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/improvement/improvement-outcome.schema.json",
+  "title": "ImprovementOutcome",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outcome_id",
+    "ticket_id",
+    "decision",
+    "recorded_at",
+    "commit_sha",
+    "metrics_before",
+    "metrics_after",
+    "sample_count",
+    "next_residual",
+    "execution_enabled"
+  ],
+  "properties": {
+    "outcome_id": { "type": "string", "pattern": "^OUT-[0-9]{3,}$" },
+    "ticket_id": { "type": "string", "pattern": "^IMP-[0-9]{3,}$" },
+    "decision": {
+      "type": "string",
+      "enum": ["promote", "reject", "hold", "blocked-on-access"]
+    },
+    "recorded_at": { "type": "string", "format": "date-time" },
+    "commit_sha": { "type": "string", "minLength": 7 },
+    "metrics_before": { "type": "object" },
+    "metrics_after": { "type": "object" },
+    "sample_count": { "type": "integer", "minimum": 0 },
+    "notes": { "type": "string" },
+    "next_residual": { "type": "string", "minLength": 8 },
+    "execution_enabled": { "type": "boolean", "const": false }
+  }
+}

@@ -71,6 +71,8 @@ Each timeframe row shows:
 
 Clicking a timeframe changes chart granularity but does not erase the higher-timeframe hierarchy.
 
+**Current:** the chart header switcher (`5m` `15m` `1H` `4H` `1D` `1W`) and regime-stack rows call `GET /api/v1/market/{symbol}/candles?timeframe=`. Forecasts remain next-10 5m horizons. A 5m click must not rewrite 4H regime.
+
 ## Thesis panel
 
 Bull and bear cases appear side by side rather than hiding the non-selected case.

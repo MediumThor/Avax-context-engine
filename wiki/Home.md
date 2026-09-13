@@ -61,8 +61,11 @@ No lower-authority source may weaken the Constitution, schema tests, chronology 
 
 1. [`Dogfooding-Directive.md`](Dogfooding-Directive.md)
 2. [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md)
-3. [`Watcher-Directive.md`](Watcher-Directive.md)
-4. [`Recursive-Evaluation.md`](Recursive-Evaluation.md)
+3. [`Prediction-Improvement-Loop.md`](Prediction-Improvement-Loop.md) — diagnose, request access, measure, iterate
+4. [`Information-Gaps.md`](Information-Gaps.md) — missing series, wallets, news, macro
+5. [`improvement/README.md`](improvement/README.md) — tickets, access asks, outcomes
+6. [`Watcher-Directive.md`](Watcher-Directive.md)
+7. [`Recursive-Evaluation.md`](Recursive-Evaluation.md)
 
 ## Documentation map
 
@@ -76,7 +79,7 @@ No lower-authority source may weaken the Constitution, schema tests, chronology 
 | Recursive harness | [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md), [`Recursive-Loop-Spec.md`](Recursive-Loop-Spec.md), [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md), [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md), [`Recursive-Evaluation.md`](Recursive-Evaluation.md) |
 | Product interface | [`UI-Directive.md`](UI-Directive.md), [`Navigation-Directive.md`](Navigation-Directive.md), [`AI-Harness-Directive.md`](AI-Harness-Directive.md) |
 | Agent operations | [`Agent-Orchestration.md`](Agent-Orchestration.md), [`Watcher-Directive.md`](Watcher-Directive.md), [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md), [`Agent-Launch-Pack.md`](Agent-Launch-Pack.md), [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md), [`Task-Contract-Template.md`](Task-Contract-Template.md), [`tasks/`](tasks/) |
-| Learning/quality | [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md), [`Dogfooding-Directive.md`](Dogfooding-Directive.md), [`Testing-Directive.md`](Testing-Directive.md) |
+| Learning/quality | [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md), [`Prediction-Improvement-Loop.md`](Prediction-Improvement-Loop.md), [`Information-Gaps.md`](Information-Gaps.md), [`Dogfooding-Directive.md`](Dogfooding-Directive.md), [`Testing-Directive.md`](Testing-Directive.md) |
 
 ## Permanent regression case
 
@@ -92,3 +95,5 @@ closed market data -> validated observations -> Context Engine snapshot
 -> atomic journal -> mobile-first Web App -> matured outcomes
 -> Evaluation Engine -> evidence-linked improvement -> Watcher -> main
 ```
+
+If a forecast cannot be improved honestly, agents name the gap and ask the owner for access instead of inventing data. Operating playbook: [`Prediction-Improvement-Loop.md`](Prediction-Improvement-Loop.md).

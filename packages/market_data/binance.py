@@ -19,6 +19,13 @@ class BinanceVisionClient:
     def close(self) -> None:
         self._client.close()
 
+    def fetch_last_price(self, symbol: str) -> float:
+        """Last trade price. Display only — not a closed candle and not a forecast input."""
+        response = self._client.get("/api/v3/ticker/price", params={"symbol": symbol})
+        response.raise_for_status()
+        payload = response.json()
+        return float(payload["price"])
+
     def fetch_klines(self, symbol: str, interval: str, start_ms: int, end_ms: int, limit: int = 1000) -> list[Candle]:
         rows: list[Candle] = []
         cursor = int(start_ms)

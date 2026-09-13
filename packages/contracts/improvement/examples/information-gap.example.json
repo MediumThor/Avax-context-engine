@@ -1,0 +1,16 @@
+{
+  "gap_id": "GAP-MM-LABELS",
+  "family": "market-maker wallet labels",
+  "status": "blocked-on-access",
+  "decision_it_changes": "Whether an AVAX inventory burst is treated as labeled desk flow or ignored noise",
+  "candidate_sources": [
+    "owner-supplied address list",
+    "Nansen",
+    "Arkham",
+    "Dune"
+  ],
+  "access": "owner-list",
+  "access_request_id": "AR-001",
+  "leakage_notes": "Labels may only apply at or after labeled_at; do not backfill 2026 names onto 2024 features",
+  "updated_at": "2026-09-13T10:00:00Z"
+}

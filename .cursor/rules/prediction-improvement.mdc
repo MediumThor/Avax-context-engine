@@ -1,0 +1,22 @@
+---
+description: AVAX prediction improvement loop — diagnose, request access, measure, iterate
+globs: wiki/Prediction-Improvement-Loop.md,wiki/Information-Gaps.md,wiki/improvement/**,packages/contracts/improvement/**,tests/contracts/test_improvement_schemas.py
+alwaysApply: false
+---
+
+# Prediction improvement loop
+
+Before proposing or implementing a forecast-quality change:
+
+1. Read `CONSTITUTION.md`.
+2. Read `wiki/Prediction-Improvement-Loop.md`.
+3. Read `wiki/Information-Gaps.md`.
+4. Open or update an `ImprovementTicket` with a **pre-declared** walk-forward gate.
+
+Hard rules:
+
+- Do not enable real trade execution. Leverage metrics are simulated.
+- Do not invent news, wallet labels, or cross-market prints. File an `AccessRequest` if a source needs a key, paid plan, or owner decision.
+- Do not claim accuracy from in-sample results or shuffled time series.
+- Do not move invalidation levels after the fact.
+- Promote only when the journaled outcome beats the ticket's gate. Residual error becomes the next ticket.

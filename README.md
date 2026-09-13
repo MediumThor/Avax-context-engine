@@ -33,6 +33,18 @@ closed market data -> validated observations -> Context Engine snapshot
 -> Evaluation Engine -> evidence-linked improvement candidate -> Watcher -> main
 ```
 
+## Run the live workspace
+
+Default is live Binance Vision AVAX/USDT 5m candles plus the public last-trade ticker. No trading keys. The September 2026 fixture is **not** the default chart.
+
+```bash
+python3 -m uvicorn services.api.main:app --host 127.0.0.1 --port 8000
+npm install
+npm run web:dev
+```
+
+Open `http://127.0.0.1:5173/`. The header must say `LIVE` only when the last closed 5m bar is fresh. `AVAX_USE_FIXTURE=1` is the offline / failed-breakout process check. A failed live pull returns HTTP 503; it does not silently become the fixture.
+
 ## Start here
 
 - [`CONSTITUTION.md`](CONSTITUTION.md) — immutable project law.

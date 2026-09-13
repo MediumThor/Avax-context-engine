@@ -14,12 +14,12 @@ The repository is no longer documentation-only. It contains a tested prototype s
 | --- | --- | --- |
 | Governance | Constitution, agent rules, Watcher artifacts, task contracts, kill switch | Keep roster/status synchronized with accepted main SHAs |
 | Data | Binance public fetch/store helpers and tests | Canonical manifests, gaps/duplicates, durable raw store, deterministic replay API, full source policy |
-| Context | Indicator, resampling, pivot/zone, parent-child, leakage-safe snapshot analogs, sealed Sept dump | Thesis ledger and zone lifecycle still not driving `build_snapshot`; versioned transitions / full fingerprint remain incomplete |
+| Context | Indicator, resampling, pivot/zone, parent-child, leakage-safe snapshot analogs, sealed Sept dump, snapshot theses with invalidation frozen at open | Zone lifecycle still does not drive `build_snapshot`; versioned transitions / full fingerprint remain incomplete |
 | Forecast | Baseline helpers, FreqAI adapter/config, evaluator metrics | Canonical feature/forecast contracts, walk-forward runner, quantiles/calibration, model ensemble, reproducible manifests |
 | Journal | SQLite forecast/outcome prototype | Full ForecastPackage metadata, LoopTrace integration, recovery/atomicity tests, production storage adapter |
 | Recursive harness | JSON schemas, synthesis/kill-switch pieces, fixtures, CI, detailed RLH specs | Active Wave 1 implementation, exact replay, journaled LoopStep, challenge/SWA/evaluation completion |
 | API | FastAPI health/system/kill-switch and loop-run stub | Typed market/context/forecast/journal/evaluation/replay APIs and generated client |
-| Web App | React/Vite prototype chart and kill-switch shell | Mobile-first workspace, live typed data, bottom sheet/navigation, overlays, forecast fan, replay, accuracy, health states |
+| Web App | React/Vite prototype chart and kill-switch shell; default path is live Binance Vision (fixture is explicit) | Mobile-first workspace, bottom sheet/navigation, overlays, forecast fan, replay, accuracy, health states |
 | Operations | Compose/CI/bootstrap prototypes | Reproducible full stack, persistent services, migrations, observability, clean recovery, release checks |
 
 Update this table only from verified code/tests on `main`.

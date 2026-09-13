@@ -1,0 +1,20 @@
+{
+  "request_id": "AR-001",
+  "gap_id": "GAP-MM-LABELS",
+  "asked_at": "2026-09-13T10:00:00Z",
+  "owner_prompt": "I cannot truthfully improve AVAX forecasts here because: GAP-MM-LABELS. Public options: explorer APIs without reliable desk labels. I need from you: a read-only address list, a Nansen/Arkham/Dune grant, or skip this family. Until then forecasts ignore labeled inventory flow.",
+  "candidate_source": "owner-supplied wallet allow-list or paid label vendor",
+  "docs_url": null,
+  "free_tier": "unknown",
+  "scopes": "read-only address to label mapping with labeled_at",
+  "tos_risk": "Vendor attributions may be non-redistributable; store vendor and as-of only",
+  "will_not_do": [
+    "place orders",
+    "invent wallet labels",
+    "apply labels before labeled_at"
+  ],
+  "snapshot_plan": "checksum the allow-list; persist labeled_at per address",
+  "decision": "pending",
+  "decided_at": null,
+  "owner_notes": null
+}
