@@ -1,0 +1,27 @@
+name: public-data-benchmark
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: Historical days to fetch
+        required: false
+        default: '30'
+  schedule:
+    - cron: '37 7 * * 1'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -e .
+      - name: Fetch public market history
+        run: python scripts/fetch_history.py --days "${{ inputs.days || '30' }}"
+      - name: Run baseline benchmark
+        run: python scripts/run_baseline_benchmark.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: baseline-benchmark-${{ github.sha }}
+          path: artifacts/baseline.json
