@@ -1,0 +1,13 @@
+{
+  "outcome_id": "OUT-000",
+  "ticket_id": "IMP-000",
+  "decision": "hold",
+  "recorded_at": "2026-09-13T10:00:00Z",
+  "commit_sha": "pending",
+  "metrics_before": { "note": "no challenger; baseline.drift20 only" },
+  "metrics_after": { "note": "docs and contracts only; no promotion" },
+  "sample_count": 0,
+  "notes": "Playbook published. Forecast skill unchanged.",
+  "next_residual": "No live BTC/ETH skill test and all GAP families above partial still missing",
+  "execution_enabled": false
+}
