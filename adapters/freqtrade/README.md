@@ -1,7 +1,47 @@
 # Freqtrade/FreqAI adapter
 
-This directory contains our integration layer, not a fork of Freqtrade.
+This directory is the integration boundary for pinned upstream Freqtrade/FreqAI. It is **not a fork**.
 
-Run `scripts/bootstrap_freqtrade.sh` to clone the complete upstream repository into `vendor/freqtrade` at the pinned commit in `upstream.lock.json`.
+## Pin and license
 
-The adapter is deliberately read-only/research oriented. Do not enable real order execution.
+- Upstream: `https://github.com/freqtrade/freqtrade.git`
+- Commit: `c064be5325ad6941a2789add795434e6a13dffe9`
+- License: GNU GPL v3 (`GPL-3.0`)
+- Records: [`pin.json`](pin.json), [`LICENSE-NOTICE.md`](LICENSE-NOTICE.md)
+- Repository lock (owned outside this adapter task): `upstream.lock.json`
+
+Run `scripts/bootstrap_freqtrade.sh` to clone the **complete** upstream repository into `vendor/freqtrade` (gitignored), check out the pin, and write `vendor/freqtrade/.avax-upstream-manifest.json` with the commit and LICENSE path.
+
+Do not copy upstream source into `packages/`. Combined distribution of a derivative work requires GPL review.
+
+## Research / read-only only
+
+`config.freqai.json` and `AvaxContextStrategy.py` are research scaffolding:
+
+- `dry_run` is `true`
+- `stake_amount` and `dry_run_wallet` are `0`
+- `max_open_trades` is `0`
+- `initial_state` is `stopped`
+- `force_entry_enable` is `false`
+- no exchange API keys
+- spot pairs only (`AVAX/USDT`, `BTC/USDT`, `ETH/USDT`)
+- FreqAI `data_split_parameters.shuffle` is `false`
+- the strategy never sets entry or exit signals
+
+`FreqtradeResearchAdapter` refuses `execute` / `place_order` / `create_order` / `buy` / `sell` and related methods. It will not construct a `freqtrade trade` command.
+
+## What this does not claim
+
+FreqAI is infrastructure, not a proven production model. This adapter does **not** claim that FreqAI already beats project baselines. Out-of-sample comparison is a later evaluation task.
+
+## Research commands after bootstrap
+
+The adapter may only construct these subcommands, always with this config:
+
+- `download-data`
+- `list-data`
+- `backtesting`
+- `list-exchanges`
+- `list-timeframes`
+
+Live trading, the Freqtrade webserver, and any exchange order API are out of scope for v1.
