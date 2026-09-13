@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react'
 import { CandlestickSeries, HistogramSeries, LineSeries, createChart, type IChartApi } from 'lightweight-charts'
 import type { Candle } from '../api/types'
+import { ZoneBandPrimitive, type ChartZone } from './ChartZoneBands'
 
 interface Props {
   candles: Candle[]
+  zones?: ChartZone[]
   className?: string
 }
 
-export function MarketChart({ candles, className }: Props) {
+export function MarketChart({ candles, zones = [], className }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   useEffect(() => {
@@ -27,6 +29,11 @@ export function MarketChart({ candles, className }: Props) {
       wickDownColor: '#ff5964',
     })
     series.setData(candles.map((c) => ({ ...c, time: c.time as never })))
+    if (zones.length && candles.length) {
+      series.attachPrimitive(
+        new ZoneBandPrimitive(zones, candles[0].time, candles[candles.length - 1].time),
+      )
+    }
     const emaLayers: Array<{ key: keyof Candle; color: string; width: 1 | 2 }> = [
       { key: 'ema9', color: '#d6a4ff', width: 1 },
       { key: 'ema20', color: '#8cb4ff', width: 2 },
@@ -67,6 +74,6 @@ export function MarketChart({ candles, className }: Props) {
       chart.remove()
       chartRef.current = null
     }
-  }, [candles])
+  }, [candles, zones])
   return <div ref={host} className={className} aria-label="AVAX market chart" />
 }

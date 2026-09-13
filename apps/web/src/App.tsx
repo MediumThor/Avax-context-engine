@@ -190,7 +190,7 @@ export default function App() {
           </div>
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}
-          {market && <MarketChart candles={market.candles} className="chart" />}
+          {market && <MarketChart candles={market.candles} zones={overlayZones} className="chart" />}
           {market && (
             <ContextOverlays
               zones={overlayZones}
