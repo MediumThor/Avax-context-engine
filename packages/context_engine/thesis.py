@@ -567,48 +567,6 @@ class ThesisLedger:
         self._commit(thesis)
 
 
-def september_failed_breakout_bear(
-    ledger: ThesisLedger,
-    *,
-    created_at: datetime,
-    symbol: str = "AVAXUSDT",
-) -> Thesis:
-    """Reference bear thesis for the September 2026 failed-breakout spirit.
-
-    Prices are caller-supplied scenario levels, not a hard-coded market law.
-    The reclaim invalidation lives at the failed-breakout region (~8.20).
-    """
-    return ledger.open(
-        symbol=symbol,
-        direction="bear",
-        kind="failed_breakout_continuation",
-        created_at=created_at,
-        evidence=[
-            "repeated failure near 8.15-8.20",
-            "acceptance below 8.00 support",
-        ],
-        counter_evidence=["lower-timeframe relief bounce possible"],
-        confirmation_rules=[
-            ThesisRule(
-                id="bear-confirm-accept-below-8",
-                kind="close_below",
-                price=8.00,
-                timeframe="4h",
-                description="4H acceptance below failed ~8 support",
-            )
-        ],
-        invalidation_rules=[
-            ThesisRule(
-                id="bear-invalidate-reclaim-820",
-                kind="close_above",
-                price=8.20,
-                timeframe="4h",
-                description="4H reclaim of the failed-breakout region",
-            )
-        ],
-    )
-
-
 __all__ = [
     "ClosureReason",
     "Direction",
@@ -622,5 +580,4 @@ __all__ = [
     "ThesisNotFoundError",
     "ThesisRule",
     "ThesisStatus",
-    "september_failed_breakout_bear",
 ]

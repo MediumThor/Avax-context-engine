@@ -9,7 +9,6 @@ from packages.context_engine.thesis import (
     ThesisClosedError,
     ThesisLedger,
     ThesisRule,
-    september_failed_breakout_bear,
 )
 
 SEPTEMBER = datetime(2026, 9, 13, 12, 0, tzinfo=timezone.utc)
@@ -310,7 +309,11 @@ def test_september_relief_bounce_does_not_rewrite_fired_bear_invalidation():
     bounce cannot move that version's price. Fixture files are not edited.
     """
     ledger = ThesisLedger()
-    bear = september_failed_breakout_bear(ledger, created_at=SEPTEMBER)
+    bear = _open_bear(
+        ledger,
+        evidence=["repeated failure near 8.15-8.20", "acceptance below 8.00 support"],
+        counter_evidence=["lower-timeframe relief bounce possible"],
+    )
     assert bear.invalidation_rules[0].price == FAILED_BREAKOUT
 
     relief = PriceObservation(
