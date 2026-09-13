@@ -48,8 +48,8 @@ def test_sealed_dump_matches_manifest_and_fixture():
     assert dump[0].open_time == fixture[0].open_time
     assert dump[-1].close_time() == fixture[-1].close_time()
     assert abs(dump[-1].close - fixture[-1].close) < 1e-12
-    assert manifest["as_of_range"][0] == fixture[0].open_time.isoformat()
-    assert manifest["as_of_range"][1] == fixture[-1].close_time().isoformat()
+    assert manifest["as_of_range"][0] == fixture[0].open_time.isoformat().replace("+00:00", "Z")
+    assert manifest["as_of_range"][1] == fixture[-1].close_time().isoformat().replace("+00:00", "Z")
 
 
 def test_dump_replay_at_bounce_keeps_4h_and_hides_later_closes():

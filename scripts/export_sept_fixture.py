@@ -43,7 +43,10 @@ def main() -> None:
         "sha256": digest,
         "path": "benchmarks/rlh/avax-2026-09-failed-8/candles.jsonl",
         "purpose": "Founding dogfood: failed ~$8 breakout. Relief bounces must not reset 4H bear after structural invalidation.",
-        "as_of_range": ["2026-08-20T00:00:00+00:00", candles[-1].close_time().isoformat()],
+        "as_of_range": [
+            candles[0].open_time.isoformat().replace("+00:00", "Z"),
+            candles[-1].close_time().isoformat().replace("+00:00", "Z"),
+        ],
         "source": "packages.fixtures.sept_2026_failed_breakout",
         "owner": "agent-00",
         "required": True,

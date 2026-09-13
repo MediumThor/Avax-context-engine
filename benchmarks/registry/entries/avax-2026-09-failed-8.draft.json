@@ -8,11 +8,11 @@
   "dataset_ref": "benchmarks/rlh/avax-2026-09-failed-8/",
   "symbol": "AVAXUSDT",
   "time_range": {
-    "start": "2026-09-01T00:00:00Z",
-    "end": "2026-09-13T23:59:59Z",
+    "start": "2026-08-20T00:00:00Z",
+    "end": "2026-09-02T02:00:00Z",
     "timezone": "UTC",
     "sealed": false,
-    "note": "Copied from the existing RLH fixture manifest as_of_range. Exact candle timestamps and prices live in that fixture tree. This draft does not seal the window or add outcomes."
+    "note": "Copied from the sealed RLH fixture manifest as_of_range. Exact candle timestamps and prices live in candles.jsonl. This draft does not seal the registry gate or add outcomes."
   },
   "timeframe": "multi",
   "horizons": {
