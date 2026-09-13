@@ -105,8 +105,12 @@ def forecast_current(symbol: str = "AVAXUSDT", as_of: str | None = None) -> dict
 
 
 @app.get("/api/v1/forecast/metrics")
-def forecast_metrics(symbol: str = "AVAXUSDT", as_of: str | None = None) -> dict:
-    return get_runtime().metrics(symbol.upper(), as_of=_parse_as_of(as_of))
+def forecast_metrics(
+    symbol: str = "AVAXUSDT",
+    as_of: str | None = None,
+    challenger: bool = Query(default=False),
+) -> dict:
+    return get_runtime().metrics(symbol.upper(), as_of=_parse_as_of(as_of), include_challenger=challenger)
 
 
 @app.get("/api/v1/replay/{symbol}")

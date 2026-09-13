@@ -182,8 +182,17 @@ export interface MarketPayload {
         }
         probability?: { sample_count?: number; brier?: number | null; ece?: number | null; source?: string }
         interval?: { sample_count?: number; coverage?: number | null; source?: string }
+        q50?: { mae?: number; rmse?: number; sample_count?: number; source?: string }
+        q50_mae_minus_drift20_mae?: number | null
       }
     >
+    challenger?: {
+      model_id?: string
+      origin_count?: number
+      q50_mae_below_drift20_on_all_scored_horizons?: boolean | null
+      notes?: string
+    }
+    promotion_allowed?: boolean
   }
   candles: Candle[]
   replay: boolean

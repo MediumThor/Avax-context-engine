@@ -11,6 +11,7 @@ export function accuracySlicesFromMarket(market: MarketPayload | null): Accuracy
     return {
       horizon: Number(h),
       n:
+        block.q50?.sample_count ??
         (journaledPoint ? block.drift20?.sample_count : null) ??
         block.probability?.sample_count ??
         block.sample_count ??
@@ -24,6 +25,8 @@ export function accuracySlicesFromMarket(market: MarketPayload | null): Accuracy
         sameSource && block.zero?.mae != null && block.drift20?.mae != null
           ? block.drift20.mae - block.zero.mae
           : null,
+      challenger_mae: block.q50?.mae ?? null,
+      challenger_delta: block.q50_mae_minus_drift20_mae ?? null,
     }
   })
 }

@@ -17,6 +17,8 @@ export interface AccuracySlice {
   ece: number | null
   coverage: number | null
   baseline_delta: number | null
+  challenger_mae?: number | null
+  challenger_delta?: number | null
   regime?: string | null
 }
 
@@ -73,6 +75,16 @@ const METRIC_ROWS = [
     key: 'baseline_delta' as const,
     label: 'Baseline delta',
     definition: 'Caller-stated model minus baseline on the named metric. This panel does not infer which sign is an improvement.',
+  },
+  {
+    key: 'challenger_mae' as const,
+    label: 'q50 MAE (research)',
+    definition: 'Walk-forward MAE of freqai.quantiles.research.v1 q50 cumulative log return. Missing stays not yet scored. This is not a promotion.',
+  },
+  {
+    key: 'challenger_delta' as const,
+    label: 'q50 MAE minus drift20 MAE',
+    definition: 'Positive means q50 has higher error than baseline.drift20 on this slice. A negative value on one run is not a promotion.',
   },
 ] as const
 
@@ -416,7 +428,7 @@ function SliceCard({
             const kind =
               metric.key === 'coverage'
                 ? 'coverage'
-                : metric.key === 'baseline_delta'
+                : metric.key === 'baseline_delta' || metric.key === 'challenger_delta'
                   ? 'signed'
                   : 'score'
             const value = formatAccuracyMetric(slice[metric.key], slice.n, kind)
