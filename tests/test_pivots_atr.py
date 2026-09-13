@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from packages.context_engine.models import Candle, Pivot
@@ -52,7 +53,13 @@ def _known_set(pivots: list[Pivot], as_of: datetime) -> set[tuple]:
     return {_identity(p) for p in pivots_known_as_of(pivots, as_of)}
 
 
-def _swing_series() -> list[Candle]:
+@dataclass(frozen=True)
+class _SwingFixture:
+    candles: list[Candle]
+    pause_end: int
+
+
+def _swing_series() -> _SwingFixture:
     """Decline, rally to a peak, shallow pause, then a confirming crash."""
     closes: list[float] = []
     price = 14.0
@@ -62,7 +69,6 @@ def _swing_series() -> list[Candle]:
     for _ in range(22):
         price += 0.18
         closes.append(round(price, 6))
-    peak = price
     for _ in range(8):
         price -= 0.02
         closes.append(round(price, 6))
@@ -70,27 +76,29 @@ def _swing_series() -> list[Candle]:
     for _ in range(24):
         price -= 0.22
         closes.append(round(price, 6))
-    xs = _path(closes, wick=0.04)
-    xs.pause_end = pause_end  # type: ignore[attr-defined]
-    xs.peak = peak  # type: ignore[attr-defined]
-    return xs
+    return _SwingFixture(_path(closes, wick=0.04), pause_end)
 
 
 def test_window_confirmed_pivots_not_replaced():
-    xs = _path([10.0, 10.1, 10.2, 11.5, 10.2, 10.1, 10.0, 9.9])
+    t0 = _t0()
+    xs = [
+        Candle("AVAXUSDT", "5m", t0 + timedelta(minutes=5 * i), 10.0, 10.05, 9.95, 10.0, 100.0)
+        for i in range(12)
+    ]
+    xs[6] = Candle("AVAXUSDT", "5m", xs[6].open_time, 10.0, 12.0, 9.95, 10.0, 100.0)
     window = confirmed_pivots(xs, left=2, right=2)
     atrs = atr_zigzag_pivots(xs, atr_period=3, atr_multiple=1.0)
     assert confirmed_pivots.__module__ == "packages.context_engine.structure"
     assert atr_zigzag_pivots.__module__ == "packages.context_engine.pivots_atr"
     assert confirmed_pivots is not atr_zigzag_pivots
-    high = next(p for p in window if p.kind == "high")
-    assert high.index == 3
-    assert high.known_at_index == 5
+    high = next(p for p in window if p.kind == "high" and p.index == 6)
+    assert high.known_at_index == 8
+    assert high.known_at > high.time
     assert isinstance(atrs, list)
 
 
 def test_pivot_exposes_candle_time_and_known_at():
-    xs = _swing_series()
+    xs = _swing_series().candles
     pivots = atr_zigzag_pivots(xs, atr_period=5, atr_multiple=2.0)
     assert pivots
     for pivot in pivots:
@@ -103,7 +111,7 @@ def test_pivot_exposes_candle_time_and_known_at():
 
 
 def test_pivot_unavailable_before_known_at():
-    xs = _swing_series()
+    xs = _swing_series().candles
     pivots = atr_zigzag_pivots(xs, atr_period=5, atr_multiple=2.0)
     later = [p for p in pivots if p.known_at > p.time]
     assert later
@@ -117,8 +125,9 @@ def test_pivot_unavailable_before_known_at():
 
 
 def test_future_candles_do_not_create_pivots_known_at_or_before_t():
-    xs = _swing_series()
-    t = xs.pause_end  # type: ignore[attr-defined]
+    fixture = _swing_series()
+    xs = fixture.candles
+    t = fixture.pause_end
     cutoff = xs[t - 1].open_time
 
     prefix = atr_zigzag_pivots(xs[:t], atr_period=5, atr_multiple=2.0)
@@ -153,7 +162,7 @@ def test_future_candles_do_not_create_pivots_known_at_or_before_t():
 
 
 def test_prefix_equals_as_of_for_every_cut():
-    xs = _swing_series()
+    xs = _swing_series().candles
     full = atr_zigzag_pivots(xs, atr_period=5, atr_multiple=2.0)
     for t in range(1, len(xs) + 1):
         cutoff = xs[t - 1].open_time
@@ -165,8 +174,9 @@ def test_prefix_equals_as_of_for_every_cut():
 
 
 def test_unclosed_candle_cannot_confirm():
-    xs = _swing_series()
-    t = xs.pause_end  # type: ignore[attr-defined]
+    fixture = _swing_series()
+    xs = fixture.candles
+    t = fixture.pause_end
     with_partial = xs[:t] + [
         Candle(
             xs[t].symbol,
@@ -190,6 +200,16 @@ def test_flat_market_does_not_emit_zero_atr_pivots():
     assert atr_zigzag_pivots(xs, atr_period=5, atr_multiple=2.0) == []
 
 
+def test_non_increasing_closed_times_are_rejected():
+    xs = _path([10.0, 10.2, 10.1])
+    swapped = [xs[0], xs[2], xs[1]]
+    try:
+        atr_zigzag_pivots(swapped, atr_period=2, atr_multiple=1.0)
+        assert False, "expected ValueError"
+    except ValueError:
+        pass
+
+
 def test_short_series_and_invalid_params():
     assert atr_zigzag_pivots([], atr_period=5) == []
     assert atr_zigzag_pivots(_path([10.0, 10.1, 10.2]), atr_period=14) == []
@@ -211,13 +231,13 @@ def test_short_series_and_invalid_params():
 
 
 def test_as_of_before_first_candle_is_empty():
-    xs = _swing_series()
+    xs = _swing_series().candles
     early = xs[0].open_time - timedelta(minutes=5)
     assert atr_zigzag_pivots(xs, atr_period=5, atr_multiple=2.0, as_of=early) == []
 
 
 def test_deterministic_and_alternating_after_first():
-    xs = _swing_series()
+    xs = _swing_series().candles
     a = atr_zigzag_pivots(xs, atr_period=5, atr_multiple=2.0)
     b = atr_zigzag_pivots(xs, atr_period=5, atr_multiple=2.0)
     assert [_identity(p) for p in a] == [_identity(p) for p in b]

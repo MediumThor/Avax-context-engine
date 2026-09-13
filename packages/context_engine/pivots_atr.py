@@ -124,11 +124,11 @@ def _closed_prefix(candles: list[Candle], as_of: datetime | None) -> list[tuple[
     for index, candle in enumerate(candles):
         if not candle.is_closed:
             continue
-        if as_of is not None and candle.open_time > as_of:
-            continue
         if last_time is not None and candle.open_time <= last_time:
             raise ValueError("candles must be strictly increasing by open_time")
         last_time = candle.open_time
+        if as_of is not None and candle.open_time > as_of:
+            continue
         series.append((index, candle))
     return series
 
