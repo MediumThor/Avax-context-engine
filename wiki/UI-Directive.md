@@ -39,7 +39,7 @@ Required layers:
 - EMA overlays configurable 9/20/50/100/200 (live 5m pane draws all five from closed closes known at each bar; later candles cannot move earlier values);
 - validated support/resistance **zones** as shaded ranges, not arbitrary thin lines (5m pane fills from `known_at` through the last closed candle and autoscales so HTF bounds such as the 4h $8 cap stay in view);
 - swing pivots (5m pane markers from confirmed `swing_pivots` on 5m and 4h; highs above the bar, lows below; unavailable before `known_at`);
-- breakout/retest/failure markers;
+- breakout/retest/failure markers (default 5m pane is 1000 closed bars so the September ~$8 rejection stays on-chart; zone `rejected` / `accepted_through` events mark `last_test_at`; not confidence);
 - forecast q10/q50/q90 fan for next 10 5m horizons;
 - state-change markers;
 - optional Fib overlays generated from exact Context Engine anchors;

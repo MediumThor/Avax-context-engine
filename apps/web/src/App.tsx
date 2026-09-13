@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { MarketChart } from './components/MarketChart'
 import { AgentKillSwitch } from './components/AgentKillSwitch'
 import { ForecastFan } from './components/ForecastFan'
-import { ContextOverlays, type OverlayZone } from './components/ContextOverlays'
+import { ContextOverlays, type OverlayEvent, type OverlayZone } from './components/ContextOverlays'
 import { ContextEvidence } from './components/ContextEvidence'
 import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { LoopTraceCard } from './components/LoopTraceCard'
@@ -115,6 +115,40 @@ export default function App() {
         if (seen.has(key)) continue
         seen.add(key)
         out.push({ ...pivot, timeframe: pivot.timeframe ?? tf })
+      }
+    }
+    return out
+  }, [market])
+  const overlayEvents: OverlayEvent[] = useMemo(() => {
+    if (!market) return []
+    const out: OverlayEvent[] = []
+    for (const tf of TF_ORDER) {
+      const state = market.snapshot.timeframes[tf]
+      if (!state) continue
+      for (const zone of [...(state.support_zones ?? []), ...(state.resistance_zones ?? [])]) {
+        const kind =
+          zone.interaction === 'rejected' || zone.outcome === 'failed_breakout'
+            ? 'failure'
+            : zone.outcome === 'accepted_through'
+              ? 'breakout'
+              : null
+        if (!kind) continue
+        const raw = zone.last_test_at ?? zone.known_at
+        if (!raw) continue
+        const ms = Date.parse(raw)
+        if (!Number.isFinite(ms)) continue
+        const time = Math.floor(ms / 1000)
+        out.push({
+          id: `${zone.id}:${kind}:${time}`,
+          kind,
+          price: (zone.lower + zone.upper) / 2,
+          time,
+          zone_id: zone.id,
+          known_at: raw,
+          provenance: {
+            notes: `${tf} ${zone.interaction ?? 'event'} ${zone.outcome ?? ''}. Not confidence.`.trim(),
+          },
+        })
       }
     }
     return out
@@ -238,13 +272,22 @@ export default function App() {
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}
           {market && (
-            <MarketChart candles={market.candles} zones={overlayZones} pivots={chartPivots} className="chart" />
+            <MarketChart
+              candles={market.candles}
+              zones={overlayZones}
+              pivots={chartPivots}
+              events={overlayEvents}
+              className="chart"
+            />
           )}
           {market && (
             <ContextOverlays
               zones={overlayZones}
+              events={overlayEvents}
               priceMin={Math.min(...market.candles.map((c) => c.low))}
               priceMax={Math.max(...market.candles.map((c) => c.high))}
+              timeStart={market.candles[0]?.time}
+              timeEnd={market.candles.at(-1)?.time}
               aria-label="Structural zones from the Context Engine snapshot"
             />
           )}

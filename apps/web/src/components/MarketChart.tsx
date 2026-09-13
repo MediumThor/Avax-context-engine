@@ -11,15 +11,17 @@ import {
 } from 'lightweight-charts'
 import type { Candle, SwingPivot } from '../api/types'
 import { ZoneBandPrimitive, type ChartZone } from './ChartZoneBands'
+import type { OverlayEvent } from './ContextOverlays'
 
 interface Props {
   candles: Candle[]
   zones?: ChartZone[]
   pivots?: SwingPivot[]
+  events?: OverlayEvent[]
   className?: string
 }
 
-export function MarketChart({ candles, zones = [], pivots = [], className }: Props) {
+export function MarketChart({ candles, zones = [], pivots = [], events = [], className }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   useEffect(() => {
@@ -45,15 +47,27 @@ export function MarketChart({ candles, zones = [], pivots = [], className }: Pro
       )
     }
     const candleTimes = new Set(candles.map((c) => c.time))
-    const markers: SeriesMarker<Time>[] = pivots
-      .filter((pivot) => candleTimes.has(pivot.time))
-      .map((pivot) => ({
+    const markers: SeriesMarker<Time>[] = []
+    for (const pivot of pivots) {
+      if (!candleTimes.has(pivot.time)) continue
+      markers.push({
         time: pivot.time as Time,
         position: pivot.kind === 'high' ? 'aboveBar' : 'belowBar',
         color: pivot.kind === 'high' ? '#ff5964' : '#25d09a',
         shape: pivot.kind === 'high' ? 'arrowDown' : 'arrowUp',
         text: `${pivot.timeframe ?? '5m'} ${pivot.kind === 'high' ? 'H' : 'L'}`,
-      }))
+      })
+    }
+    for (const event of events) {
+      if (typeof event.time !== 'number' || !candleTimes.has(event.time)) continue
+      markers.push({
+        time: event.time as Time,
+        position: event.kind === 'breakout' ? 'aboveBar' : 'belowBar',
+        color: event.kind === 'failure' ? '#f0c36a' : event.kind === 'breakout' ? '#25d09a' : '#8cb4ff',
+        shape: event.kind === 'failure' ? 'circle' : event.kind === 'breakout' ? 'arrowUp' : 'circle',
+        text: event.kind === 'failure' ? 'fail' : event.kind === 'breakout' ? 'thru' : 'retest',
+      })
+    }
     if (markers.length) {
       createSeriesMarkers(series, markers)
     }
@@ -97,6 +111,6 @@ export function MarketChart({ candles, zones = [], pivots = [], className }: Pro
       chart.remove()
       chartRef.current = null
     }
-  }, [candles, zones, pivots])
+  }, [candles, zones, pivots, events])
   return <div ref={host} className={className} aria-label="AVAX market chart" />
 }

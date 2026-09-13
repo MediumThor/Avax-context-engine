@@ -609,7 +609,7 @@ class PrototypeRuntime:
         health["source"] = "fixture" if self.use_fixture else SOURCE
         return health
 
-    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 240, persist: bool | None = None) -> dict:
+    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 1000, persist: bool | None = None) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, 400))
         last_close = candles[-1].close_time()
         should_persist = persist if persist is not None else as_of is None
