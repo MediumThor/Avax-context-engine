@@ -24,6 +24,12 @@ Accepted work is integrated into `main` immediately after Watcher review and req
 
 Do not create long-lived `foundation`, `staging`, `integration`, or feature branches for normal development. The purpose of branch isolation is conflict avoidance, not delayed integration.
 
+## Recursive agent kill switch
+
+The operator kill switch is part of the accepted mainline harness. When engaged it severs active recursive-agent work, freezes promotion, degrades harness health, and blocks new loop execution. It does not delete journals, alter the Constitution, or enable trading. Reset requires an explicit logged action.
+
+Agents must check kill-switch state before beginning or continuing recursive harness work. If the switch is engaged, stop agent/harness implementation and wait for an explicit reset.
+
 ## Agent numbering
 
 - Agent 00: Watcher / integrator / correction authority.
