@@ -12,9 +12,22 @@ import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
 import './styles.css'
 
 const TF_ORDER = ['1w', '1d', '4h', '1h', '15m', '5m']
+const SHEET_PANELS = ['context', 'forecast', 'thesis', 'journal'] as const
+type SheetPanel = (typeof SHEET_PANELS)[number]
+const SHEET_LABELS: Record<SheetPanel, string> = {
+  context: 'Context',
+  forecast: 'Forecast',
+  thesis: 'Thesis',
+  journal: 'Journal',
+}
 
 function readAsOf(): string | null {
   return new URLSearchParams(window.location.search).get('as_of')
+}
+
+function readSheet(): SheetPanel {
+  const raw = new URLSearchParams(window.location.search).get('panel')
+  return (SHEET_PANELS as readonly string[]).includes(raw ?? '') ? (raw as SheetPanel) : 'context'
 }
 
 export default function App() {
@@ -23,6 +36,7 @@ export default function App() {
   const [market, setMarket] = useState<MarketPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [sheet, setSheet] = useState<SheetPanel>(() => readSheet())
   const asOf = useMemo(() => readAsOf(), [])
 
   useEffect(() => {
@@ -115,6 +129,14 @@ export default function App() {
     window.location.assign(url.toString())
   }
 
+  function selectSheet(next: SheetPanel) {
+    setSheet(next)
+    const url = new URL(window.location.href)
+    if (next === 'context') url.searchParams.delete('panel')
+    else url.searchParams.set('panel', next)
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
+  }
+
   return (
     <main className={`shell ${severed ? 'severed' : ''}`}>
       <header className="topbar">
@@ -159,6 +181,13 @@ export default function App() {
             )}
             <span className="muted">{market?.source ?? ''}</span>
           </div>
+          <div className="regimeStrip" aria-label="Regime by timeframe">
+            {regimes.map((state) => (
+              <span className={`regimeChip ${state.regime}`} key={`strip-${state.timeframe}`}>
+                {state.timeframe} {state.regime}
+              </span>
+            ))}
+          </div>
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}
           {market && <MarketChart candles={market.candles} className="chart" />}
@@ -171,8 +200,24 @@ export default function App() {
             />
           )}
         </div>
-        <aside className="rail">
-          <section className="card">
+        <aside className="rail" data-active-sheet={sheet}>
+          <nav className="sheetTabs" role="tablist" aria-label="Market analysis">
+            {SHEET_PANELS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                className="sheetTab"
+                role="tab"
+                id={`sheet-tab-${id}`}
+                aria-selected={sheet === id}
+                aria-controls={`sheet-panel-${id}`}
+                onClick={() => selectSheet(id)}
+              >
+                {SHEET_LABELS[id]}
+              </button>
+            ))}
+          </nav>
+          <section className="card" data-sheet="context" id="sheet-panel-context" role="tabpanel" aria-labelledby="sheet-tab-context">
             <h2>Regime stack</h2>
             {regimes.map((state) => (
               <div className="row" key={state.timeframe}>
@@ -182,7 +227,7 @@ export default function App() {
             ))}
             <p className="muted">{market?.interpretation || 'Waiting for snapshot.'}</p>
           </section>
-          <section className="card">
+          <section className="card" data-sheet="thesis" id="sheet-panel-thesis" role="tabpanel" aria-labelledby="sheet-tab-thesis">
             <h2>Thesis</h2>
             {(market?.snapshot.theses ?? []).length === 0 && (
               <p className="muted">{market?.interpretation || 'No competing theses at this as_of.'}</p>
@@ -204,7 +249,7 @@ export default function App() {
               </div>
             ))}
           </section>
-          <section className="card">
+          <section className="card" data-sheet="forecast" id="sheet-panel-forecast" role="tabpanel" aria-labelledby="sheet-tab-forecast">
             <h2>Forecast · next 10</h2>
             <p className="muted">
               {severed
@@ -232,8 +277,10 @@ export default function App() {
               />
             )}
           </section>
-          {market?.forecast.loop && <LoopTraceCard loop={market.forecast.loop} />}
-          <section className="card">
+          <div className="sheetStack" data-sheet="forecast">
+            {market?.forecast.loop && <LoopTraceCard loop={market.forecast.loop} />}
+          </div>
+          <section className="card" data-sheet="forecast">
             <h2>Walk-forward scores</h2>
             <AccuracyPanel
               slices={accuracySlices}
@@ -243,7 +290,7 @@ export default function App() {
               coverageInterval="q10–q90 residual vs drift20"
             />
           </section>
-          <section className="card">
+          <section className="card" data-sheet="context">
             <h2>Zones</h2>
             <p className="muted">
               Lifecycle from closed bars on each timeframe. Bounds are frozen. Status is not confidence.
@@ -261,14 +308,16 @@ export default function App() {
               </div>
             ))}
           </section>
-          {market && (
-            <ContextEvidence
-              analogs={market.snapshot.analogs ?? []}
-              patterns={market.snapshot.pattern_hypotheses ?? []}
-              fibLevels={market.snapshot.fib_levels ?? []}
-            />
-          )}
-          <section className="card">
+          <div className="sheetStack" data-sheet="context">
+            {market && (
+              <ContextEvidence
+                analogs={market.snapshot.analogs ?? []}
+                patterns={market.snapshot.pattern_hypotheses ?? []}
+                fibLevels={market.snapshot.fib_levels ?? []}
+              />
+            )}
+          </div>
+          <section className="card" data-sheet="journal" id="sheet-panel-journal" role="tabpanel" aria-labelledby="sheet-tab-journal">
             <h2>Replay</h2>
             <p className="muted">September 2026 failed-breakout process check: 4H must hold through the 5m bounce.</p>
             {market?.replay_hint_as_of && !market.replay && (
