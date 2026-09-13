@@ -1,0 +1,5 @@
+{
+  "analog_search_refuses_known_at_after_as_of": true,
+  "refused_tool_is_success": true,
+  "leakage_probe_passed": true
+}

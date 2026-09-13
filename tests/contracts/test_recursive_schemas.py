@@ -29,6 +29,17 @@ SCHEMA_FILES = {
     "loop-outcome": "loop-outcome.schema.json",
 }
 
+REQUIRED_FIXTURES = [
+    "avax-2026-09-failed-8",
+    "no-change-5m",
+    "stale-data",
+    "invalidation-already-fired",
+    "model-disagreement",
+    "parent-child-split",
+    "analog-cutoff",
+    "replay-parity",
+]
+
 REQUIRED_WIKI_LINKS = [
     WIKI / "Home.md",
     WIKI / "Architecture.md",
@@ -233,6 +244,20 @@ def test_wiki_discovery() -> list[str]:
     return errors
 
 
+def test_required_fixtures() -> list[str]:
+    errors: list[str] = []
+    root = ROOT / "benchmarks" / "rlh"
+    for fixture_id in REQUIRED_FIXTURES:
+        path = root / fixture_id / "expected_invariants.json"
+        if not path.exists():
+            errors.append(f"missing fixture {fixture_id}")
+            continue
+        payload = load_json(path)
+        if not isinstance(payload, dict) or not payload:
+            errors.append(f"{fixture_id} invariants empty")
+    return errors
+
+
 def test_constitution_untouched_marker() -> list[str]:
     text = CONSTITUTION.read_text(encoding="utf-8")
     if "IMMUTABLE PROJECT LAW" not in text:
@@ -247,6 +272,7 @@ def main() -> int:
         ("parent/child example", test_parent_child_example),
         ("trace order", test_trace_step_order),
         ("wiki discovery", test_wiki_discovery),
+        ("required fixtures", test_required_fixtures),
         ("constitution marker", test_constitution_untouched_marker),
     ]
     failed = 0
