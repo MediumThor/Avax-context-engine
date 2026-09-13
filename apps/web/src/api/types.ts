@@ -50,8 +50,9 @@ export interface MarketPayload {
   symbol: string
   source: string
   as_of: string
-  health: { status: DataHealth; age_seconds: number; last_close: string }
+  health: { status: DataHealth; age_seconds: number; last_close: string; source?: string }
   last_price: number
+  price_source?: 'ticker' | 'last_close'
   snapshot: { timeframes: Record<string, TimeframeState>; cross_market?: Record<string, unknown> }
   interpretation: string
   forecast: { forecast: { horizons: ForecastHorizon[]; model_id: string; notes: string }; journaled: boolean }

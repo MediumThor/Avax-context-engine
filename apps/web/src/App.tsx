@@ -10,6 +10,7 @@ import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
 import './styles.css'
 
 const TF_ORDER = ['1w', '1d', '4h', '1h', '15m', '5m']
+const LIVE_POLL_MS = 20_000
 
 function readAsOf(): string | null {
   return new URLSearchParams(window.location.search).get('as_of')
@@ -30,11 +31,32 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    setLoading(true)
-    fetchMarket('AVAXUSDT', asOf)
-      .then(setMarket)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'market unavailable'))
-      .finally(() => setLoading(false))
+    let cancelled = false
+    async function load(initial: boolean) {
+      if (initial) setLoading(true)
+      try {
+        const payload = await fetchMarket('AVAXUSDT', asOf)
+        if (!cancelled) {
+          setMarket(payload)
+          setError(null)
+        }
+      } catch (err: unknown) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'market unavailable')
+      } finally {
+        if (!cancelled && initial) setLoading(false)
+      }
+    }
+    void load(true)
+    if (asOf) return () => {
+      cancelled = true
+    }
+    const timer = window.setInterval(() => {
+      void load(false)
+    }, LIVE_POLL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
   }, [asOf])
 
   const severed = Boolean(kill?.engaged)
@@ -107,7 +129,7 @@ export default function App() {
           {severed
             ? 'AGENTS SEVERED · READ ONLY'
             : health === 'live'
-              ? `LIVE · as of ${market?.as_of ?? ''}`
+              ? `LIVE · $${market?.last_price.toFixed(2) ?? ''} · ${market?.source ?? 'binance-vision'}`
               : health === 'fixture'
                 ? `FIXTURE · as of ${market?.as_of ?? ''}`
                 : health === 'stale'
@@ -135,7 +157,10 @@ export default function App() {
                 5m
               </span>
             )}
-            <span className="muted">{market?.source ?? ''}</span>
+            <span className="muted">
+              {market?.source ?? ''}
+              {market?.price_source === 'ticker' ? ' · last trade' : ''}
+            </span>
           </div>
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}

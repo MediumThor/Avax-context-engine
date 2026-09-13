@@ -19,7 +19,7 @@ The repository is no longer documentation-only. It contains a tested prototype s
 | Journal | SQLite forecast/outcome prototype | Full ForecastPackage metadata, LoopTrace integration, recovery/atomicity tests, production storage adapter |
 | Recursive harness | JSON schemas, synthesis/kill-switch pieces, fixtures, CI, detailed RLH specs | Active Wave 1 implementation, exact replay, journaled LoopStep, challenge/SWA/evaluation completion |
 | API | FastAPI health/system/kill-switch and loop-run stub | Typed market/context/forecast/journal/evaluation/replay APIs and generated client |
-| Web App | React/Vite prototype chart and kill-switch shell | Mobile-first workspace, live typed data, bottom sheet/navigation, overlays, forecast fan, replay, accuracy, health states |
+| Web App | React/Vite prototype chart and kill-switch shell; default path is live Binance Vision (fixture is explicit) | Mobile-first workspace, bottom sheet/navigation, overlays, forecast fan, replay, accuracy, health states |
 | Operations | Compose/CI/bootstrap prototypes | Reproducible full stack, persistent services, migrations, observability, clean recovery, release checks |
 
 Update this table only from verified code/tests on `main`.

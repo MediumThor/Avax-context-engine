@@ -9,5 +9,7 @@ vendor/freqtrade/
 data/raw/
 data/processed/
 data/models/
+data/*.sqlite3
+data/*.sqlite3-*
 artifacts/
 !artifacts/.gitkeep
