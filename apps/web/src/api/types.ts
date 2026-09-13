@@ -181,6 +181,12 @@ export interface MarketPayload {
           signed_direction?: { accuracy: number | null; sample_count: number }
         }
         probability?: { sample_count?: number; brier?: number | null; ece?: number | null; source?: string }
+        probability_held_out_live?: {
+          sample_count?: number
+          brier?: number | null
+          ece?: number | null
+          source?: string
+        }
         interval?: { sample_count?: number; coverage?: number | null; source?: string }
         q50?: { mae?: number; rmse?: number; sample_count?: number; source?: string }
         q50_mae_minus_drift20_mae?: number | null
