@@ -37,7 +37,7 @@ Required layers:
 - OHLC candles;
 - volume histogram (drawn under the candles when `volume` is present on the market payload);
 - EMA overlays configurable 9/20/50/100/200 (live 5m pane draws all five from closed closes known at each bar; later candles cannot move earlier values);
-- validated support/resistance **zones** as shaded ranges, not arbitrary thin lines;
+- validated support/resistance **zones** as shaded ranges, not arbitrary thin lines (5m pane fills from `known_at` through the last closed candle);
 - swing pivots;
 - breakout/retest/failure markers;
 - forecast q10/q50/q90 fan for next 10 5m horizons;
