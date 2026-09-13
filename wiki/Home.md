@@ -9,7 +9,7 @@ This repository is designed to be operated by humans and many cooperating AI age
 3. [`Architecture.md`](Architecture.md) — system boundaries and data flow.
 4. [`Agent-Orchestration.md`](Agent-Orchestration.md) — how up to 40 agents work concurrently.
 5. [`Watcher-Directive.md`](Watcher-Directive.md) — Agent 00 review/correction loop.
-6. [`Agent-Roster.md`](Agent-Roster.md) — live lane locks and RLH wave 1.
+6. [`Agent-Roster.md`](Agent-Roster.md) — prototype on `main` + recursive agent kill switch.
 7. [`Agent-Launch-Pack.md`](Agent-Launch-Pack.md) — copy-ready directives for Agents 00-39.
 
 ## Subsystem directives

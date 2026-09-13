@@ -1,0 +1,38 @@
+name: rlh-contracts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "packages/contracts/recursive/**"
+      - "services/harness/**"
+      - "packages/harness/**"
+      - "tests/contracts/**"
+      - "tests/rlh/**"
+      - "tests/harness/**"
+      - "tests/leakage/rlh/**"
+      - "wiki/Recursive-*.md"
+      - ".github/workflows/rlh-contracts.yml"
+  pull_request:
+    paths:
+      - "packages/contracts/recursive/**"
+      - "services/harness/**"
+      - "packages/harness/**"
+      - "tests/contracts/**"
+      - "tests/rlh/**"
+      - "tests/harness/**"
+      - "tests/leakage/rlh/**"
+      - "wiki/Recursive-*.md"
+      - ".github/workflows/rlh-contracts.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rlh-contracts:
+    name: recursive-schema-contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/contracts/test_recursive_schemas.py

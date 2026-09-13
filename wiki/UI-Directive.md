@@ -14,7 +14,7 @@ Technology:
 
 The default screen is a single analysis workspace with five synchronized regions:
 
-1. **Market header** — symbol, current price, data freshness, source/exchange, regime summary.
+1. **Market header** — symbol, current price, data freshness, source/exchange, regime summary, and the **recursive agent kill switch**.
 2. **Main chart** — candlesticks, volume, structural zones, context overlays, forecast fan.
 3. **Context rail** — 1W/1D/4H/1H/15m/5m regime and state transitions.
 4. **Forecast panel** — horizons +1..+10, model ensemble, quantiles, calibration and disagreement.
@@ -92,6 +92,21 @@ Expose model quality honestly:
 A green "accuracy" badge without target definition and sample count is prohibited.
 
 Loop depth is not an accuracy badge. Show `depth_used` / `halt_reason` as process metadata, not as "smarter because more loops."
+
+## Recursive agent kill switch
+
+The kill switch is always visible on the primary workspace. It is the operator's hard stop for every Recursive Learning Harness / wave-1 agent.
+
+Engage:
+
+- severs all `active`/`launched` agent tasks;
+- blocks new loop runs;
+- freezes promotion;
+- shows a severed banner;
+- leaves candles, journals, and forecasts intact;
+- never enables execution.
+
+Reset requires a second confirmation and is append-only. A green "agents healthy" treatment after reset is not an accuracy claim.
 
 ## Data-health UX
 

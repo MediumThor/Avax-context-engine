@@ -177,6 +177,17 @@ Traces are never overwritten. A correction is a new trace with `supersedes` meta
 
 Outcomes attach. They do not rewrite `LoopTrace` or `ForecastPackage`.
 
+## Kill switch
+
+See `packages/contracts/recursive/kill-switch.schema.json` and `packages/harness/kill_switch.py`.
+
+| method | path | purpose |
+| --- | --- | --- |
+| GET | `/api/v1/agents/kill-switch` | current engage state + audit events |
+| POST | `/api/v1/agents/kill-switch` | sever all recursive agent work |
+| POST | `/api/v1/agents/kill-switch/reset` | logged resume |
+| POST | `/api/v1/loops/run` | stub runner; 423 if severed |
+
 ## API surface (v1)
 
 | method | path | purpose |
