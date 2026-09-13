@@ -79,12 +79,7 @@ def post_kill_switch(body: KillSwitchRequest) -> dict:
 @app.post("/api/v1/agents/kill-switch/reset")
 def post_kill_switch_reset(body: KillSwitchRequest) -> dict:
     try:
-        return reset(
-            body.reason,
-            actor=body.actor,
-            path=_paths()["path"],
-            health_path=_paths()["health_path"],
-        )
+        return reset(body.reason, actor=body.actor, **_paths())
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -34,12 +35,18 @@ def test_engage_severs_roster_and_blocks_loops(tmp_path: Path):
 
 def test_reset_is_logged_and_does_not_delete_events(tmp_path: Path):
     paths = _paths(tmp_path)
+    paths["tasks_path"].write_text(
+        '{"tasks":[{"id":"RLH-27","status":"launched"}]}',
+        encoding="utf-8",
+    )
     engage("stop", actor="ui", **paths)
-    state = reset("resume prototype", actor="ui", path=paths["path"], health_path=paths["health_path"])
+    state = reset("resume prototype", actor="ui", **paths)
     assert state["engaged"] is False
     kinds = [event["kind"] for event in state["events"]]
     assert kinds == ["engage", "reset"]
     assert_not_severed(paths["path"])
+    roster = json.loads(paths["tasks_path"].read_text(encoding="utf-8"))
+    assert all(task["status"] != "severed" for task in roster["tasks"])
 
 
 def test_api_kill_switch_blocks_loop_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

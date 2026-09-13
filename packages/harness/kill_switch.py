@@ -141,16 +141,31 @@ def engage(
     return save(state, path)
 
 
+def _restore_roster(tasks_path: Path | None = None) -> None:
+    roster = tasks_path or TASKS_PATH
+    if not roster.exists():
+        return
+    data = json.loads(roster.read_text(encoding="utf-8"))
+    for task in data.get("tasks", []):
+        if task.get("status") == "severed":
+            task["status"] = "launched"
+            task.pop("severed_at", None)
+    data["kill_switch"] = "reset"
+    roster.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
 def reset(
     reason: str,
     actor: str = "operator",
     *,
     path: Path | None = None,
+    tasks_path: Path | None = None,
     health_path: Path | None = None,
 ) -> dict[str, Any]:
     if not reason or not reason.strip():
         raise ValueError("reset requires a reason")
     state = load(path)
+    _restore_roster(tasks_path)
     state.update(
         {
             "engaged": False,
