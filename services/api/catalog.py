@@ -93,6 +93,15 @@ def list_models() -> dict[str, Any]:
                     "Null stays null. Not a fabricated confidence percentage."
                 ),
             },
+            {
+                "model_id": "baseline.htf_regime_drift.v1",
+                "role": "research_htf_gate",
+                "promotion_allowed": False,
+                "notes": (
+                    "Gates 5m drift20 by three closed 4h closes. Not journaled live. "
+                    "A lower fixture MAE is not a promotion."
+                ),
+            },
         ],
         "note": "Challengers stay research until a Watcher-accepted sealed walk-forward says otherwise.",
     }

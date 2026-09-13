@@ -56,4 +56,5 @@ def test_models_api_keeps_incumbent_and_research_unpromoted(tmp_path, monkeypatc
     assert body["incumbent"]["promotion_allowed"] is False
     research_ids = {row["model_id"] for row in body["research"]}
     assert "freqai.quantiles.research.v1" in research_ids
+    assert "baseline.htf_regime_drift.v1" in research_ids
     assert all(row["promotion_allowed"] is False for row in body["research"])
