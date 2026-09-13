@@ -121,3 +121,34 @@ Finish criteria:
 - branch committed and pushed; no GitHub PR opened (Watcher opens it)
 - CONSTITUTION.md and packages/** untouched
 ```
+
+## Completion
+
+Status: red-team probes implemented on `cursor/wave2-37-replay-redteam-29ee`. Watcher opens the PR.
+
+Source main: `b6bbbf4dccb6bdd4dc98473ab4887679e282b8b7`
+
+Files:
+- `wiki/tasks/WAVE2-37-replay-redteam.md`
+- `tests/replay/__init__.py`
+- `tests/replay/conftest.py`
+- `tests/replay/helpers.py`
+- `tests/replay/test_journal_replay_redteam.py`
+
+No `packages/**` change. No contract/schema change. `CONSTITUTION.md` untouched.
+
+Tests (`python3 -m pytest -q tests/replay tests/test_leakage.py tests/test_journal.py`):
+- 7 passed, 2 skipped
+- required probes (journal mutation, journal-before-outcome, unfinished parents, deterministic rebuild, 5m bounce vs journaled 4H) passed against `ContextEngine.build_snapshot` + `ForecastJournal`
+- `tests/test_leakage.py` and `tests/test_journal.py` passed
+- two optional `packages.context_engine.replay` probes skipped: module absent on this main SHA
+
+Bugs found: none on the five required invariants against current main APIs.
+
+Limitations:
+- Point-in-time replay of a full series is caller-sliced (prefix of closed 5m bars), because `build_snapshot` has no `as_of` clock on main.
+- `ForecastJournal.append_forecast` still stores whatever payload it is given; this suite asserts the write-at-T path and that `append_outcome` does not mutate the forecast row. Schema rejection of embedded outcome keys is out of this write scope.
+- No September 2026 fixture in this increment.
+- No forecast/accuracy claims.
+
+Recommended next: after WAVE2-16 `replay.py` lands, the two skipped as-of probes should un-skip; journal owner may add payload validation that refuses ForecastOutcome keys on `append_forecast`.
