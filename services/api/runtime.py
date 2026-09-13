@@ -11,7 +11,7 @@ from packages.context_engine import ContextEngine
 from packages.features import FEATURE_SCHEMA_VERSION as MTF_FEATURE_SCHEMA
 from packages.features import assemble_features
 from packages.fixtures import btc_companion, sept_2026_failed_breakout
-from packages.harness.kill_switch import is_engaged
+from packages.harness.kill_switch import AgentsSevered, is_engaged
 from packages.journal import ForecastJournal
 from packages.market_data import CandleStore
 from packages.models import (
@@ -160,6 +160,14 @@ class PrototypeRuntime:
             )
             self._journal_prior_origin(symbol, candles, btc, as_of=as_of, manifest_id=manifest_id)
             outcomes = mature_outcomes(self.journal, candles, symbol, as_of=as_of)
+        loop = self._maybe_run_live_loop(
+            symbol=symbol,
+            payload=payload,
+            snap=snap,
+            snapshot_id=snapshot_id,
+            manifest_id=manifest_id,
+            feature_schema=feature_schema,
+        )
         latest = self.journal.latest(symbol)
         return {
             "forecast": payload,
@@ -168,6 +176,107 @@ class PrototypeRuntime:
             "feature_schema_version": feature_schema,
             "outcomes": outcomes,
             "kill_switch_blocked_write": persist and is_engaged(),
+            "loop": loop,
+        }
+
+    def _maybe_run_live_loop(
+        self,
+        *,
+        symbol: str,
+        payload: dict[str, Any],
+        snap,
+        snapshot_id: str,
+        manifest_id: str | None,
+        feature_schema: str,
+    ) -> dict[str, Any]:
+        """Bounded loop after journal write. Never mutates the forecast payload."""
+        skipped = {
+            "ran": False,
+            "reason": "kill_switch",
+            "note": "Kill switch skipped the loop. Forecast row unchanged.",
+        }
+        if is_engaged():
+            return skipped
+        try:
+            return self._run_live_loop(
+                symbol=symbol,
+                payload=payload,
+                snap=snap,
+                snapshot_id=snapshot_id,
+                manifest_id=manifest_id,
+                feature_schema=feature_schema,
+            )
+        except AgentsSevered:
+            return skipped
+        except Exception as exc:
+            return {
+                "ran": False,
+                "reason": "loop_error",
+                "note": f"Loop did not finish ({type(exc).__name__}). Forecast row unchanged. Not confidence.",
+            }
+
+    def _run_live_loop(
+        self,
+        *,
+        symbol: str,
+        payload: dict[str, Any],
+        snap,
+        snapshot_id: str,
+        manifest_id: str | None,
+        feature_schema: str,
+    ) -> dict[str, Any]:
+        from services.harness.encoder import build_encoder_memory, snapshot_analogs, snapshot_theses
+        from services.harness.encoder.tools import EncoderTools
+        from services.harness.loop import run_loop
+
+        snap_dict = snap.to_dict() if hasattr(snap, "to_dict") else dict(snap)
+        as_of = snap.as_of if hasattr(snap, "as_of") else snap_dict.get("as_of")
+        analogs = snapshot_analogs(snap)
+        theses = snapshot_theses(snap)
+        brief = self.health_brief(symbol)
+        status = brief.get("status")
+        health = "stale" if status == "stale" else "unknown" if status == "unknown" else "valid"
+        forecast_id = payload.get("id") or f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}"
+        memory = build_encoder_memory(
+            as_of=as_of,
+            snapshot=snap,
+            forecast_package={
+                "id": forecast_id,
+                "calibration_ref": payload.get("calibration_ref"),
+                "horizons": payload.get("horizons") or [],
+            },
+            data_manifest_id=manifest_id or snapshot_id or "unknown",
+            feature_schema_version=feature_schema,
+            context_engine_version=str(getattr(snap, "schema_version", None) or snap_dict.get("schema_version") or "1"),
+            cross_market=getattr(snap, "cross_market", None) or snap_dict.get("cross_market") or {},
+            health=health,
+        )
+        tools = EncoderTools(
+            memory,
+            snapshot=snap_dict,
+            forecast=payload,
+            analogs=analogs,
+            hypotheses=theses,
+        )
+        trace = run_loop(
+            memory=memory,
+            forecast=payload,
+            tools=tools,
+            hypotheses=theses,
+            commit_sha="local",
+            journaled_at=str(payload.get("forecasted_at") or memory["as_of"]),
+        )
+        halt = trace.get("halt") or {}
+        return {
+            "ran": True,
+            "loop_id": trace.get("id"),
+            "encoder_memory_id": memory["id"],
+            "encoder_memory_hash": memory["content_hash"],
+            "halt_reason": halt.get("reason"),
+            "analog_count": len(analogs),
+            "hypothesis_ids": list(memory.get("hypothesis_ids") or []),
+            "zone_count": len(memory.get("zone_ids") or []),
+            "note": "Loop reads frozen snapshot analogs and theses. Not a forecast and not confidence.",
         }
 
     def _journal_prior_origin(self, symbol: str, candles, btc, as_of, manifest_id) -> None:

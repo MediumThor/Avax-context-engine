@@ -52,7 +52,7 @@ Returns global and regime-sliced performance, calibration and baseline compariso
 
 ### analog.search
 
-Searches historical context-state fingerprints for similar prior conditions without leaking future information into a live forecast.
+On the live forecast path this tool returns the snapshot analog list frozen at `as_of` (origins whose h=10 close is already known). Distance is fingerprint proximity. It is not a forecast and not a calibrated confidence score. A `known_at` after `as_of` is a tool refusal, not a wider search.
 
 ### system.get_health
 
