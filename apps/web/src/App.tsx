@@ -362,6 +362,24 @@ export default function App() {
               </div>
             ))}
           </section>
+          <section className="card" data-sheet="context">
+            <h2>Swings</h2>
+            <p className="muted">
+              Confirmed window extrema (left/right 3). Price is the extreme, not a forecast. A marker
+              appears on the pane only when that open is in the visible 5m window.
+            </p>
+            {(market?.snapshot.timeframes['5m']?.swing_pivots ?? []).length === 0 && (
+              <p className="muted">No confirmed 5m swings at this as_of.</p>
+            )}
+            {[...(market?.snapshot.timeframes['5m']?.swing_pivots ?? [])].slice(-8).reverse().map((pivot) => (
+              <div className="row analogRow" key={`${pivot.kind}-${pivot.time}`}>
+                <span>
+                  5m {pivot.kind} {pivot.price.toFixed(3)}
+                </span>
+                <span className="muted">known {pivot.known_at}</span>
+              </div>
+            ))}
+          </section>
           <div className="sheetStack" data-sheet="context">
             {market && (
               <ContextEvidence
