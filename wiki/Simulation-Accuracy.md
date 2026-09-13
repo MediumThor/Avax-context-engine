@@ -8,6 +8,8 @@ Simulations determine whether the system adds measurable forecasting value. They
 
 At every eligible 5m close, the system emits one forecast package containing horizons h=1..10. The package is frozen and later scored as each horizon matures.
 
+Research helper `walk_forward_htf_regime` scores `baseline.htf_regime_drift.v1` against `baseline.drift20`. The 5m drift is gated by three consecutive closed 4h closes (incomplete buckets dropped). A 5m bounce does not overwrite a bearish 4h sequence. It is not journaled live and `promotion_allowed` stays false.
+
 Research helper `walk_forward_quantiles` scores `freqai.quantiles.research.v1` q50 MAE and empirical q10–q90 coverage against `baseline.zero` and `baseline.drift20` on chronological origins only. It never sets a product promotion flag. Coverage is a hit rate, not ECE. `GET /api/v1/forecast/metrics?challenger=true` attaches that q50 MAE and `q50_mae_minus_drift20_mae` per horizon (step 80). The Accuracy dest requests that payload. `/market` metrics stay without the challenger walk-forward so the chart path stays fast. `promotion_allowed` stays false even if q50 is lower on some horizons.
 
 `walk_forward_probabilities` scores the live `empirical_signed_base_rate.v1` P(up) (Brier / ECE) and an empirical residual-vs-drift20 q10–q90 hit rate. Those scores are attached to `/api/v1/market` metrics when the walk-forward sample is large enough. They are not a FreqAI-beats-baseline claim. `score_journaled_forecasts` uses the same gates on matured journal rows, plus drift20/zero MAE on journaled point paths when `MIN_MAE` is met. Null probabilities stay null. `promotion_allowed` stays false.
