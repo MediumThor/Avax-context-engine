@@ -3,6 +3,7 @@ import { MarketChart } from './components/MarketChart'
 import { AgentKillSwitch } from './components/AgentKillSwitch'
 import { ForecastFan } from './components/ForecastFan'
 import { ContextOverlays } from './components/ContextOverlays'
+import { ContextEvidence } from './components/ContextEvidence'
 import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { fetchMarket } from './api/market'
@@ -209,6 +210,13 @@ export default function App() {
               <p>Countertrend only unless a higher-timeframe reclaim is journaled.</p>
             </div>
           </section>
+          {market && (
+            <ContextEvidence
+              analogs={market.snapshot.analogs ?? []}
+              patterns={market.snapshot.pattern_hypotheses ?? []}
+              fibLevels={market.snapshot.fib_levels ?? []}
+            />
+          )}
           <section className="card">
             <h2>Replay</h2>
             <p className="muted">September 2026 failed-breakout process check: 4H must hold through the 5m bounce.</p>

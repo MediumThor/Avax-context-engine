@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from .analogs import retrieve_analogs
+from .fibonacci import fibonacci_features
 from .indicators import atr, ema, realized_volatility, rsi
 from .models import Candle, MarketSnapshot, TimeframeState
+from .patterns import hypotheses_at
 from .resample import resample_closed
 from .structure import cluster_zones, confirmed_pivots, swing_state
 
@@ -41,12 +44,45 @@ class ContextEngine:
             interpretation = f"5m {child.regime} is relief/countertrend inside {parent} higher-timeframe regime, not a reversal"
         elif parent in {"bullish", "bearish"}:
             interpretation = f"higher-timeframe regime {parent}; 5m must not silently overwrite it"
+        as_of_snap = closed[-1].close_time()
+        analogs = retrieve_analogs(closed, as_of_snap)
+        pattern_window = closed[-800:]
+        patterns = ()
+        try:
+            patterns = tuple(
+                {
+                    "id": hyp.id,
+                    "kind": hyp.kind,
+                    "status": hyp.status,
+                    "timeframe": hyp.timeframe,
+                    "evidence_score": hyp.evidence_score,
+                    "score_provenance": "evidence_count_v1",
+                }
+                for hyp in hypotheses_at(
+                    pattern_window,
+                    as_of_snap,
+                    timeframe="5m",
+                    parent_regime=parent if parent in {"bullish", "bearish"} else None,
+                )[:6]
+            )
+        except Exception:
+            patterns = ()
+        fib_levels = ()
+        try:
+            pivots = confirmed_pivots(pattern_window, 3, 3) if len(pattern_window) >= 7 else []
+            fib = fibonacci_features(pivots, as_of_snap)
+            fib_levels = tuple(level.to_dict() for level in fib.levels[:8])
+        except Exception:
+            fib_levels = ()
         return MarketSnapshot(
             symbol=symbol,
-            as_of=closed[-1].close_time(),
+            as_of=as_of_snap,
             timeframes=states,
             cross_market=cross_market or {},
             interpretation=interpretation,
+            analogs=analogs,
+            pattern_hypotheses=patterns,
+            fib_levels=fib_levels,
         )
 
     def _state_for(self, candles: list[Candle], timeframe: str) -> TimeframeState:

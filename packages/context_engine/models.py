@@ -79,6 +79,11 @@ class MarketSnapshot:
     schema_version: str = "1"
     cross_market: dict[str, Any] = field(default_factory=dict)
     interpretation: str = ""
+    # Additive context. Analogs attach realized h=10 only when that close is <= as_of.
+    # They are historical matches, not forecasts or calibrated confidence.
+    analogs: tuple[dict[str, Any], ...] = field(default_factory=tuple)
+    pattern_hypotheses: tuple[dict[str, Any], ...] = field(default_factory=tuple)
+    fib_levels: tuple[dict[str, Any], ...] = field(default_factory=tuple)
 
     def to_dict(self) -> dict:
         return asdict(self)

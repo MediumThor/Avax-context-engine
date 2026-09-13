@@ -33,7 +33,7 @@ Required fixtures:
 
 | id | purpose |
 | --- | --- |
-| `avax-2026-09-failed-8` | founding dogfood: failed ~$8 breakout, relief bounce must not reset 4H bear |
+| `avax-2026-09-failed-8` | founding dogfood: failed ~$8 breakout, relief bounce must not reset 4H bear. `candles.jsonl` is sealed; later bars stay hidden at `as_of`. |
 | `no-change-5m` | immaterial 5m candle → `NO_CHANGE` halt |
 | `stale-data` | health stale → degraded halt, no confident forecast language |
 | `invalidation-already-fired` | loop must close/respect thesis, not move the level |

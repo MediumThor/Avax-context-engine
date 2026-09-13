@@ -8,11 +8,11 @@
   "dataset_ref": "benchmarks/rlh/avax-2026-09-failed-8/",
   "symbol": "AVAXUSDT",
   "time_range": {
-    "start": "2026-09-01T00:00:00Z",
-    "end": "2026-09-13T23:59:59Z",
+    "start": "2026-08-20T00:00:00Z",
+    "end": "2026-09-02T02:00:00Z",
     "timezone": "UTC",
     "sealed": false,
-    "note": "Copied from the existing RLH fixture manifest as_of_range. Exact candle timestamps and prices live in that fixture tree. This draft does not seal the window or add outcomes."
+    "note": "Copied from the sealed RLH fixture manifest as_of_range. Exact candle timestamps and prices live in candles.jsonl. This draft does not seal the registry gate or add outcomes."
   },
   "timeframe": "multi",
   "horizons": {
@@ -116,7 +116,8 @@
     "benchmarks/rlh/avax-2026-09-failed-8/manifest.json",
     "benchmarks/rlh/avax-2026-09-failed-8/expected_invariants.json",
     "benchmarks/rlh/avax-2026-09-failed-8/notes.md",
+    "benchmarks/rlh/avax-2026-09-failed-8/candles.jsonl",
     "benchmarks/rlh/README.md"
   ],
-  "notes": "Constitution §18 and wiki/Home.md declare this episode permanent. The RLH fixture is still a stub (manifest status=stub). This draft is a pointer so forecast work cannot drop or redefine the founding regression. Exact prices come from the benchmark data dump when it exists, not from this file."
+  "notes": "Constitution §18 and wiki/Home.md declare this episode permanent. The RLH candle dump is now sealed (manifest status=sealed, sha256 on candles.jsonl). This registry entry stays draft: it is a pointer, not a scored forecast gate, and does not invent outcomes."
 }

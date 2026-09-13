@@ -1,9 +1,17 @@
 {
   "id": "avax-2026-09-failed-8",
-  "status": "stub",
+  "status": "sealed",
   "symbol": "AVAXUSDT",
+  "timeframe": "5m",
+  "candle_count": 3768,
+  "sha256": "3f791fcdb51b3b9823701320a89275b2ec75836536567409523289fb6544fb8e",
+  "path": "benchmarks/rlh/avax-2026-09-failed-8/candles.jsonl",
   "purpose": "Founding dogfood: failed ~$8 breakout. Relief bounces must not reset 4H bear after structural invalidation.",
-  "as_of_range": ["2026-09-01T00:00:00Z", "2026-09-13T23:59:59Z"],
-  "owner": "agent-28-or-00",
+  "as_of_range": [
+    "2026-08-20T00:00:00Z",
+    "2026-09-02T02:00:00Z"
+  ],
+  "source": "packages.fixtures.sept_2026_failed_breakout",
+  "owner": "agent-00",
   "required": true
 }

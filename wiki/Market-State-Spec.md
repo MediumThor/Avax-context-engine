@@ -106,6 +106,16 @@ The founding regression should show that repeated failure around the ~$8.15-$8.2
 
 The exact prices are benchmark data, not hard-coded universal rules.
 
+## Snapshot analog / pattern / fib fields
+
+`MarketSnapshot` (schema_version `1`, additive) may include:
+
+- `analogs` — prior origins whose h=10 outcome is known at `as_of`. Each row has `origin_close_time`, `distance`, `realized_h10_log_return`, `known_at`, and a note that it is not a forecast and not confidence.
+- `pattern_hypotheses` — competing pattern summaries with `score_provenance=evidence_count_v1`. Not calibrated percents.
+- `fib_levels` — candidate Fibonacci/measured-move prices from confirmed swings. `is_guaranteed_support` is always false.
+
+These fields must be unchanged when candles after `as_of` are perturbed.
+
 ## Unknown state
 
 If data integrity is insufficient, return `unknown`. Do not infer continuity across missing candles without explicit gap-handling rules.

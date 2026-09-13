@@ -46,13 +46,47 @@ export interface ForecastHorizon {
   q90_cum_log_return?: number | null
 }
 
+export interface AnalogMatch {
+  origin_close_time: string
+  distance: number
+  realized_h10_log_return: number
+  known_at: string
+  note: string
+}
+
+export interface PatternHypothesisSummary {
+  id: string
+  kind: string
+  status: string
+  timeframe: string
+  evidence_score: number
+  score_provenance: string
+}
+
+export interface FibLevelSummary {
+  kind: string
+  ratio: number
+  price: number
+  direction: string
+  known_at: string
+  status: string
+  is_guaranteed_support: boolean
+  role?: string
+}
+
 export interface MarketPayload {
   symbol: string
   source: string
   as_of: string
   health: { status: DataHealth; age_seconds: number; last_close: string }
   last_price: number
-  snapshot: { timeframes: Record<string, TimeframeState>; cross_market?: Record<string, unknown> }
+  snapshot: {
+    timeframes: Record<string, TimeframeState>
+    cross_market?: Record<string, unknown>
+    analogs?: AnalogMatch[]
+    pattern_hypotheses?: PatternHypothesisSummary[]
+    fib_levels?: FibLevelSummary[]
+  }
   interpretation: string
   forecast: { forecast: { horizons: ForecastHorizon[]; model_id: string; notes: string }; journaled: boolean }
   metrics: {
