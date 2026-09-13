@@ -18,8 +18,9 @@ def test_rsi_and_atr_leave_warmup_none():
     lows = [c - 0.5 for c in closes]
     r = rsi(closes, 14)
     a = atr(highs, lows, closes, 14)
-    assert r[13] is not None
-    assert all(v is None for v in r[:13])
+    # RSI needs `period` deltas (first value at index period); ATR seeds at period-1.
+    assert r[14] is not None
+    assert all(v is None for v in r[:14])
     assert a[13] is not None
     assert all(v is None for v in a[:13])
 

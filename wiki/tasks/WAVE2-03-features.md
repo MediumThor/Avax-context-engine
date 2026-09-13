@@ -68,4 +68,66 @@ Feature assembler exists, schema is versioned, HTF/cross-asset features are leak
 
 ## Status
 
-Implemented on `cursor/wave2-03-features-2cfd`. See completion report at the bottom of this file after tests.
+Implemented on `cursor/wave2-03-features-2cfd`. Tests green.
+
+## Completion report
+
+### What changed
+
+Leakage-safe feature assembler for AVAX 5m plus completed 15m/1h/4h/1d context, BTC/ETH relative features, and EMA/RSI/ATR/volume inputs. Snapshots are versioned (`feature_schema_version = avax.features.mtf.v1`) and record per-timeframe `known_at` availability. A bar is visible at T only when it is closed and its period end is `<= T`. Incomplete parent buckets are dropped. No models are trained.
+
+When `packages.context_engine` is importable, EMA/RSI/ATR/realized-vol and `resample_closed` are reused; otherwise identical fallbacks in `packages/features/_lib.py` are used so the package is testable on current main.
+
+### Exact files changed
+
+- `packages/features/__init__.py`
+- `packages/features/_lib.py`
+- `packages/features/assembler.py`
+- `packages/features/indicators.py`
+- `packages/features/relative.py`
+- `packages/features/resample.py`
+- `packages/features/schema.py`
+- `packages/features/types.py`
+- `tests/features/conftest.py`
+- `tests/features/test_assembler.py`
+- `tests/features/test_context_engine_reuse.py`
+- `tests/features/test_indicators.py`
+- `tests/features/test_leakage.py`
+- `tests/features/test_relative.py`
+- `tests/features/test_resample.py`
+- `tests/features/test_schema.py`
+- `tests/features/test_unfinished_parent.py`
+- `wiki/tasks/WAVE2-03-features.md`
+
+### Tests run
+
+```
+PYTHONPATH=. python -m pytest -q tests/features
+```
+
+- without context_engine: **32 passed, 2 skipped** (reuse tests skip)
+- with context_engine on PYTHONPATH: **34 passed**
+
+### Metrics before/after
+
+Not applicable. No model training, no accuracy claims, no walk-forward scores.
+
+### Known limitations
+
+- Input is 5m OHLCV only; Context Engine regime/zone/thesis features are not encoded yet.
+- HTF indicators share 5m spans (EMA 200 on 1d needs 200 completed days).
+- Rolling corr/beta use a fixed 24-bar window on aligned closes; gaps drop that timestamp from the intersection.
+- Fallback copies of context_engine math will need a version bump if those upstream functions change.
+- This branch is rooted at current GitHub `main` (wiki/constitution). Integrators merging onto the scaffold/watcher tree should take only `packages/features/**`, `tests/features/**`, and this task file.
+
+### Documentation updated
+
+- `wiki/tasks/WAVE2-03-features.md` (contract + this report)
+
+### Contract/schema change
+
+Yes: new feature schema `avax.features.mtf.v1` (additive package; does not mutate existing API contracts).
+
+### Recommended next task
+
+Agent 04 / forecast path: consume `FeatureSnapshot` as the journaled feature payload (schema version + values + availability) and keep target columns out of the feature matrix. Agent 36 can add extra leakage red-team cases against this assembler.
