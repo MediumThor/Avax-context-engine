@@ -42,13 +42,16 @@ def test_loops_run_attaches_to_journaled_forecast(tmp_path, monkeypatch):
     assert again["persisted"] is True
     assert runtime.journal.get_forecast(forecast_id)["sha256"] == sha
     assert len(runtime.journal.list_forecasts("AVAXUSDT")) == count
-    replay = runtime.run_harness_loop(
-        "AVAXUSDT",
-        as_of=datetime(2026, 9, 2, tzinfo=timezone.utc),
-        persist=False,
-    )
+    replay_at = datetime.fromisoformat(str(first["forecast"]["forecasted_at"]).replace("Z", "+00:00"))
+    replay = runtime.run_harness_loop("AVAXUSDT", as_of=replay_at, persist=False)
     assert replay["ran"] is True
     assert replay["persisted"] is False
+    assert replay["forecast_id"] == forecast_id
+    early = runtime.run_harness_loop(
+        "AVAXUSDT", as_of=datetime(2026, 8, 1, tzinfo=timezone.utc), persist=False
+    )
+    assert early["ran"] is False
+    assert early["reason"] == "no_journaled_forecast"
     runtime.close()
 
     from services.api.main import app
