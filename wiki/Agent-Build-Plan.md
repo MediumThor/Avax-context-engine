@@ -16,7 +16,7 @@ The repository is no longer documentation-only. It contains a tested prototype s
 | Data | Binance public fetch/store helpers and tests | Canonical manifests, gaps/duplicates, durable raw store, deterministic replay API, full source policy |
 | Context | Indicator, resampling, pivot/zone, parent-child, leakage-safe snapshot analogs, sealed Sept dump | Thesis ledger and zone lifecycle still not driving `build_snapshot`; versioned transitions / full fingerprint remain incomplete |
 | Forecast | Baseline helpers, FreqAI adapter/config, evaluator metrics | Canonical feature/forecast contracts, walk-forward runner, quantiles/calibration, model ensemble, reproducible manifests |
-| Journal | SQLite forecast/outcome prototype; live forecast journals before a bounded loop runs | Persist LoopTraces without rewriting forecast rows; recovery/atomicity tests; production storage adapter |
+| Journal | SQLite forecast/outcome prototype plus append-only `loop_traces` linked by forecast id | Recovery/atomicity tests; production storage adapter |
 | Recursive harness | EncoderMemory / LoopStep / challenge / SWA / probes; live forecast now builds EncoderMemory from the snapshot and RETRIEVEs analog.search + theses when present | Persist LoopTraces; replace `/loops/run` stub; evaluation of extra depth |
 | API | FastAPI health/system/kill-switch and loop-run stub | Typed market/context/forecast/journal/evaluation/replay APIs and generated client |
 | Web App | React/Vite prototype chart and kill-switch shell | Mobile-first workspace, live typed data, bottom sheet/navigation, overlays, forecast fan, replay, accuracy, health states |

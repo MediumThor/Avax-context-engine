@@ -18,6 +18,8 @@ At each eligible 5m close:
 8. durably append `LoopTrace` before exposing an RLH explanation;
 9. expose the forecast and, when present, its journaled explanation to the Web App.
 
+Current live path journals the ForecastPackage, runs one bounded loop, then appends the LoopTrace to `loop_traces` linked by forecast id. The forecast `payload_json` / `payload_sha256` are not updated. Replay (`persist=False`) still runs the loop in memory but does not store a trace. `GET /api/v1/loops/{id}` reads the stored row.
+
 Future candles arriving before the forecast record is durable is a journal failure.
 
 RLH failure must not erase or roll back an already durable ForecastPackage. After the bounded harness latency expires, the Web App may expose the journaled forecast with `harness-degraded` and no fresh explanation. It must never expose an unjournaled LoopTrace.

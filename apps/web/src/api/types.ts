@@ -109,6 +109,7 @@ export interface LoopSummary {
   analog_count?: number
   hypothesis_ids?: string[]
   zone_count?: number
+  persisted?: boolean
   note?: string
 }
 

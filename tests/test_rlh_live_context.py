@@ -25,6 +25,10 @@ def test_live_forecast_runs_loop_after_journal_without_rewriting_payload(tmp_pat
     assert stored["payload"]["horizons"] == payload["horizons"]
     assert stored["payload"]["model_id"] == payload["model_id"]
     assert "loop" not in stored["payload"]
+    assert out["loop"]["persisted"] is True
+    traces = runtime.journal.list_loop_traces(stored["id"])
+    assert len(traces) == 1
+    assert traces[0]["id"] == out["loop"]["loop_id"]
     runtime.close()
 
 
