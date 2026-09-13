@@ -92,7 +92,7 @@ When `packages.context_engine` is importable, EMA/RSI/ATR/realized-vol and `resa
 - `tests/features/test_assembler.py`
 - `tests/features/test_context_engine_reuse.py`
 - `tests/features/test_indicators.py`
-- `tests/features/test_leakage.py`
+- `tests/features/test_feature_leakage.py`
 - `tests/features/test_relative.py`
 - `tests/features/test_resample.py`
 - `tests/features/test_schema.py`
