@@ -137,6 +137,8 @@ If data is stale, missing, gapped or model output is old:
 - state the last known-good timestamp;
 - never silently continue as if live.
 
+If `forecast.shadow_journal.remaining` is greater than zero, the health line and Journal tab show that gap. The count is coverage of mature-able 5m origins, not Brier/ECE/accuracy. Missing `shadow_journal` stays unknown. The Journal panel may POST `/api/v1/journal/catchup` to write more `baseline.drift20` rows; that control is hidden in replay and while predictions are paused.
+
 ## Mobile
 
 Phone layout is the reference implementation.

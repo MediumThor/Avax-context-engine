@@ -6,8 +6,9 @@ import { ContextOverlays, type OverlayZone } from './components/ContextOverlays'
 import { ContextEvidence } from './components/ContextEvidence'
 import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { LoopTraceCard } from './components/LoopTraceCard'
+import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
-import { fetchMarket } from './api/market'
+import { drainShadowJournal, fetchMarket } from './api/market'
 import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
 import './styles.css'
 
@@ -37,6 +38,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [sheet, setSheet] = useState<SheetPanel>(() => readSheet())
+  const [draining, setDraining] = useState(false)
+  const [drainError, setDrainError] = useState<string | null>(null)
   const asOf = useMemo(() => readAsOf(), [])
 
   useEffect(() => {
@@ -47,6 +50,7 @@ export default function App() {
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
     fetchMarket('AVAXUSDT', asOf)
       .then(setMarket)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'market unavailable'))
@@ -56,6 +60,8 @@ export default function App() {
   const severed = Boolean(kill?.engaged)
   const health = market?.health.status ?? 'unknown'
   const live = health === 'live' && !severed
+  const shadow = market?.forecast.shadow_journal
+  const journalGap = shadow && shadow.remaining > 0 ? shadow.remaining : null
   const regimes = TF_ORDER.map((tf) => market?.snapshot.timeframes[tf]).filter(
     (state): state is TimeframeState => Boolean(state),
   )
@@ -129,6 +135,21 @@ export default function App() {
     window.location.assign(url.toString())
   }
 
+  async function drainJournal() {
+    if (!market || market.replay || severed || draining) return
+    setDraining(true)
+    setDrainError(null)
+    try {
+      await drainShadowJournal(market.symbol)
+      const next = await fetchMarket(market.symbol, asOf)
+      setMarket(next)
+    } catch (err: unknown) {
+      setDrainError(err instanceof Error ? err.message : 'journal drain failed')
+    } finally {
+      setDraining(false)
+    }
+  }
+
   function selectSheet(next: SheetPanel) {
     setSheet(next)
     const url = new URL(window.location.href)
@@ -156,6 +177,7 @@ export default function App() {
                   : health === 'stale'
                     ? `STALE · as of ${market?.as_of ?? ''}`
                     : 'DATA UNAVAILABLE'}
+            {!severed && journalGap != null ? ` · journal gap ${journalGap}` : ''}
           </div>
           <AgentKillSwitch state={kill} error={killError} onChange={setKill} />
         </div>
@@ -214,6 +236,11 @@ export default function App() {
                 onClick={() => selectSheet(id)}
               >
                 {SHEET_LABELS[id]}
+                {id === 'journal' && journalGap != null && (
+                  <span className="sheetBadge" aria-label={`${journalGap} remaining journal origins`}>
+                    {journalGap}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
@@ -317,7 +344,15 @@ export default function App() {
               />
             )}
           </div>
-          <section className="card" data-sheet="journal" id="sheet-panel-journal" role="tabpanel" aria-labelledby="sheet-tab-journal">
+          <ShadowJournalCard
+            shadow={shadow}
+            replay={Boolean(market?.replay)}
+            severed={severed}
+            draining={draining}
+            drainError={drainError}
+            onDrain={drainJournal}
+          />
+          <section className="card" data-sheet="journal">
             <h2>Replay</h2>
             <p className="muted">September 2026 failed-breakout process check: 4H must hold through the 5m bounce.</p>
             {market?.replay_hint_as_of && !market.replay && (

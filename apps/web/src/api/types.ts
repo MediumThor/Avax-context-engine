@@ -125,6 +125,13 @@ export interface LoopSummary {
   note?: string
 }
 
+/** Request-path catch-up counts. Remaining is a coverage gap, not accuracy. */
+export interface ShadowJournalStatus {
+  wrote: number
+  remaining: number
+  model_id: string
+}
+
 export interface MarketPayload {
   symbol: string
   source: string
@@ -144,6 +151,7 @@ export interface MarketPayload {
     forecast: { horizons: ForecastHorizon[]; model_id: string; notes: string }
     journaled: boolean
     loop?: LoopSummary
+    shadow_journal?: ShadowJournalStatus
   }
   metrics: {
     available: boolean
