@@ -8,8 +8,11 @@ export interface Candle {
   low: number
   close: number
   volume?: number
+  ema9?: number
   ema20?: number
   ema50?: number
+  ema100?: number
+  ema200?: number
 }
 
 export interface TimeframeState {

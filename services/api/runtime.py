@@ -610,12 +610,14 @@ def _origin_stamp(value: datetime | str | None) -> str:
     return stamp.astimezone(timezone.utc).replace(microsecond=0).isoformat()
 
 
+_CHART_EMA_SPANS = (9, 20, 50, 100, 200)
+
+
 def _chart_rows(candles, chart_limit: int) -> list[dict[str, Any]]:
-    """OHLCV plus EMA20/50 from closes known at each bar. Later bars cannot move earlier EMAs."""
+    """OHLCV plus EMA 9/20/50/100/200 from closes known at each bar. Later bars cannot move earlier EMAs."""
     visible = [c for c in candles if getattr(c, "is_closed", True)]
     closes = [c.close for c in visible]
-    ema20s = ema(closes, 20) if closes else []
-    ema50s = ema(closes, 50) if closes else []
+    ema_series = {span: ema(closes, span) if closes else [] for span in _CHART_EMA_SPANS}
     window = visible[-chart_limit:]
     offset = len(visible) - len(window)
     rows: list[dict[str, Any]] = []
@@ -629,10 +631,9 @@ def _chart_rows(candles, chart_limit: int) -> list[dict[str, Any]]:
             "close": candle.close,
             "volume": candle.volume,
         }
-        if idx < len(ema20s):
-            row["ema20"] = ema20s[idx]
-        if idx < len(ema50s):
-            row["ema50"] = ema50s[idx]
+        for span, values in ema_series.items():
+            if idx < len(values):
+                row[f"ema{span}"] = values[idx]
         rows.append(row)
     return rows
 
