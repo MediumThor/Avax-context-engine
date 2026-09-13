@@ -96,3 +96,11 @@ Completion report must contain:
 Finish criteria:
 AccuracyPanel is committed and pushed on cursor/wave2-21-accuracy-6c61; tsc --noEmit passes if the web toolchain is available; CONSTITUTION.md is unchanged; no App.tsx wiring; no fabricated scores.
 ```
+
+## Implementation record
+
+- Source `main`: `b6bbbf4dccb6bdd4dc98473ab4887679e282b8b7`
+- Branch: `cursor/wave2-21-accuracy-6c61`
+- `npx tsc --noEmit` in `apps/web`: exit 0
+- Not wired into `App.tsx`
+- No evaluation scores are hardcoded in the panel
