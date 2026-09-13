@@ -1,0 +1,3 @@
+agent: 30
+task: RLH-30
+scope: services/evaluator/rlh/**

@@ -1,0 +1,3 @@
+agent: 29
+task: RLH-29
+scope: services/harness/memory/**

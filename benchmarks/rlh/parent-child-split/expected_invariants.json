@@ -1,0 +1,6 @@
+{
+  "parent_regime": "bearish",
+  "child_regime_may_be_bullish": true,
+  "interpretation_must_include_relief_not_reversal": true,
+  "parent_regime_preserved": true
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/recursive/loop-outcome.schema.json",
+  "title": "LoopOutcome",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "loop_trace_id",
+    "forecast_id",
+    "scored_at",
+    "horizon_scores",
+    "depth_prefix_scores",
+    "challenge_respected_invalidation",
+    "parent_regime_preserved",
+    "leakage_probe_passed"
+  ],
+  "properties": {
+    "loop_trace_id": { "type": "string", "minLength": 1 },
+    "forecast_id": { "type": "string", "minLength": 1 },
+    "scored_at": { "type": "string", "format": "date-time" },
+    "horizon_scores": { "type": "object" },
+    "depth_prefix_scores": { "type": "object" },
+    "challenge_respected_invalidation": { "type": "boolean" },
+    "parent_regime_preserved": { "type": "boolean" },
+    "leakage_probe_passed": { "type": "boolean" }
+  }
+}

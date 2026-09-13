@@ -23,6 +23,8 @@ Subsections:
 ### `/replay/:snapshotId`
 Historical point-in-time replay. The operator can view exactly what the system knew at a forecast timestamp, then reveal subsequent candles separately.
 
+Must also render the journaled `LoopTrace`: depth used, halt reason, citations, challenge result, and encoder-vs-SWA conflicts. Revealing future candles must not re-run `D_φ` against those candles. See [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
+
 ### `/benchmarks`
 Walk-forward and regression benchmark explorer.
 
@@ -63,6 +65,8 @@ Preferred query keys:
 - `model=<model id>`
 - `h=<1..10>`
 - `overlay=<comma list>`
+- `loop=<loop_trace_id>`
+- `depth=<int>` for inspecting a prefix of the journaled loop
 
 Invalid query state must degrade to safe defaults rather than crash.
 

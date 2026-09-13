@@ -1,0 +1,23 @@
+{
+  "t": 2,
+  "kind": "RETRIEVE",
+  "harness_version": "rlh-0.1.0",
+  "input_token_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "encoder_memory_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "state_in_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "state_out_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "swa_in_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "swa_out_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "tool": {
+    "name": "context.get_hypotheses",
+    "request": { "symbol": "AVAXUSDT", "as_of": "2026-09-13T09:05:00Z" },
+    "response_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "as_of": "2026-09-13T09:05:00Z",
+    "refused": false,
+    "refusal_reason": null
+  },
+  "emit": { "hypothesis_ids": ["hyp-bear-continuation-20260913"] },
+  "citations": ["hyp-bear-continuation-20260913"],
+  "exact": true,
+  "latency_ms": 12
+}

@@ -109,6 +109,24 @@ Create a test suite of historical snapshots. For each, evaluate whether the harn
 - does not use future data;
 - says "no thesis change" when a new 5m candle is immaterial.
 
-## Future model experimentation
+## Recursive / looped operation
 
-The harness may later test recurrent/looped reasoning architectures, local models or specialist agents, but architecture novelty must not bypass evaluation. More reasoning depth is valuable only when it improves reproducible decision quality, latency/cost tradeoffs and hallucination rates.
+The production reasoning architecture is the Recursive Learning Harness. Read and implement:
+
+- [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md)
+- [`Recursive-Loop-Spec.md`](Recursive-Loop-Spec.md)
+- [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md)
+- [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md)
+- [`Recursive-Evaluation.md`](Recursive-Evaluation.md)
+- [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md)
+- [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md)
+
+Required additions to the tool list:
+
+- `loop.get_state`
+- `loop.cite`
+- `loop.halt`
+
+More reasoning depth is valuable only when it improves reproducible decision quality, latency/cost tradeoffs and hallucination rates. Infinite depth means an extensible path **across candles**, not unbounded work inside one 5m close. Architecture novelty must not bypass evaluation.
+
+Local models or specialist agents may be swapped into `D_φ` only as versioned `harness_version` challengers.

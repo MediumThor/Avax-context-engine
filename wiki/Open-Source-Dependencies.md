@@ -26,6 +26,18 @@ Use strategy:
 - keep market logic outside rendering components;
 - preserve required notices.
 
+## Research inspiration — Recurrent Looped Transformer
+
+Citation, not a vendored dependency:
+
+- Yifan Zhang, *Recurrent Looped Transformer*, technical report, 12 September 2026
+- https://yifanzhang-pro.github.io/recurrent-looped-tranformer/
+- https://github.com/yifanzhang-pro/recurrent-looped-tranformer
+
+We adopt the **pattern** (causal encoder, all-token recurrence, carried state + SWA KV, one transition for live/replay/train) inside the custom Recursive Learning Harness. We do not copy weights, claim superintelligence, or treat extra depth as automatically better.
+
+License and pin must be recorded if any code from that repository is later evaluated. Prefer re-implementing the loop contract over forking.
+
 ## Candidate research libraries
 
 Agents may evaluate, but must not add without license/version review:

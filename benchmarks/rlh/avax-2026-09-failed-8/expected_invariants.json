@@ -1,0 +1,9 @@
+{
+  "parent_regime_after_failed_breakout": "bearish",
+  "relief_bounce_is_not_reversal": true,
+  "invalidation_immutable": true,
+  "challenge_required": true,
+  "encode_check_first": true,
+  "halt_required": true,
+  "no_uncalibrated_percent": true
+}

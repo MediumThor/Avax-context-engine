@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/recursive/recurrent-state.schema.json",
+  "title": "RecurrentState",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "step_index",
+    "regime_reading",
+    "what_changed",
+    "what_did_not_change",
+    "bull_case",
+    "bear_case",
+    "forecast_summary",
+    "invalidation",
+    "data_health",
+    "confidence_source",
+    "open_questions",
+    "citations",
+    "contradictions"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1" },
+    "step_index": { "type": "integer", "minimum": 0 },
+    "regime_reading": { "type": "object" },
+    "what_changed": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "what_did_not_change": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "bull_case": { "$ref": "#/$defs/cased" },
+    "bear_case": { "$ref": "#/$defs/cased" },
+    "forecast_summary": {
+      "type": "object",
+      "required": ["forecast_package_id", "quoted_fields"],
+      "properties": {
+        "forecast_package_id": { "type": "string", "minLength": 1 },
+        "quoted_fields": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "invalidation": {
+      "type": "object",
+      "required": ["fired", "intact"],
+      "properties": {
+        "fired": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "intact": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "data_health": { "type": "object" },
+    "confidence_source": {
+      "type": "string",
+      "enum": ["calibrated", "model-disagreement", "insufficient-data"]
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "citations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "contradictions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "cased": {
+      "type": "object",
+      "required": ["claims", "citations"],
+      "properties": {
+        "claims": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "citations": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

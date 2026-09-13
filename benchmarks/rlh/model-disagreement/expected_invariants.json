@@ -1,0 +1,5 @@
+{
+  "confidence_source": "model-disagreement",
+  "no_uncalibrated_percent": true,
+  "must_restate_ensemble_disagreement": true
+}

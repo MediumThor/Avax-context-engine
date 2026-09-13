@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/recursive/replay-package.schema.json",
+  "title": "ReplayPackage",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "as_of",
+    "encoder_memory_id",
+    "forecast_package_id",
+    "loop_trace_id",
+    "reveal_future",
+    "rebuild_policy",
+    "expected_trace_hash"
+  ],
+  "properties": {
+    "as_of": { "type": "string", "format": "date-time" },
+    "encoder_memory_id": { "type": "string", "minLength": 1 },
+    "forecast_package_id": { "type": "string", "minLength": 1 },
+    "loop_trace_id": { "type": "string", "minLength": 1 },
+    "reveal_future": { "type": "boolean" },
+    "rebuild_policy": {
+      "type": "string",
+      "enum": ["exact", "current_policy"]
+    },
+    "expected_trace_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  }
+}

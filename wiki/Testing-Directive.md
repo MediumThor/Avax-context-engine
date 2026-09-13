@@ -77,6 +77,21 @@ Every model training job runs:
 - regime-sliced evaluation;
 - reproducibility check on a sample window.
 
+### Recursive Learning Harness tests
+
+Mandatory once `services/harness` exists; schema tests are mandatory now:
+
+- `python3 tests/contracts/test_recursive_schemas.py`
+- live vs exact-replay hash match;
+- future-candle perturbation does not change `encoder_memory_hash` or `LoopTrace` at `T`;
+- 5m steps cannot mutate 4H encoder slices;
+- `CHALLENGE` present on directional synthesis;
+- halt reason is typed and always present;
+- invented zone / invented probability / uncalibrated percent fixtures fail;
+- September 2026 parent-regime fixture.
+
+See [`Recursive-Evaluation.md`](Recursive-Evaluation.md) and [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
+
 ### UI tests
 
 Required:

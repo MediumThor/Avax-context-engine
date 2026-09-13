@@ -132,8 +132,10 @@ Tier 3 sequence:
 - transformer/patch transformer/TFT-type candidates
 
 Tier 4 experimental:
-- recurrent/looped transformer approaches
+- recurrent/looped transformer approaches as **Forecast Engine** sequence candidates
 - multimodel specialist ensembles
+
+The Recursive Learning Harness ([`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md)) is not Tier 4 of the price model. It is the custom explanation / challenge / retrieval loop. A looped transformer may later be *one* `D_φ` implementation, but only as a versioned challenger behind evaluation gates. Do not replace FreqAI numeric heads with an LLM loop.
 
 Do not assume Tier 3/4 beats tabular models.
 

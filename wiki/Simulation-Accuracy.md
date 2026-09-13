@@ -117,6 +117,10 @@ A challenger may be promoted only if it:
 
 Exact thresholds live in versioned benchmark configs and must be set before evaluating a candidate.
 
+## Recursive depth ablation
+
+When scoring harness versions, keep Forecast Engine packages frozen and vary only `harness_version` / `max_depth` / halt policy. Metrics and promotion rules: [`Recursive-Evaluation.md`](Recursive-Evaluation.md). Extra loops are not an accuracy claim.
+
 ## Reporting
 
 Every simulation emits a machine-readable manifest:

@@ -35,7 +35,9 @@ Every service exposes health information including:
 - data freshness;
 - last successful state update;
 - last successful forecast;
-- last successful journal write.
+- last successful journal write;
+- last successful `LoopTrace` write;
+- last exact-replay canary result.
 
 Aggregate health must be available through `/health` and UI.
 
@@ -61,6 +63,8 @@ At minimum collect:
 - context update latency;
 - forecast latency;
 - harness latency;
+- loop depth used / halt-reason mix;
+- exact-replay mismatch count;
 - journal write failures;
 - model age;
 - evaluation backlog;
@@ -116,5 +120,7 @@ A release candidate is promotable only when:
 If forecasts fail but market data/context remain valid, UI should show structure without forecast rather than crash.
 
 If Context Engine fails, model-only output must be explicitly marked context-degraded.
+
+If the Recursive Learning Harness fails replay or journal, UI must mark explanations `harness-degraded` while still showing structure and forecast numbers when those services are healthy. See [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md).
 
 If source data is stale, forecasts are stale and must not be presented as current.

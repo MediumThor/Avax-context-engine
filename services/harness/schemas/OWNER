@@ -1,0 +1,3 @@
+agent: 25
+task: RLH-25
+scope: services/harness/schemas/**

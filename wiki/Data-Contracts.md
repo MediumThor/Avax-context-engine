@@ -165,6 +165,12 @@ Outcomes attach to forecasts; forecasts are never mutated.
 }
 ```
 
+## Recursive Learning Harness
+
+Loop contracts (`EncoderMemory`, `RecurrentState`, `LoopStep`, `LoopTrace`, `HaltDecision`, `ReplayPackage`, `LoopOutcome`) are specified in [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md) and versioned as JSON Schema under `packages/contracts/recursive/`.
+
+They attach to `MarketStateSnapshot` and `ForecastPackage` by ID. They never overwrite those records.
+
 ## API versioning
 
 Expose contracts under `/api/v1`. Breaking schema changes require a new contract version or explicit migration. TypeScript types should be generated from canonical OpenAPI/Pydantic schemas rather than hand-maintained duplicates.

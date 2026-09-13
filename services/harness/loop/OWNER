@@ -1,0 +1,3 @@
+agent: 27
+task: RLH-27
+scope: services/harness/loop/** except challenge/
