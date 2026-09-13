@@ -48,3 +48,15 @@ Acceptance tests:
 Finish criteria:
 Walk-forward report exists, leakage test green, no promotion language in API/UI.
 ```
+
+## Fixture evidence (not a promotion)
+
+September 2026 fixture, `backend=python`, `min_history=400`, `step=150`, `lookback=400`, 23 origins:
+
+| h | q50 MAE | drift20 MAE | zero MAE | q50 − drift20 | q10–q90 coverage |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 4.46e-6 | 3.98e-8 | 5.69e-5 | +4.42e-6 | 0.913 |
+| 5 | 2.23e-5 | 2.39e-7 | 2.85e-4 | +2.21e-5 | 0.913 |
+| 10 | 4.46e-5 | 5.77e-7 | 5.69e-4 | +4.40e-5 | 0.913 |
+
+`q50_mae_below_drift20_on_all_scored_horizons` = false. `promotion_allowed` = false. Drift20 remains the better point-forecast baseline on this fixture. Coverage is an empirical hit rate, not ECE.
