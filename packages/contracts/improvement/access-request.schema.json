@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/contracts/improvement/access-request.schema.json",
+  "title": "AccessRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "gap_id",
+    "asked_at",
+    "owner_prompt",
+    "candidate_source",
+    "scopes",
+    "will_not_do",
+    "snapshot_plan",
+    "decision"
+  ],
+  "properties": {
+    "request_id": { "type": "string", "pattern": "^AR-[0-9]{3,}$" },
+    "gap_id": { "type": "string", "pattern": "^GAP-[A-Z0-9-]+$" },
+    "asked_at": { "type": "string", "format": "date-time" },
+    "owner_prompt": { "type": "string", "minLength": 24 },
+    "candidate_source": { "type": "string", "minLength": 3 },
+    "docs_url": { "type": ["string", "null"] },
+    "free_tier": { "type": "string", "enum": ["yes", "no", "unknown"] },
+    "scopes": { "type": "string", "minLength": 8 },
+    "tos_risk": { "type": "string", "minLength": 8 },
+    "will_not_do": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "snapshot_plan": { "type": "string", "minLength": 8 },
+    "decision": {
+      "type": "string",
+      "enum": ["pending", "granted", "denied", "deferred"]
+    },
+    "decided_at": { "type": ["string", "null"], "format": "date-time" },
+    "owner_notes": { "type": ["string", "null"] }
+  }
+}
