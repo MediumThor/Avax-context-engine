@@ -64,3 +64,9 @@ PR 8 remains in flight and owns `engine.py` / API / App. Integrate accepted WAVE
 ## Integration candidate (2026-09-13)
 
 Local merge of reviewed WAVE-2 branches onto `main` `b6bbbf4` produced **220 passed, 1 skipped** (`PYTHONPATH=. python3 -m pytest -q`). PR 8 (honest slice) and PR 13 (prediction-improvement-loop) were excluded. No Constitution edits. No path overlap with PR 8.
+
+## Post-integrate status (2026-09-13 later)
+
+`main` is `811ea80` (WAVE-2 integrate + honest slice PR 8). Watcher next increment: journaled empirical next-10 quantiles on `cursor/empirical-quantiles-8771` (includes WAVE2-05 research emitter). Contract: [`WAVE2-00-empirical-quantiles.md`](WAVE2-00-empirical-quantiles.md).
+
+Do not merge PR 13 without a dedicated review. Do not rewrite `packages/models/baselines.py`. Do not claim FreqAI beats baselines.

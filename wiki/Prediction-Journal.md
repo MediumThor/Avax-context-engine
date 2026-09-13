@@ -37,7 +37,8 @@ Each forecast stores:
 - forecast timestamp;
 - source data manifest/checksum;
 - context snapshot ID;
-- feature schema version;
+- feature schema version (`avax.features.mtf.v1` on the live prototype when `assemble_features` succeeds);
+- optional `mtf_feature_snapshot` blob (point-in-time assembler output, journaled with the forecast);
 - model ensemble ID and component versions;
 - calibration reference;
 - application commit SHA;

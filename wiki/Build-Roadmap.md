@@ -2,25 +2,27 @@
 
 ## Current status
 
-Several phases have prototype code on `main` (`0876e71` WAVE-2 integrate), but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
+Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + honest slice), but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
 
 | Phase | Gate status on `main` |
 | --- | --- |
 | 0 — Foundation/governance | In progress: Constitution, RLH schemas, CI, layout, pins |
-| 1 — Data/replay | Integrity helpers + snapshot replay on `main`; honest live/fixture ingest is SLICE-001 |
-| 2 — Context Engine | Pivots/zones/regime/thesis/patterns/cross-market on `main`; engine `as_of` is SLICE-001 |
-| 3 — Forecasting | Feature assembler + FreqAI adapter + baselines; walk-forward of a trained model still open |
-| 4 — Journal/evaluation | Journal + walk-forward/calibration modules; honest journaled UI path is SLICE-001 |
+| 1 — Data/replay | Integrity helpers + snapshot replay + fixture/Binance Vision ingest on `main` |
+| 2 — Context Engine | Pivots/zones/regime/thesis/patterns/cross-market + `as_of` filter on `main` |
+| 3 — Forecasting | Feature assembler + FreqAI adapter + honest drift20; journaled next-10 quantiles in flight (`cursor/empirical-quantiles-8771`) |
+| 4 — Journal/evaluation | Journal + walk-forward baseline MAE; live path now attaching `avax.features.mtf.v1` (this branch) |
 | 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; not wired to live forecasts |
-| 6 — Web App | Isolated ForecastFan / overlays / AccuracyPanel; shell honesty is SLICE-001 |
+| 6 — Web App | ForecastFan / overlays / AccuracyPanel mounted; fan draws only when q10/q50/q90 are journaled |
 | 7-10 | Not complete |
 
-SLICE-001 (this PR) is the Constitution-safe vertical cut:
+Honest slice on `main` (`811ea80`):
 
 1. Market page reads real Binance Vision candles or the September 2026 fixture. It never labels fixture/stale data `LIVE`.
-2. Baseline `drift20` forecasts are journaled before outcomes, with `p_close_above_origin: null` until a calibrated model exists.
+2. Forecasts are journaled before outcomes, with `p_close_above_origin: null` until a calibrated model exists.
 3. Reported baseline numbers are walk-forward only, with `sample_count`. Zero-model direction abstains.
 4. Replay `?as_of=` / `/api/v1/replay/{symbol}` hides later candles. The 5m relief bounce must not flip 4H.
+
+This branch additionally journals leakage-safe empirical q10/q50/q90 (research model id `freqai.quantiles.research.v1`) when enough history exists, plus the MTF feature snapshot. It does **not** claim the challenger beats drift20.
 
 Agent 00 updates status only after tests pass on an accepted `main` SHA.
 

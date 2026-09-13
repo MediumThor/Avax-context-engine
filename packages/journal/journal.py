@@ -82,7 +82,8 @@ class ForecastJournal:
 
     def latest(self, symbol: str) -> dict | None:
         row = self.db.execute(
-            """SELECT id, forecasted_at, model_id, payload_json, payload_sha256, context_snapshot_id
+            """SELECT id, forecasted_at, model_id, payload_json, payload_sha256,
+                      context_snapshot_id, feature_schema_version
                FROM forecasts WHERE symbol=? ORDER BY forecasted_at DESC LIMIT 1""",
             (symbol,),
         ).fetchone()
@@ -95,6 +96,7 @@ class ForecastJournal:
             "payload": json.loads(row[3]),
             "sha256": row[4],
             "context_snapshot_id": row[5],
+            "feature_schema_version": row[6],
         }
 
     def append_outcome(self, forecast_id: str, horizon: int, payload: dict) -> None:
@@ -106,12 +108,17 @@ class ForecastJournal:
 
     def get_forecast(self, forecast_id: str) -> dict:
         row = self.db.execute(
-            "SELECT payload_json,payload_sha256,context_snapshot_id FROM forecasts WHERE id=?",
+            "SELECT payload_json,payload_sha256,context_snapshot_id,feature_schema_version FROM forecasts WHERE id=?",
             (forecast_id,),
         ).fetchone()
         if row is None:
             raise KeyError(forecast_id)
-        return {"payload": json.loads(row[0]), "sha256": row[1], "context_snapshot_id": row[2]}
+        return {
+            "payload": json.loads(row[0]),
+            "sha256": row[1],
+            "context_snapshot_id": row[2],
+            "feature_schema_version": row[3],
+        }
 
     def close(self) -> None:
         self.db.close()

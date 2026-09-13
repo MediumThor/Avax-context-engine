@@ -466,17 +466,19 @@ def emit_quantile_forecast(
     for horizon in HORIZONS:
         q10, q50, q90 = bands[horizon]
         horizons_out.append(
-            {
-                "h": horizon,
-                "expected_cum_log_return": q50,
-                "q10_cum_log_return": q10,
-                "q50_cum_log_return": q50,
-                "q90_cum_log_return": q90,
-                "p_close_above_origin": None,
-                "expected_max_favorable_excursion": None,
-                "expected_max_adverse_excursion": None,
-                "zone_touch_probabilities": {},
-            }
+            attach_simple_return_aliases(
+                {
+                    "h": horizon,
+                    "expected_cum_log_return": q50,
+                    "q10_cum_log_return": q10,
+                    "q50_cum_log_return": q50,
+                    "q90_cum_log_return": q90,
+                    "p_close_above_origin": None,
+                    "expected_max_favorable_excursion": None,
+                    "expected_max_adverse_excursion": None,
+                    "zone_touch_probabilities": {},
+                }
+            )
         )
 
     payload = {
@@ -525,6 +527,29 @@ def emit_quantile_forecast(
             "Watcher may append this before outcomes exist. No live orders."
         ),
     }
+    return payload
+
+
+def attach_simple_return_aliases(horizon: dict[str, Any]) -> dict[str, Any]:
+    """ForecastFan draws q10/q50/q90_cum_return (simple). Quantiles are log returns."""
+    pairs = (
+        ("q10_cum_log_return", "q10_cum_return"),
+        ("q50_cum_log_return", "q50_cum_return"),
+        ("q90_cum_log_return", "q90_cum_return"),
+        ("expected_cum_log_return", "expected_cum_return"),
+    )
+    for log_key, simple_key in pairs:
+        raw = horizon.get(log_key)
+        if raw is None or horizon.get(simple_key) is not None:
+            continue
+        horizon[simple_key] = math.exp(float(raw)) - 1.0
+    return horizon
+
+
+def attach_simple_return_aliases_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    for row in payload.get("horizons") or []:
+        if isinstance(row, dict):
+            attach_simple_return_aliases(row)
     return payload
 
 
