@@ -89,4 +89,70 @@ Integration dependency: WAVE2-02 adapter + WAVE2-03 visibility rules already on 
 
 ## Status
 
-In progress on `cursor/wave2-05-freqai-quantiles-9172` from `origin/main` `811ea80`.
+Implemented on `cursor/wave2-05-freqai-quantiles-9172` from `origin/main` `811ea80`.
+
+## Completion report
+
+### What changed
+
+Added a research-only FreqAI / LightGBM-style path that emits next-10 AVAX 5m quantile forecasts (`q10` / `q50` / `q90` cumulative log returns) without live orders.
+
+- `packages/models/freqai_quantiles.py` trains only on origins whose h=10 outcome is known at or before T, using closed 5m candles with `period_end <= T`.
+- Unfinished 15m/1h parents are dropped via WAVE2-03 `completed_parents`.
+- Backends: LightGBM quantile (optional), sklearn `GradientBoostingRegressor(loss="quantile")` (optional), pure-Python empirical residual quantiles (always tested).
+- `FreqtradeResearchAdapter.emit_research_quantile_forecast` returns a ForecastPackage-shaped journal-ready payload. Order methods still raise `ResearchOnlyViolation`.
+- Config remains `dry_run=true`, `max_open_trades=0`, `stake_amount=0`.
+- No accuracy, ECE, or baseline-beating claim is produced.
+
+### Exact files changed
+
+- `adapters/freqtrade/AvaxContextStrategy.py`
+- `adapters/freqtrade/README.md`
+- `adapters/freqtrade/__init__.py`
+- `adapters/freqtrade/adapter.py`
+- `adapters/freqtrade/constants.py`
+- `adapters/freqtrade/quantiles.py` (new)
+- `packages/models/freqai_quantiles.py` (new)
+- `tests/test_freqai_quantiles.py` (new)
+- `wiki/tasks/WAVE2-05-freqai-quantiles.md`
+
+`scripts/bootstrap_freqtrade.sh` was not changed.
+
+### Tests run and results
+
+- `python3 -m pytest -q tests/test_freqai_quantiles.py tests/test_freqtrade_adapter.py tests/test_baselines.py tests/test_journal.py` — **21 passed, 1 skipped** (LightGBM missing in this environment; sklearn backend passed)
+- `bash scripts/check_constitution.sh` — Constitution integrity OK
+- Adapter `place_order()` / `execute()` / `research_command("trade")` still raise `ResearchOnlyViolation`
+
+### Metrics before/after
+
+| check | before | after |
+| --- | --- | --- |
+| next-10 q10/q50/q90 research payload | none | journal-ready, ordered |
+| future perturbation at T | n/a | forecast unchanged |
+| unfinished parent | n/a | unused |
+| dry_run / max_open_trades / stake | true / 0 / 0 | unchanged |
+| FreqAI beats baselines? | not claimed | still not claimed |
+| ECE / accuracy number | none | none |
+
+No out-of-sample score is reported. This increment is not a promotion.
+
+### Known limitations
+
+- Compact feature schema `freqai.quantiles.features.v1` is a placeholder; it does not yet consume the full WAVE2-03 `avax.features.mtf.v1` snapshot.
+- LightGBM is optional. CI can run the pure-Python fallback without extra wheels.
+- Full FreqAI training / `freqtrade backtesting` is not executed in this increment.
+- API / Web App wiring is owned by Watcher later (`services/api/**` and `apps/web/**` were not touched).
+- Agent 06 must score this challenger against baselines before any improvement language is allowed.
+
+### Documentation updated
+
+Yes: this contract and `adapters/freqtrade/README.md`. Constitution and ML directive were not edited.
+
+### Contract/schema changed?
+
+Additive only. New model id `freqai.quantiles.research.v1` and feature schema placeholder `freqai.quantiles.features.v1`. ForecastPackage field names match `wiki/Data-Contracts.md`. No shared API schema edit.
+
+### Recommended next task
+
+Agent 06: chronological walk-forward of this payload against Agent 04 baselines. Do not promote. Watcher may later journal the payload through the existing ForecastJournal.

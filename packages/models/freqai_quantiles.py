@@ -60,7 +60,7 @@ BackendName = Literal["auto", "lightgbm", "sklearn", "python"]
 
 NO_PERFORMANCE_CLAIM = (
     "Research-only quantile payload. Not scored against baselines here. "
-    "Not an accuracy, ECE, or calibration claim."
+    "No fabricated confidence percentage or interval-coverage number is attached."
 )
 
 

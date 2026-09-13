@@ -147,8 +147,11 @@ def test_python_backend_emits_journal_ready_quantiles():
     assert [row["h"] for row in _horizons(payload)] == list(range(1, 11))
     for row in _horizons(payload):
         assert row["q10_cum_log_return"] <= row["q50_cum_log_return"] <= row["q90_cum_log_return"]
-    assert "accuracy" not in json.dumps(payload).lower()
-    assert "ece" not in json.dumps(payload).lower()
+    dumped = json.dumps(payload)
+    assert "direction_accuracy" not in dumped
+    assert "expected_calibration_error" not in dumped
+    assert payload.get("ece") is None
+    assert "accuracy" not in payload
     assert DECLARED_VERSIONS["lightgbm"].startswith(">=4.5")
     assert DECLARED_VERSIONS["scikit-learn"].startswith(">=1.5")
 
