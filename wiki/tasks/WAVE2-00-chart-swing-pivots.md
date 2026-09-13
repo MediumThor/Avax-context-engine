@@ -27,7 +27,7 @@ Forbidden write scope:
 - packages/models/baselines.py
 
 Implementation requirements:
-1. Serialize last confirmed pivots with extreme time, known_at, price, kind.
+1. Serialize confirmed pivots with extreme time, known_at, price, kind. The chart keeps only those whose extreme open is a visible candle.
 2. A pivot is unavailable before its confirmation bar.
 3. Chart markers use extreme open_time unix so they sit on an existing 5m candle.
 4. Not confidence. Not a breakout claim.

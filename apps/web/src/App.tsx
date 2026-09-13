@@ -109,7 +109,7 @@ export default function App() {
     if (!market) return []
     const out: SwingPivot[] = []
     const seen = new Set<string>()
-    for (const tf of ['5m', '4h'] as const) {
+    for (const tf of ['5m', '1h', '4h'] as const) {
       for (const pivot of market.snapshot.timeframes[tf]?.swing_pivots ?? []) {
         const key = `${tf}:${pivot.time}:${pivot.kind}`
         if (seen.has(key)) continue

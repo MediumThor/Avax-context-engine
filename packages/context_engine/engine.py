@@ -145,7 +145,7 @@ class ContextEngine:
                 "kind": pivot.kind,
                 "timeframe": timeframe,
             }
-            for pivot in pivots[-24:]
+            for pivot in pivots
         )
         return TimeframeState(
             timeframe=timeframe,
