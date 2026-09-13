@@ -75,3 +75,16 @@ Docs to update:
 Finish criteria:
 One PR onto main contains every remaining unique, non-obsolete branch. Obsolete remotes are recorded as already integrated.
 ```
+
+## Completion (2026-09-13)
+
+- Candidate SHA: `c02ada7090c51dd9e0568a2e8d493ea5fec2ac30` on `cursor/merge-all-branches-a127`
+- PR: https://github.com/MediumThor/Avax-context-engine/pull/38
+- `bash scripts/check_constitution.sh` — Constitution integrity OK
+- `python3 tests/contracts/test_recursive_schemas.py` — passed
+- `PYTHONPATH=. python3 -m pytest -q` — **283 passed, 2 skipped**
+- `npm run web:build` — passed
+- Fixture smoke: `/health` fixture, `/market` returns 2 theses with 4h invalidation frozen at open, `/candles?timeframe=4h` returns closed bars, `execution_enabled=false`
+- Browser: FIXTURE header, timeframe switcher, competing theses, replay pre-bounce, kill switch disengaged
+- PR 7 not merged (obsolete kill-switch prototype already on `main`)
+
