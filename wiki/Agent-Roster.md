@@ -8,12 +8,13 @@ The `temporary_source` refs in `artifacts/watcher/active-tasks.json` are launch 
 **Batch:** `RLH-wave-1` (integrated)  
 **Base:** `main`  
 **Watcher:** Agent 00  
-**Kill switch:** UI header + `POST /api/v1/agents/kill-switch`  
+**Kill switch:** header **Pause predictions** button + `POST /api/v1/agents/kill-switch`  
 
 ## Kill switch
 
-Engaging the switch:
+Engaging the switch (header **Pause predictions**):
 
+- pauses new live forecast journal writes;
 - marks every `active` / `launched` task `severed`;
 - freezes promotion (`recursive-health.json`);
 - blocks `POST /api/v1/loops/run` with HTTP 423;

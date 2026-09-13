@@ -37,7 +37,7 @@ Data-source health, missing candles, model freshness, journal status, service st
 ### `/system`
 Context state/event explorer, agent-generated artifacts, build version, upstream dependency pins, kill-switch state.
 
-The prototype shell keeps the kill switch on the primary workspace so it is never more than one glance away.
+The prototype shell keeps the **Pause predictions** control on the sticky market header so it is never more than one glance away.
 
 ## Navigation rules
 
@@ -84,4 +84,4 @@ Every route must define:
 - mobile layout;
 - browser back/forward behavior.
 
-Test every route at 360px and 390px before accepting tablet or desktop evidence. The kill-switch status/action must remain reachable without displacing the primary chart or depending on hover.
+Test every route at 360px and 390px before accepting tablet or desktop evidence. The Pause predictions status/action must remain reachable without displacing the primary chart or depending on hover.

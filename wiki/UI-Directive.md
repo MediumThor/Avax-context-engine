@@ -17,7 +17,7 @@ Mobile-first means phone information hierarchy, touch interaction, loading cost,
 
 The default screen is a single analysis workspace with six synchronized information regions:
 
-1. **Market header** — symbol, current price, data freshness, source/exchange, regime summary, and the **recursive agent kill switch**.
+1. **Market header** — symbol, current price, data freshness, source/exchange, regime summary, and the **Pause predictions** control (kill-switch API).
 2. **Main chart** — candlesticks, volume, structural zones, context overlays, forecast fan.
 3. **Context rail** — 1W/1D/4H/1H/15m/5m regime and state transitions.
 4. **Forecast panel** — horizons `h=1..10` (displayed as +1..+10), model ensemble, quantiles, calibration, and disagreement.
@@ -110,20 +110,21 @@ Current rail card (`LoopTraceCard`): halt reason, analog retrieve count, and hyp
 
 ## Recursive agent kill switch
 
-The kill-switch state and action are always accessible from the compact sticky market header. On phones, confirmation uses a focused sheet/dialog rather than a permanently expanded card that displaces the chart. It is the operator's fail-closed control for RLH loop execution and promotion.
+The kill-switch state and action are always accessible from the compact sticky market header as **Pause predictions** / **Resume predictions**. On phones, confirmation uses a focused sheet/dialog rather than a permanently expanded card that displaces the chart. It is the operator's fail-closed control for new live forecast journal writes, RLH loop execution, and promotion.
 
-The prototype marks registered tasks severed and blocks loop API calls; agents stop cooperatively when they observe the state. Do not tell the operator that an unconnected external process was forcibly terminated.
+The prototype marks registered tasks severed, blocks loop API calls, and skips new forecast journal writes; agents stop cooperatively when they observe the state. Do not tell the operator that an unconnected external process was forcibly terminated.
 
-Engage:
+Pause / engage:
 
+- pauses new live forecast journal writes;
 - severs all `active`/`launched` agent tasks;
 - blocks new loop runs;
 - freezes promotion;
-- shows a severed banner;
+- shows a paused banner;
 - leaves candles, journals, and forecasts intact;
 - never enables execution.
 
-Reset requires a second confirmation and is append-only. A green "agents healthy" treatment after reset is not an accuracy claim.
+Resume / reset requires a second confirmation and is append-only. A green "agents healthy" treatment after reset is not an accuracy claim.
 
 ## Data-health UX
 
@@ -145,7 +146,7 @@ Phone layout is the reference implementation.
 - Preserve the selected symbol, timeframe, forecast horizon, replay timestamp, and overlays when the sheet opens or routes change.
 - Do not bind horizontal timeframe swipes where they conflict with chart pan; explicit timeframe controls are always available.
 - Use tap targets at least 44 by 44 CSS pixels with adequate separation.
-- Keep the kill-switch action at least 44 by 44 CSS pixels and visually distinct without dominating normal market analysis.
+- Keep the Pause predictions action at least 44 by 44 CSS pixels and visually distinct without dominating normal market analysis.
 - Provide touch equivalents for every hover inspection and keyboard access for every interactive control.
 - Avoid nested horizontal scrolling outside the chart.
 - Render stale, degraded, replay, and no-data states without hiding the last-known-good timestamp.

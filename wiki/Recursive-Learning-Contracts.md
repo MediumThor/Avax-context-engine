@@ -198,7 +198,7 @@ See `packages/contracts/recursive/kill-switch.schema.json` and `packages/harness
 | method | path | purpose |
 | --- | --- | --- |
 | GET | `/api/v1/agents/kill-switch` | current engage state + audit events |
-| POST | `/api/v1/agents/kill-switch` | sever all recursive agent work |
+| POST | `/api/v1/agents/kill-switch` | pause predictions: sever recursive agent work and skip new forecast journal writes |
 | POST | `/api/v1/agents/kill-switch/reset` | logged resume |
 | POST | `/api/v1/loops/run` | stub runner; 423 if severed. Live persist journals a LoopTrace after the forecast row. |
 | GET | `/api/v1/loops/{id}` | stored LoopTrace plus `forecast_id`; 404 if missing |
