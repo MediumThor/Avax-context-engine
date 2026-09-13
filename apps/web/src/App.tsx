@@ -9,7 +9,7 @@ import { LoopTraceCard } from './components/LoopTraceCard'
 import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { drainShadowJournal, fetchMarket } from './api/market'
-import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
+import type { MarketPayload, StructuralZone, SwingPivot, TimeframeState } from './api/types'
 import './styles.css'
 
 const TF_ORDER = ['1w', '1d', '4h', '1h', '15m', '5m']
@@ -104,6 +104,20 @@ export default function App() {
       }
     }
     return zones
+  }, [market])
+  const chartPivots: SwingPivot[] = useMemo(() => {
+    if (!market) return []
+    const out: SwingPivot[] = []
+    const seen = new Set<string>()
+    for (const tf of ['5m', '4h'] as const) {
+      for (const pivot of market.snapshot.timeframes[tf]?.swing_pivots ?? []) {
+        const key = `${tf}:${pivot.time}:${pivot.kind}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        out.push({ ...pivot, timeframe: pivot.timeframe ?? tf })
+      }
+    }
+    return out
   }, [market])
   const accuracySlices: AccuracySlice[] = useMemo(() => {
     const horizons = market?.metrics.horizons
@@ -223,7 +237,9 @@ export default function App() {
           </div>
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}
-          {market && <MarketChart candles={market.candles} zones={overlayZones} className="chart" />}
+          {market && (
+            <MarketChart candles={market.candles} zones={overlayZones} pivots={chartPivots} className="chart" />
+          )}
           {market && (
             <ContextOverlays
               zones={overlayZones}
