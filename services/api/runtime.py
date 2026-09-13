@@ -31,6 +31,8 @@ SOURCE = "binance-vision"
 FEATURE_SCHEMA = "1"
 QUANTILE_LOOKBACK = 400
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
+SHADOW_CATCHUP_BUDGET = 24
+SHADOW_CATCHUP_MODEL = "baseline.drift20"
 
 
 def _now() -> datetime:
@@ -176,6 +178,7 @@ class PrototypeRuntime:
         except Exception:
             pass
         outcomes = {"forecasts_scanned": 0, "outcomes_written": 0}
+        shadow = {"wrote": 0, "remaining": 0, "model_id": SHADOW_CATCHUP_MODEL}
         if persist and not is_engaged():
             self.journal.get_or_append(
                 forecast_id=f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}",
@@ -188,6 +191,9 @@ class PrototypeRuntime:
                 data_manifest_id=manifest_id,
             )
             self._journal_prior_origin(symbol, candles, btc, as_of=as_of, manifest_id=manifest_id)
+            shadow = self._journal_shadow_origins(
+                symbol, candles, btc, as_of=as_of, manifest_id=manifest_id
+            )
             outcomes = mature_outcomes(self.journal, candles, symbol, as_of=as_of)
         loop = self._maybe_run_live_loop(
             symbol=symbol,
@@ -205,6 +211,7 @@ class PrototypeRuntime:
             "context_snapshot_id": snapshot_id,
             "feature_schema_version": feature_schema,
             "outcomes": outcomes,
+            "shadow_journal": shadow,
             "kill_switch_blocked_write": persist and is_engaged(),
             "loop": loop,
         }
@@ -397,6 +404,56 @@ class PrototypeRuntime:
             data_manifest_id=manifest_id,
         )
 
+    def _journaled_origin_stamps(self, symbol: str) -> set[str]:
+        stamps: set[str] = set()
+        for row in self.journal.list_forecasts(symbol):
+            stamps.add(_origin_stamp(row.get("forecasted_at")))
+        return stamps
+
+    def _journal_shadow_origins(
+        self, symbol: str, candles, btc, as_of, manifest_id, *, budget: int = SHADOW_CATCHUP_BUDGET
+    ) -> dict[str, Any]:
+        """Fill missing mature-able 5m origins with drift20. No extra quantile emit."""
+        visible = _visible_closed(candles, as_of)
+        empty = {"wrote": 0, "remaining": 0, "model_id": SHADOW_CATCHUP_MODEL}
+        if len(visible) < 31:
+            return empty
+        matureable = visible[:-10]
+        known = self._journaled_origin_stamps(symbol)
+        missing = [
+            index
+            for index in range(20, len(matureable))
+            if _origin_stamp(matureable[index].close_time()) not in known
+        ]
+        remaining = max(0, len(missing) - budget)
+        wrote = 0
+        for index in missing[:budget]:
+            prefix = matureable[: index + 1]
+            try:
+                payload = emit_baseline_forecast(prefix)
+            except ValueError:
+                continue
+            stamp = _origin_stamp(payload["forecasted_at"])
+            if stamp in known:
+                continue
+            self.journal.get_or_append(
+                forecast_id=f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}",
+                symbol=symbol,
+                forecasted_at=payload["forecasted_at"],
+                model_id=payload["model_id"],
+                payload=payload,
+                feature_schema_version=FEATURE_SCHEMA,
+                data_manifest_id=manifest_id,
+            )
+            known.add(stamp)
+            wrote += 1
+        return {
+            "wrote": wrote,
+            "remaining": remaining,
+            "model_id": SHADOW_CATCHUP_MODEL,
+            "note": "Catch-up uses drift20 only. Not a quantile emit and not a promotion claim.",
+        }
+
     def emit_live_forecast(self, candles, as_of: datetime | None = None, btc=None) -> dict[str, Any]:
         """Prefer leakage-safe empirical quantiles; fall back to honest drift20."""
         visible = _visible_closed(candles, as_of)
@@ -547,6 +604,18 @@ class PrototypeRuntime:
             "execution_enabled": False,
         }
         return payload
+
+
+def _origin_stamp(value: datetime | str | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, datetime):
+        stamp = value
+    else:
+        stamp = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    return stamp.astimezone(timezone.utc).replace(microsecond=0).isoformat()
 
 
 def _visible_closed(candles, as_of: datetime | None) -> list:
