@@ -5,7 +5,7 @@
   "integration_target": "main",
   "branch_mode": "ephemeral-isolation-direct-main-integration",
   "watcher": "00",
-  "updated_at": "2026-09-13T10:52:00Z",
+  "updated_at": "2026-09-13T11:05:00Z",
   "notes": [
     "Wave 1 RLH Task agents produced no code. Agent 00 implements RLH 26-30+36 on cursor/watcher-wave2-rlh-core-8771.",
     "Do not write App.tsx, services/api/main.py, packages/models/baselines.py, packages/journal/journal.py, or packages/context_engine/engine.py until PR 8 merges or is rejected.",
@@ -155,6 +155,33 @@
       "run_id": "bc-f97ceacc-b0e2-5447-b47f-efe2350229ee",
       "pr": "https://github.com/MediumThor/Avax-context-engine/pull/23",
       "write_scope": ["tests/replay/**"]
+    },
+    {
+      "id": "WAVE2-13",
+      "agent": "13",
+      "title": "Pattern hypotheses",
+      "status": "reviewed",
+      "run_id": "bc-3dd525fb-9d99-525b-9650-bff9e615ee82",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/24",
+      "write_scope": ["packages/context_engine/patterns.py", "tests/test_patterns.py"]
+    },
+    {
+      "id": "WAVE2-19",
+      "agent": "19",
+      "title": "Context overlays",
+      "status": "reviewed",
+      "run_id": "bc-2baf6e65-18dc-5862-a29b-20a8b3164499",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/26",
+      "write_scope": ["apps/web/src/components/ContextOverlays.tsx"]
+    },
+    {
+      "id": "WAVE2-36",
+      "agent": "36",
+      "title": "WAVE-2 leakage red team",
+      "status": "reviewed",
+      "run_id": "bc-d685ffac-b8ae-5112-aa6f-c48374d51572",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/25",
+      "write_scope": ["tests/leakage/wave2/**"]
     }
   ]
 }

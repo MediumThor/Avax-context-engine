@@ -55,5 +55,8 @@ Implementers cannot open PRs. Watcher opened these after scope review. None merg
 | 20 ForecastFan | [#20](https://github.com/MediumThor/Avax-context-engine/pull/20) | not wired into App.tsx |
 | 35 registry | [#22](https://github.com/MediumThor/Avax-context-engine/pull/22) | draft gates, no scores |
 | 37 red team | [#23](https://github.com/MediumThor/Avax-context-engine/pull/23) | tests only |
+| 13 patterns | [#24](https://github.com/MediumThor/Avax-context-engine/pull/24) | reviewed |
+| 36 leakage | [#25](https://github.com/MediumThor/Avax-context-engine/pull/25) | tests only |
+| 19 overlays | [#26](https://github.com/MediumThor/Avax-context-engine/pull/26) | not wired into App.tsx |
 
 PR 8 remains in flight and owns `engine.py` / API / App. Integrate accepted WAVE-2 PRs to `main` only after CI green and no path overlap with PR 8.
