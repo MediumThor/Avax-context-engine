@@ -59,6 +59,8 @@ Each zone must store:
 
 Strength is derived from reproducible evidence, not subjective labels.
 
+Current: `ContextEngine.build_snapshot` walks `ZoneTracker` on each timeframe's closed bars. Specs are seeded from confirmed pivots with role taken at formation `known_at`, not rewritten from the snapshot-time close. A 5m bar cannot ingest a 4h zone. Bounds stay frozen. Interaction/status/outcome are attached on `StructuralZone`. Strength and test_count are not calibrated confidence.
+
 ## Swing structure
 
 Implement at least two pivot methods and benchmark them:

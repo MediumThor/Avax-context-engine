@@ -402,3 +402,26 @@ def test_all_required_interaction_states_are_reachable():
         "retired",
     ):
         assert state in seen, f"missing interaction {state}: {sorted(seen)}"
+
+
+def test_htf_plateau_becomes_frozen_range():
+    from packages.context_engine.zones import plateau_specs
+
+    highs = [bar(i, 8.10, 8.192, 8.00, 8.11) for i in range(5)]
+    specs = plateau_specs(highs, timeframe="4h", min_run=3)
+    assert specs
+    assert specs[0].role == "resistance"
+    assert specs[0].upper > specs[0].lower
+    assert specs[0].known_at == highs[2].open_time
+
+
+def test_spec_does_not_open_before_known_at():
+    later = T0 + timedelta(hours=3)
+    spec = resistance(id="z-late", known_at=later, created_at=later)
+    tracker = ZoneTracker([spec])
+    tracker.ingest(bar(0, 8.10, 8.14, 8.06, 8.12), ATR)
+    tracker.ingest(bar(1, 8.12, 8.16, 8.08, 8.11), ATR)
+    assert tracker.current() == ()
+    tracker.ingest(bar(3, 8.10, 8.14, 8.06, 8.12), ATR)
+    assert tracker.current()[0].id == "z-late"
+    assert tracker.current()[0].known_at <= later

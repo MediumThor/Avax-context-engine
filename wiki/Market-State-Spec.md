@@ -96,6 +96,8 @@ For every active zone, track:
 
 These event sequences become features and hypotheses.
 
+Current: each timeframe snapshot walks this machine on its own closed bars via `packages/context_engine/zones.py`. 5m observations do not step a 4h zone.
+
 ## State persistence
 
 Snapshots are immutable. The live state pointer advances to a new snapshot after each relevant event/candle. Rebuilding the same historical stream with the same engine version must reproduce the same snapshot sequence.

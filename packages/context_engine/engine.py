@@ -9,7 +9,8 @@ from .models import Candle, MarketSnapshot, TimeframeState
 from .patterns import hypotheses_at
 from .resample import resample_closed
 from .snapshot_theses import build_snapshot_theses
-from .structure import cluster_zones, confirmed_pivots, swing_state
+from .structure import confirmed_pivots, swing_state
+from .zones import structural_from_tracked, tracked_zones_for_bars
 
 TIMEFRAMES: dict[str, int] = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
 
@@ -130,9 +131,10 @@ class ContextEngine:
             recent = [abs(closes[i]/closes[i-1]-1.0) for i in range(max(1,len(closes)-24),len(closes))]
             baseline = sum(recent)/len(recent) if recent else 0.0
             volatility = "expanded" if vol > baseline*1.5 else "compressed" if vol < baseline*0.75 else "normal"
-        zones = cluster_zones(pivots, close)
-        supports = tuple(z for z in zones if z.role in {"support","mixed"} and z.upper <= close*1.01)
-        resistances = tuple(z for z in zones if z.role in {"resistance","mixed"} and z.lower >= close*0.99)
+        tracked = tracked_zones_for_bars(candles, timeframe=timeframe)
+        mapped = tuple(structural_from_tracked(zone) for zone in tracked)
+        supports = tuple(z for z in mapped if z.role in {"support", "mixed"})[-5:]
+        resistances = tuple(z for z in mapped if z.role in {"resistance", "mixed"})[:5]
         # Timeframe as_of is the bar open (WAVE-2 replay/leakage contract).
         # Knowability is enforced by filtering on close_time() before this call.
         return TimeframeState(timeframe=timeframe,as_of=candles[-1].open_time,close=close,regime=regime,swing_state=swing,volatility=volatility,ema20=e20,ema50=e50,ema200=e200,rsi14=rsis[-1],atr14=atrs[-1],support_zones=supports[-5:],resistance_zones=resistances[:5],evidence=tuple(evidence))
