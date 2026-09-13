@@ -1,0 +1,27 @@
+---
+description: Immutable project constitution and mandatory agent startup rules
+alwaysApply: true
+---
+
+# AVAX Context Engine mandatory rules
+
+Before any edit:
+
+1. Read `/CONSTITUTION.md` in full.
+2. Read `/AGENTS.md`.
+3. Read `/wiki/Home.md` and the directive for the subsystem being changed.
+
+`/CONSTITUTION.md` is immutable project law. Do not edit it, weaken it, bypass it, or create a conflicting instruction elsewhere.
+
+Mandatory constraints:
+- no future-data leakage;
+- no random shuffled time-series validation for reported forecasting performance;
+- no moving thesis invalidations after the fact;
+- no fabricated confidence percentages;
+- no real trade execution in v1;
+- every model change requires baseline/out-of-sample evaluation;
+- every forecast written live/simulated must be journaled before outcomes are known;
+- 5m observations must not silently overwrite higher-timeframe regime state;
+- documentation/contracts/tests change with behavior.
+
+If a task conflicts with the Constitution, stop and report the conflict rather than implementing it.

@@ -1,0 +1,21 @@
+---
+description: Multi-agent branch, task-contract, test and completion protocol
+alwaysApply: true
+---
+
+# Agent workflow
+
+Use `/wiki/Agent-Orchestration.md`.
+
+Every task needs a bounded contract before implementation. Use branch/worktree `agent/<nn>-<slug>` where practical. Do not overlap write scopes with another agent.
+
+Before claiming completion:
+- run the task's tests;
+- run applicable leakage/regression checks;
+- update relevant wiki/contracts;
+- report exact files changed and metrics before/after;
+- note limitations and follow-up work.
+
+Agent 00 is the Watcher. Treat Watcher correction prompts as blocking review feedback. Do not work around a rejection by weakening tests or changing benchmark definitions.
+
+Prefer small mergeable increments over giant rewrites. Shared schemas have one owner per batch.
