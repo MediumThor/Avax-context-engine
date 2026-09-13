@@ -63,8 +63,8 @@ payload = FreqtradeResearchAdapter().emit_research_quantile_forecast(candles, as
 ```
 
 Declared versions: LightGBM `>=4.5` and scikit-learn `>=1.5` when present;
-otherwise `empirical_residual_quantiles.v1`. Feature schema placeholder:
-`freqai.quantiles.features.v1`. Model id: `freqai.quantiles.research.v1`.
+otherwise `mtf_ridge_residual_quantiles.v1` (ridge on residual vs drift20 using
+a compact `avax.features.mtf.v1` subset). Model id: `freqai.quantiles.research.v1`.
 
 The payload is ForecastPackage-shaped (`q10_cum_log_return` / `q50` / `q90`,
 `model_id`, `feature_schema_version`). It is not scored here and must not be

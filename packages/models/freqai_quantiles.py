@@ -19,11 +19,13 @@ from datetime import datetime, timezone
 from typing import Any, Iterable, Literal, Mapping, Sequence
 
 from adapters.freqtrade.constants import NO_BASELINE_CLAIM, PINNED_COMMIT
+from packages.features import assemble_features
+from packages.features.schema import FEATURE_SCHEMA_VERSION as MTF_FEATURE_SCHEMA
 from packages.features.resample import completed_parents, period_end as feature_period_end
 
 MODEL_ID = "freqai.quantiles.research.v1"
-FEATURE_SCHEMA_VERSION = "freqai.quantiles.features.v1"
-PYTHON_FALLBACK_ID = "empirical_residual_quantiles.v1"
+FEATURE_SCHEMA_VERSION = MTF_FEATURE_SCHEMA
+PYTHON_FALLBACK_ID = "mtf_ridge_residual_quantiles.v1"
 SCHEMA_VERSION = "1"
 HORIZONS: tuple[int, ...] = tuple(range(1, 11))
 QUANTILES: tuple[float, ...] = (0.1, 0.5, 0.9)
@@ -41,7 +43,7 @@ DECLARED_VERSIONS: dict[str, str] = {
     "freqtrade_commit": PINNED_COMMIT,
 }
 
-FEATURE_NAMES: tuple[str, ...] = (
+PLACEHOLDER_FEATURE_NAMES: tuple[str, ...] = (
     "logret_1",
     "logret_3",
     "logret_12",
@@ -54,6 +56,27 @@ FEATURE_NAMES: tuple[str, ...] = (
     "realized_vol_12",
     "htf_15m_logret_1",
     "htf_1h_logret_1",
+)
+FEATURE_NAMES = PLACEHOLDER_FEATURE_NAMES
+MODEL_FEATURE_NAMES: tuple[str, ...] = (
+    "avax_5m_logret_1",
+    "avax_5m_logret_3",
+    "avax_5m_logret_12",
+    "avax_5m_logret_24",
+    "avax_5m_realized_vol_24",
+    "avax_5m_atr14_pct",
+    "avax_5m_rsi14_centered",
+    "avax_5m_ema20_dist",
+    "avax_5m_ema50_dist",
+    "avax_5m_ema_stack_score",
+    "avax_15m_logret_1",
+    "avax_1h_logret_1",
+    "avax_4h_logret_1",
+    "avax_1d_logret_1",
+    "btc_5m_logret_1",
+    "btc_5m_logret_12",
+    "rel_avax_btc_logret_12",
+    "rel_avax_btc_corr_24",
 )
 
 BackendName = Literal["auto", "lightgbm", "sklearn", "python"]
@@ -284,25 +307,106 @@ def detect_backend(requested: BackendName) -> str:
     return "python"
 
 
+def _drift20(closes: Sequence[float]) -> float:
+    if len(closes) < 21:
+        return 0.0
+    past = [_log_return(closes[j], closes[j - 1]) or 0.0 for j in range(len(closes) - 19, len(closes))]
+    return sum(past) / len(past)
+
+
+def _mtf_model_row(
+    avax: Sequence[Any],
+    as_of: datetime,
+    btc: Sequence[Any] | None = None,
+    eth: Sequence[Any] | None = None,
+) -> list[float]:
+    snapshot = assemble_features(avax, as_of=as_of, btc_5m=btc or None, eth_5m=eth or None)
+    values = snapshot.values
+    row: list[float] = []
+    for name in MODEL_FEATURE_NAMES:
+        raw = values.get(name)
+        row.append(0.0 if raw is None or not math.isfinite(float(raw)) else float(raw))
+    return row
+
+
+def _visible_cross(candles: Sequence[Any] | None, as_of: datetime) -> list[Any]:
+    if not candles:
+        return []
+    return visible_closed_candles(candles, as_of)
+
+
+def _dot(left: Sequence[float], right: Sequence[float]) -> float:
+    return sum(a * b for a, b in zip(left, right))
+
+
+def _solve_linear(matrix: list[list[float]], rhs: list[float]) -> list[float]:
+    n = len(rhs)
+    aug = [row[:] + [rhs[i]] for i, row in enumerate(matrix)]
+    for col in range(n):
+        pivot = max(range(col, n), key=lambda r: abs(aug[r][col]))
+        if abs(aug[pivot][col]) < 1e-12:
+            aug[col][col] = 1e-12
+        else:
+            aug[col], aug[pivot] = aug[pivot], aug[col]
+        scale = aug[col][col]
+        for j in range(col, n + 1):
+            aug[col][j] /= scale
+        for row in range(n):
+            if row == col:
+                continue
+            factor = aug[row][col]
+            for j in range(col, n + 1):
+                aug[row][j] -= factor * aug[col][j]
+    return [aug[i][n] for i in range(n)]
+
+
+def _ridge_fit(x_rows: Sequence[Sequence[float]], y: Sequence[float], l2: float = 1.0) -> list[float]:
+    if not x_rows:
+        return [0.0]
+    dim = len(x_rows[0]) + 1
+    xtx = [[0.0] * dim for _ in range(dim)]
+    xty = [0.0] * dim
+    for row, target in zip(x_rows, y):
+        z = [1.0, *row]
+        for i in range(dim):
+            xty[i] += z[i] * float(target)
+            for j in range(dim):
+                xtx[i][j] += z[i] * z[j]
+    for j in range(1, dim):
+        xtx[j][j] += l2
+    return _solve_linear(xtx, xty)
+
+
+def _ridge_predict(weights: Sequence[float], x_row: Sequence[float]) -> float:
+    return float(weights[0]) + _dot(weights[1:], x_row)
+
+
 def _fit_python(
     train_targets: dict[int, list[float]],
-    train_logret_1: list[float],
+    x_rows: Sequence[Sequence[float]],
+    drift20s: Sequence[float],
 ) -> dict[str, Any]:
-    mean_logret = sum(train_logret_1) / len(train_logret_1) if train_logret_1 else 0.0
-    residuals: dict[int, dict[float, float]] = {}
+    """q50 may use MTF ridge; q10/q90 width is residual vs drift20, not in-sample leftover."""
+    weights: dict[int, list[float]] = {}
+    spread: dict[int, dict[float, float]] = {}
     for horizon, ys in train_targets.items():
-        res = [y - (mean_logret * horizon) for y in ys]
-        residuals[horizon] = {q: empirical_quantile(res, q) for q in QUANTILES}
-    return {"mean_logret": mean_logret, "residuals": residuals}
+        loc = [float(drift) * horizon for drift in drift20s]
+        resid = [y - loc[i] for i, y in enumerate(ys)]
+        weights[horizon] = _ridge_fit(x_rows, resid, l2=8.0)
+        spread[horizon] = {q: empirical_quantile(resid, q) for q in QUANTILES}
+    return {"weights": weights, "spread": spread}
 
 
-def _predict_python(model: Mapping[str, Any], current_logret_1: float) -> dict[int, tuple[float, float, float]]:
-    # Location uses the current 1-bar log return (known at T), not future candles.
+def _predict_python(
+    model: Mapping[str, Any],
+    x_row: Sequence[float],
+    current_drift20: float,
+) -> dict[int, tuple[float, float, float]]:
     out: dict[int, tuple[float, float, float]] = {}
     for horizon in HORIZONS:
-        loc = float(current_logret_1) * horizon
-        res = model["residuals"][horizon]
-        out[horizon] = _enforce_order(loc + res[0.1], loc + res[0.5], loc + res[0.9])
+        loc = float(current_drift20) * horizon + _ridge_predict(model["weights"][horizon], x_row)
+        spread = model["spread"][horizon]
+        out[horizon] = _enforce_order(loc + spread[0.1], loc + spread[0.5], loc + spread[0.9])
     return out
 
 
@@ -391,6 +495,8 @@ def emit_quantile_forecast(
     min_train: int = DEFAULT_MIN_TRAIN,
     min_feature_bars: int = MIN_FEATURE_BARS,
     symbol: str | None = None,
+    btc_5m: Sequence[Any] | None = None,
+    eth_5m: Sequence[Any] | None = None,
 ) -> dict[str, Any]:
     """Emit a journal-ready ForecastPackage-shaped payload. Does not trade."""
     if as_of is None:
@@ -414,15 +520,28 @@ def emit_quantile_forecast(
         )
 
     x_rows: list[list[float]] = []
-    logret_1: list[float] = []
+    drift20s: list[float] = []
     train_targets: dict[int, list[float]] = {h: [] for h in HORIZONS}
     for origin in origins:
         origin_t = candle_period_end(visible[origin])
-        features = extract_features_at(visible[: origin + 1], origin_t)
-        x_rows.append(feature_vector(features))
-        logret_1.append(features["logret_1"])
+        prefix = visible[: origin + 1]
+        try:
+            row = _mtf_model_row(
+                prefix,
+                origin_t,
+                _visible_cross(btc_5m, origin_t),
+                _visible_cross(eth_5m, origin_t),
+            )
+        except Exception:
+            continue
+        x_rows.append(row)
+        drift20s.append(_drift20([float(c.close) for c in prefix]))
         for horizon in HORIZONS:
             train_targets[horizon].append(_target_log_return(visible, origin, horizon))
+    if len(x_rows) < min_train:
+        raise InsufficientHistory(
+            f"need at least {min_train} MTF train rows; got {len(x_rows)}"
+        )
 
     chosen = detect_backend(backend)
     fitted: dict[str, Any] | None = None
@@ -447,13 +566,18 @@ def emit_quantile_forecast(
             except Exception:
                 fitted = None
     if fitted is None or used == "python":
-        fitted = _fit_python(train_targets, logret_1)
+        fitted = _fit_python(train_targets, x_rows, drift20s)
         used = "python"
 
-    current_features = extract_features_at(visible, cutoff)
-    current_vector = feature_vector(current_features)
+    current_vector = _mtf_model_row(
+        visible,
+        cutoff,
+        _visible_cross(btc_5m, cutoff),
+        _visible_cross(eth_5m, cutoff),
+    )
+    current_drift20 = _drift20([float(c.close) for c in visible])
     if used == "python":
-        bands = _predict_python(fitted, current_features["logret_1"])
+        bands = _predict_python(fitted, current_vector, current_drift20)
     else:
         scaled = _standardize_apply([current_vector], fitted["means"], fitted["scales"])[0]
         bands = _predict_tree(fitted, scaled)
@@ -519,12 +643,14 @@ def emit_quantile_forecast(
         "performance_claim": NO_PERFORMANCE_CLAIM,
         "baseline_claim": NO_BASELINE_CLAIM,
         "backend": used,
-        "train_origin_count": len(origins),
+        "train_origin_count": len(x_rows),
+        "python_fallback": PYTHON_FALLBACK_ID,
+        "model_feature_names": list(MODEL_FEATURE_NAMES),
         "declared_versions": dict(DECLARED_VERSIONS),
         "availability": availability_at(visible, cutoff),
         "notes": (
-            "Journal-ready research payload for horizons h=1..10. "
-            "Watcher may append this before outcomes exist. No live orders."
+            "Journal-ready research payload for horizons h=1..10 using "
+            f"{FEATURE_SCHEMA_VERSION}. Watcher may append this before outcomes exist. No live orders."
         ),
     }
     return payload
