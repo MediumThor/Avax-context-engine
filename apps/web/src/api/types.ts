@@ -21,8 +21,13 @@ export interface TimeframeState {
 export interface ForecastHorizon {
   h: number
   expected_cum_log_return: number
-  drift20_cum_log_return: number
-  zero_cum_log_return: number
+  drift20_cum_log_return?: number
+  zero_cum_log_return?: number
+  /** Simple-return path when a calibrated model exists. Absent on drift20. */
+  expected_cum_return?: number | null
+  q10_cum_return?: number | null
+  q50_cum_return?: number | null
+  q90_cum_return?: number | null
   p_close_above_origin: number | null
   confidence_source: string
 }
