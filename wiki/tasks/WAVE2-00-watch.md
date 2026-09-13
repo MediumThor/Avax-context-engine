@@ -60,3 +60,7 @@ Implementers cannot open PRs. Watcher opened these after scope review. None merg
 | 19 overlays | [#26](https://github.com/MediumThor/Avax-context-engine/pull/26) | not wired into App.tsx |
 
 PR 8 remains in flight and owns `engine.py` / API / App. Integrate accepted WAVE-2 PRs to `main` only after CI green and no path overlap with PR 8.
+
+## Integration candidate (2026-09-13)
+
+Local merge of reviewed WAVE-2 branches onto `main` `b6bbbf4` produced **220 passed, 1 skipped** (`PYTHONPATH=. python3 -m pytest -q`). PR 8 (honest slice) and PR 13 (prediction-improvement-loop) were excluded. No Constitution edits. No path overlap with PR 8.
