@@ -36,7 +36,7 @@ Forecast content cannot be edited after creation. Corrections create a supersedi
 
 When horizon h matures, append a ForecastOutcome record linked by forecast ID and h.
 
-`score_journaled_forecasts` reads those outcome rows and the frozen forecast probabilities. It does not rewrite the forecast. Brier/ECE/coverage stay null until the minimum sample gates in `packages/models/probability_walkforward.py` are met. The live AccuracyPanel prefers those journaled scores when present; otherwise it uses `walk_forward_probabilities`.
+`score_journaled_forecasts` reads those outcome rows and the frozen forecast fields. It does not rewrite the forecast. Brier/ECE stay null when `p_close_above_origin` is null (catch-up `baseline.drift20` rows). Point-forecast MAE/RMSE vs `drift20_cum_log_return` / `expected_cum_log_return` are scored once `MIN_MAE` matured pairs exist. Coverage stays null until the interval gate. The live AccuracyPanel prefers those journaled scores when present; otherwise it uses walk-forward slices. `POST /api/v1/journal/catchup` also appends outcomes for horizons already known. This is not a promotion.
 
 ## Required metadata
 

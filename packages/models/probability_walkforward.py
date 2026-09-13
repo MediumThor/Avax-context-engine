@@ -17,6 +17,7 @@ from packages.models.direction_cal import CALIBRATION_REF, empirical_signed_p
 MIN_BRIER = 8
 MIN_ECE = 15
 MIN_COVERAGE = 8
+MIN_MAE = 8
 INTERVAL_REF = "empirical_residual_vs_drift20.v1"
 
 

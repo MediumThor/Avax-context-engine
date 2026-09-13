@@ -6,10 +6,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 from packages.evaluator.calibration import expected_calibration_error
-from packages.evaluator.metrics import brier_score, interval_coverage
+from packages.evaluator.metrics import brier_score, interval_coverage, mae, rmse
 from packages.journal import ForecastJournal
 from packages.models.direction_cal import CALIBRATION_REF
-from packages.models.probability_walkforward import MIN_BRIER, MIN_COVERAGE, MIN_ECE
+from packages.models.probability_walkforward import MIN_BRIER, MIN_COVERAGE, MIN_ECE, MIN_MAE
 
 
 def _aware(value: datetime) -> datetime:
@@ -28,10 +28,11 @@ def score_journaled_forecasts(
     *,
     as_of: datetime | None = None,
 ) -> dict[str, Any]:
-    """Brier/ECE/coverage from journaled probabilities and matured outcomes known at as_of."""
+    """Score matured journal rows known at as_of. Null p does not become a Brier."""
     cutoff = _aware(as_of) if as_of is not None else None
     per_h: dict[int, dict[str, list[float]]] = {
-        h: {"y": [], "p": [], "actual": [], "q10": [], "q90": []} for h in range(1, 11)
+        h: {"y": [], "p": [], "actual": [], "q10": [], "q90": [], "point_actual": [], "drift20": []}
+        for h in range(1, 11)
     }
     used = 0
     for row in journal.list_forecasts(symbol):
@@ -64,12 +65,21 @@ def score_journaled_forecasts(
                 per_h[h]["q10"].append(float(q10))
                 per_h[h]["q90"].append(float(q90))
                 per_h[h]["actual"].append(float(actual))
+            pred = forecast_row.get("drift20_cum_log_return")
+            if pred is None:
+                pred = forecast_row.get("expected_cum_log_return")
+            if isinstance(pred, (int, float)) and isinstance(actual, (int, float)):
+                per_h[h]["point_actual"].append(float(actual))
+                per_h[h]["drift20"].append(float(pred))
             used += 1
 
     horizons_out: dict[str, Any] = {}
     for h, series in per_h.items():
         n_p = len(series["p"])
         n_iv = len(series["actual"])
+        n_pt = len(series["point_actual"])
+        scored = n_pt >= MIN_MAE
+        zeros = [0.0] * n_pt
         horizons_out[str(h)] = {
             "probability": {
                 "sample_count": n_p,
@@ -82,6 +92,16 @@ def score_journaled_forecasts(
                 "coverage": interval_coverage(series["actual"], series["q10"], series["q90"])
                 if n_iv >= MIN_COVERAGE
                 else None,
+            },
+            "zero": {
+                "sample_count": n_pt,
+                "mae": mae(series["point_actual"], zeros) if scored else None,
+                "rmse": rmse(series["point_actual"], zeros) if scored else None,
+            },
+            "drift20": {
+                "sample_count": n_pt,
+                "mae": mae(series["point_actual"], series["drift20"]) if scored else None,
+                "rmse": rmse(series["point_actual"], series["drift20"]) if scored else None,
             },
         }
     return {
