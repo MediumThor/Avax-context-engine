@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from typing import Any, Iterable, Literal, Mapping, Sequence
 
 from adapters.freqtrade.constants import NO_BASELINE_CLAIM, PINNED_COMMIT
+from packages.models.direction_cal import CALIBRATION_REF, empirical_signed_p
 from packages.features import assemble_features
 from packages.features.schema import FEATURE_SCHEMA_VERSION as MTF_FEATURE_SCHEMA
 from packages.features.resample import completed_parents, period_end as feature_period_end
@@ -587,8 +588,16 @@ def emit_quantile_forecast(
     origin_close = float(origin.close)
     resolved_symbol = symbol or getattr(origin, "symbol", "AVAXUSDT")
     horizons_out = []
+    any_calibrated = False
     for horizon in HORIZONS:
         q10, q50, q90 = bands[horizon]
+        p_up = empirical_signed_p(
+            train_targets[horizon],
+            [float(drift) * horizon for drift in drift20s],
+            q50,
+        )
+        if p_up is not None:
+            any_calibrated = True
         horizons_out.append(
             attach_simple_return_aliases(
                 {
@@ -597,7 +606,8 @@ def emit_quantile_forecast(
                     "q10_cum_log_return": q10,
                     "q50_cum_log_return": q50,
                     "q90_cum_log_return": q90,
-                    "p_close_above_origin": None,
+                    "p_close_above_origin": p_up,
+                    "confidence_source": "calibrated" if p_up is not None else "insufficient-data",
                     "expected_max_favorable_excursion": None,
                     "expected_max_adverse_excursion": None,
                     "zone_touch_probabilities": {},
@@ -632,7 +642,7 @@ def emit_quantile_forecast(
                 "feature_schema_version": FEATURE_SCHEMA_VERSION,
             }
         ],
-        "calibration_ref": None,
+        "calibration_ref": CALIBRATION_REF if any_calibrated else None,
         "health": "valid",
         "research_only": True,
         "live_trading": False,

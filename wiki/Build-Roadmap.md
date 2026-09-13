@@ -18,7 +18,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 Honest slice on `main` (`811ea80`):
 
 1. Market page reads real Binance Vision candles or the September 2026 fixture. It never labels fixture/stale data `LIVE`.
-2. Forecasts are journaled before outcomes, with `p_close_above_origin: null` until a calibrated model exists.
+2. Forecasts are journaled before outcomes. When enough matured train origins exist, `p_close_above_origin` is an empirical signed base rate (`empirical_signed_base_rate.v1`), not a fabricated confidence percentage. Outcomes append later without rewriting the forecast row.
 3. Reported baseline numbers are walk-forward only, with `sample_count`. Zero-model direction abstains.
 4. Replay `?as_of=` / `/api/v1/replay/{symbol}` hides later candles. The 5m relief bounce must not flip 4H.
 

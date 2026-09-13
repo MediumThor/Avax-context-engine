@@ -99,12 +99,53 @@ class ForecastJournal:
             "feature_schema_version": row[6],
         }
 
+    def list_forecasts(self, symbol: str) -> list[dict]:
+        rows = self.db.execute(
+            """SELECT id, forecasted_at, model_id, payload_json, payload_sha256
+               FROM forecasts WHERE symbol=? ORDER BY forecasted_at ASC""",
+            (symbol,),
+        ).fetchall()
+        return [
+            {
+                "id": row[0],
+                "forecasted_at": row[1],
+                "model_id": row[2],
+                "payload": json.loads(row[3]),
+                "sha256": row[4],
+            }
+            for row in rows
+        ]
+
+    def has_outcome(self, forecast_id: str, horizon: int) -> bool:
+        row = self.db.execute(
+            "SELECT 1 FROM outcomes WHERE forecast_id=? AND horizon=?",
+            (forecast_id, horizon),
+        ).fetchone()
+        return row is not None
+
     def append_outcome(self, forecast_id: str, horizon: int, payload: dict) -> None:
         self.db.execute(
             "INSERT INTO outcomes(forecast_id,horizon,payload_json) VALUES(?,?,?)",
             (forecast_id, horizon, self._canonical(payload)),
         )
         self.db.commit()
+
+    def get_or_append_outcome(self, forecast_id: str, horizon: int, payload: dict) -> bool:
+        """True when a new outcome row was written. Never overwrites."""
+        if self.has_outcome(forecast_id, horizon):
+            return False
+        try:
+            self.append_outcome(forecast_id, horizon, payload)
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+    def list_outcomes(self, forecast_id: str) -> list[dict]:
+        rows = self.db.execute(
+            "SELECT horizon, payload_json FROM outcomes WHERE forecast_id=? ORDER BY horizon",
+            (forecast_id,),
+        ).fetchall()
+        return [{"horizon": row[0], **json.loads(row[1])} for row in rows]
 
     def get_forecast(self, forecast_id: str) -> dict:
         row = self.db.execute(

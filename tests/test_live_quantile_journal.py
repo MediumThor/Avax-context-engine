@@ -28,7 +28,7 @@ def test_live_forecast_emits_ordered_quantiles_and_simple_aliases(tmp_path):
     for row in payload["horizons"]:
         assert row["q10_cum_log_return"] <= row["q50_cum_log_return"] <= row["q90_cum_log_return"]
         assert row["q10_cum_return"] <= row["q50_cum_return"] <= row["q90_cum_return"]
-        assert row["p_close_above_origin"] is None
+        assert row["p_close_above_origin"] is None or 0.0 <= row["p_close_above_origin"] <= 1.0
         assert row["q10_cum_return"] == math.exp(row["q10_cum_log_return"]) - 1.0
         assert row["q50_cum_return"] == math.exp(row["q50_cum_log_return"]) - 1.0
         assert row["q90_cum_return"] == math.exp(row["q90_cum_log_return"]) - 1.0
@@ -108,7 +108,9 @@ def test_api_market_returns_quantile_envelope(tmp_path, monkeypatch):
     assert body["health"]["status"] == "fixture"
     assert forecast["model_id"] == QUANTILE_MODEL
     row = forecast["horizons"][0]
-    assert row["p_close_above_origin"] is None
+    assert row["p_close_above_origin"] is None or 0.0 <= row["p_close_above_origin"] <= 1.0
+    if row["p_close_above_origin"] is not None:
+        assert forecast.get("calibration_ref")
     assert row["q10_cum_return"] <= row["q50_cum_return"] <= row["q90_cum_return"]
     assert forecast["mtf_feature_snapshot"]["feature_schema_version"] == FEATURE_SCHEMA_VERSION
     reset_runtime()
@@ -128,6 +130,6 @@ def test_replay_as_of_ignores_later_quantile_training(tmp_path, monkeypatch):
     assert body["replay"] is True
     assert abs(body["last_price"] - candles[1200].close) < 1e-9
     row = body["forecast"]["forecast"]["horizons"][0]
-    assert row["p_close_above_origin"] is None
+    assert row["p_close_above_origin"] is None or 0.0 <= row["p_close_above_origin"] <= 1.0
     assert "q10_cum_return" in row or body["forecast"]["forecast"]["model_id"] == "baseline.drift20"
     reset_runtime()

@@ -82,6 +82,8 @@ A 10-horizon package matures incrementally:
 
 Outcomes should be scored as soon as each horizon becomes available.
 
+The live prototype (`mature_outcomes`) appends those rows without rewriting the forecast payload or hash. Replay `as_of` may only mature horizons whose close is known at that timestamp. A persist also journals the origin 10 bars earlier so h=1..10 can mature on the same request.
+
 ## Journal integrity tests
 
 - mutate future candles and confirm prior forecast package hash is unchanged;
