@@ -45,7 +45,7 @@ The prototype shell keeps the **Pause predictions** control on the sticky market
 ## Navigation rules
 
 1. Market context is never hidden behind more than one interaction from the primary chart.
-2. Switching timeframe preserves selected symbol, relevant overlays and hypothesis context.
+2. Switching timeframe preserves selected symbol, relevant overlays and hypothesis context. Chart `?tf=` is `5m|15m|1h|4h|1d|1w`; invalid values fall back to `5m`. `apps/web/src/nav/destinations.test.ts` covers dest parse/href including secondary `/benchmarks` and `/models`. CI web runs `npm run web:test`.
 3. Changing symbol must reload all state from typed API contracts; never reuse stale AVAX context for another asset.
 4. Replay mode must be visually unmistakable and must not show future candles until the user explicitly reveals them.
 5. Accuracy links must carry the currently selected model and horizon filters when possible.
