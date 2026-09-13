@@ -1,0 +1,36 @@
+{
+  "id": "loop-avax-20260913T090500Z",
+  "schema_version": "1",
+  "symbol": "AVAXUSDT",
+  "as_of": "2026-09-13T09:05:00Z",
+  "encoder_memory_id": "encmem-avax-20260913T090500Z",
+  "encoder_memory_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "context_snapshot_id": "snapshot-avax-20260913T090500Z",
+  "forecast_package_id": "forecast-avax-20260913T090500Z",
+  "harness_version": "rlh-0.1.0",
+  "tool_schema_version": "1",
+  "commit_sha": "foundation-docs",
+  "warm_start_from_trace_id": null,
+  "steps": [
+    { "t": 1, "kind": "ENCODE_CHECK" },
+    { "t": 2, "kind": "RETRIEVE" },
+    { "t": 3, "kind": "SYNTHESIZE" },
+    { "t": 4, "kind": "CHALLENGE" },
+    { "t": 5, "kind": "INVALIDATION_CHECK" },
+    { "t": 6, "kind": "HALT" },
+    { "t": 7, "kind": "JOURNAL" }
+  ],
+  "final_state": { "confidence_source": "calibrated" },
+  "halt": {
+    "halted": true,
+    "reason": "challenge_complete",
+    "depth_used": 6,
+    "max_depth": 8,
+    "window_w": 16,
+    "budget_remaining": 2,
+    "citations": ["snapshot-avax-20260913T090500Z"],
+    "degraded": false
+  },
+  "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "journaled_at": "2026-09-13T09:05:01Z"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "avax-2026-09-failed-8",
+  "status": "stub",
+  "symbol": "AVAXUSDT",
+  "purpose": "Founding dogfood: failed ~$8 breakout. Relief bounces must not reset 4H bear after structural invalidation.",
+  "as_of_range": ["2026-09-01T00:00:00Z", "2026-09-13T23:59:59Z"],
+  "owner": "agent-28-or-00",
+  "required": true
+}

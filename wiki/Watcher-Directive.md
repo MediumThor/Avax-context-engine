@@ -109,6 +109,12 @@ A model or context algorithm is promoted only after:
 
 When two approaches are statistically indistinguishable, prefer the simpler, faster, more interpretable implementation.
 
+## Recursive Learning Harness
+
+Agent 00 also runs [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md). Extra halt/promotion freezes apply when loop traces fail exact replay, skip `CHALLENGE`, invent probabilities, or let 5m steps overwrite parent encoder memory.
+
+See [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md) before reviewing any `services/harness` or `packages/contracts/recursive` change.
+
 ## Emergency stop conditions
 
 Watcher freezes promotion when:

@@ -6,6 +6,8 @@ The Context Engine is the persistent market-state layer. Its job is to understan
 
 It must be deterministic wherever practical and inspectable at every transition.
 
+The Recursive Learning Harness may read Context Engine snapshots as frozen `EncoderMemory`. It may not write context state. A 5m loop argument is not a 4H regime change. See [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md).
+
 ## Required timeframe hierarchy
 
 - 1W

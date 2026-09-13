@@ -14,6 +14,13 @@ This repository is designed to be operated by humans and many cooperating AI age
 
 - [`Context-Engine-Directive.md`](Context-Engine-Directive.md)
 - [`AI-Harness-Directive.md`](AI-Harness-Directive.md)
+- [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md) — encoder + all-token recurrent loop
+- [`Recursive-Loop-Spec.md`](Recursive-Loop-Spec.md)
+- [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md)
+- [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md)
+- [`Recursive-Evaluation.md`](Recursive-Evaluation.md)
+- [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md)
+- [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md) — launch contracts for lanes 25-30
 - [`ML-FreqAI-Directive.md`](ML-FreqAI-Directive.md)
 - [`UI-Directive.md`](UI-Directive.md)
 - [`Navigation-Directive.md`](Navigation-Directive.md)
@@ -32,6 +39,6 @@ The September 2026 AVAX move from the ~$8 failed-breakout region into the low-$7
 
 ## Core product loop
 
-`market data -> normalized event stream -> timeframe state -> structural context -> FreqAI/model ensemble -> Context Engine synthesis -> next-10-candle forecast -> UI + prediction journal -> realized outcomes -> evaluator -> watcher -> improvement queue`
+`market data -> normalized event stream -> timeframe state -> structural context -> FreqAI/model ensemble -> frozen EncoderMemory -> next-10-candle forecast -> Recursive Learning Harness loop (same transition for ingest and emit) -> UI + prediction journal + LoopTrace -> realized outcomes -> evaluator / depth ablation -> watcher -> improvement queue`
 
 The project is intentionally living: every forecast produces a future labeled example; every labeled example can improve evaluation; every proposed improvement is tested; only evidence-gated improvements are promoted.

@@ -1,0 +1,10 @@
+{
+  "loop_trace_id": "loop-avax-20260913T090500Z",
+  "forecast_id": "forecast-avax-20260913T090500Z",
+  "scored_at": "2026-09-13T09:55:00Z",
+  "horizon_scores": { "h1": { "brier": 0.24 } },
+  "depth_prefix_scores": { "4": { "process_pass": true }, "6": { "process_pass": true } },
+  "challenge_respected_invalidation": true,
+  "parent_regime_preserved": true,
+  "leakage_probe_passed": true
+}

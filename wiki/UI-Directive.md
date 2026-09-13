@@ -19,6 +19,7 @@ The default screen is a single analysis workspace with five synchronized regions
 3. **Context rail** — 1W/1D/4H/1H/15m/5m regime and state transitions.
 4. **Forecast panel** — horizons +1..+10, model ensemble, quantiles, calibration and disagreement.
 5. **Thesis panel** — active bull/bear hypotheses, evidence, counter-evidence, confirmation and immutable invalidation.
+6. **Loop inspector** (replay and accuracy surfaces) — Recursive Learning Harness depth, halt reason, citations, and whether the explanation is incumbent or `harness-degraded`.
 
 ## Main chart requirements
 
@@ -89,6 +90,8 @@ Expose model quality honestly:
 - sample count.
 
 A green "accuracy" badge without target definition and sample count is prohibited.
+
+Loop depth is not an accuracy badge. Show `depth_used` / `halt_reason` as process metadata, not as "smarter because more loops."
 
 ## Data-health UX
 

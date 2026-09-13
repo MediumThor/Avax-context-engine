@@ -1,0 +1,9 @@
+{
+  "as_of": "2026-09-13T09:05:00Z",
+  "encoder_memory_id": "encmem-avax-20260913T090500Z",
+  "forecast_package_id": "forecast-avax-20260913T090500Z",
+  "loop_trace_id": "loop-avax-20260913T090500Z",
+  "reveal_future": false,
+  "rebuild_policy": "exact",
+  "expected_trace_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+}

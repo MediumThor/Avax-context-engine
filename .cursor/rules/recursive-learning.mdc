@@ -1,0 +1,24 @@
+---
+description: Recursive Learning Harness — read before changing looped reasoning
+globs: wiki/Recursive-*.md,packages/contracts/recursive/**,services/harness/**,benchmarks/rlh/**,tests/contracts/**,tests/harness/**,tests/rlh/**
+alwaysApply: false
+---
+
+# Recursive Learning Harness
+
+Before editing RLH code, schemas, fixtures, or these wiki pages:
+
+1. Read `CONSTITUTION.md`.
+2. Read `wiki/Recursive-Learning-Harness.md`.
+3. Read `wiki/Recursive-Loop-Spec.md` and `wiki/Recursive-Memory-Model.md`.
+4. Write or update a task contract. Agent 25 is the only schema writer per batch.
+
+Hard rules:
+
+- One `LoopStep` for ingest and emit. No "generation may cheat" path.
+- Encoder memory is frozen before the first decoder step.
+- 5m loop steps must not overwrite 4H/1D/1W encoder slices.
+- Halt is mandatory. Infinite depth is temporal across candles, not unbounded work per candle.
+- No invented zones or probabilities. No uncalibrated confidence percentages.
+- Do not delete or weaken `benchmarks/rlh/avax-2026-09-failed-8`.
+- Do not edit `CONSTITUTION.md`.

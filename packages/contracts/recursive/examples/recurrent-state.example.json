@@ -1,0 +1,32 @@
+{
+  "schema_version": "1",
+  "step_index": 4,
+  "regime_reading": {
+    "4h": "bearish",
+    "5m": "bullish",
+    "interpretation": "5m relief inside 4h bear"
+  },
+  "what_changed": ["5m bounce into prior broken 8.00 region"],
+  "what_did_not_change": ["4h regime still bearish", "failed-breakout invalidation intact"],
+  "bull_case": {
+    "claims": ["short-horizon bounce toward 7.55-7.70 possible"],
+    "citations": ["forecast-avax-20260913T090500Z"]
+  },
+  "bear_case": {
+    "claims": ["4h LH/LL and failed ~8 acceptance remain active"],
+    "citations": ["snapshot-avax-20260913T090500Z", "hyp-bear-continuation-20260913"]
+  },
+  "forecast_summary": {
+    "forecast_package_id": "forecast-avax-20260913T090500Z",
+    "quoted_fields": ["horizons[0].p_close_above_origin", "horizons[0].q10_cum_return"]
+  },
+  "invalidation": {
+    "fired": [],
+    "intact": ["hyp-bear-continuation-20260913"]
+  },
+  "data_health": { "freshness": "valid" },
+  "confidence_source": "calibrated",
+  "open_questions": ["does 1h reclaim 7.70 with acceptance?"],
+  "citations": ["snapshot-avax-20260913T090500Z", "forecast-avax-20260913T090500Z"],
+  "contradictions": []
+}

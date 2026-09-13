@@ -47,14 +47,16 @@ Agent 00 reads every task contract and completion report. It has authority to re
 - 23 Accessibility/performance
 - 24 UI QA and visual regression
 
-### 25-30 Internal AI Harness
+### 25-30 Internal AI Harness / Recursive Learning Harness
 
-- 25 Tool schemas
-- 26 Context retrieval
-- 27 Explanation planner
-- 28 Counter-thesis/challenge agent
-- 29 Memory/state summarizer
-- 30 AI evaluation and hallucination tests
+Ready-to-copy contracts: [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md). Directive: [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md).
+
+- 25 Tool + loop schema steward (only writer of `packages/contracts/recursive/` per batch)
+- 26 EncoderMemory builder and retrieval
+- 27 Same-transition `LoopStep` / `D_φ`
+- 28 Counter-thesis / challenge / invalidation loop step
+- 29 SWA window and state summarizer
+- 30 Loop evaluation, depth ablation, hallucination tests
 
 ### 31-35 Platform
 
@@ -102,7 +104,7 @@ Finish criteria: <observable result>
 
 The living-project cycle is:
 
-`observe -> issue/task -> isolated implementation -> local tests -> simulation -> completion report -> watcher review -> integration -> live/dry observation -> new evidence -> next issue`
+`observe -> issue/task -> isolated implementation -> local tests -> simulation / loop replay -> completion report -> watcher review -> integration -> live/dry observation + LoopTrace journal -> matured LoopOutcome -> new evidence -> next issue`
 
 Watcher automatically prioritizes:
 

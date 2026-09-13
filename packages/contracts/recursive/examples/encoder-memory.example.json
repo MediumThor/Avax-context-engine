@@ -1,0 +1,24 @@
+{
+  "id": "encmem-avax-20260913T090500Z",
+  "schema_version": "1",
+  "symbol": "AVAXUSDT",
+  "as_of": "2026-09-13T09:05:00Z",
+  "context_snapshot_id": "snapshot-avax-20260913T090500Z",
+  "forecast_package_id": "forecast-avax-20260913T090500Z",
+  "data_manifest_id": "manifest-fixture-001",
+  "feature_schema_version": "1",
+  "context_engine_version": "1",
+  "timeframe_slices": {
+    "1w": { "regime": "bearish", "last_transition_id": "tr-1w-001" },
+    "1d": { "regime": "bearish", "last_transition_id": "tr-1d-001" },
+    "4h": { "regime": "bearish", "last_transition_id": "tr-4h-001" },
+    "1h": { "regime": "bearish", "last_transition_id": "tr-1h-001" },
+    "15m": { "regime": "transition_up", "last_transition_id": "tr-15m-001" },
+    "5m": { "regime": "bullish", "last_transition_id": "tr-5m-001" }
+  },
+  "zone_ids": ["zone-8-00-8-20"],
+  "hypothesis_ids": ["hyp-bear-continuation-20260913"],
+  "cross_market": { "btc_regime": "bearish" },
+  "health": "valid",
+  "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

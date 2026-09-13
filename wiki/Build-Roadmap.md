@@ -66,17 +66,24 @@ Deliverables:
 
 Finish gate: every forecast can be replayed and independently scored.
 
-## Phase 5 — Internal AI Harness
+## Phase 5 — Internal AI Harness / Recursive Learning Harness
 
 Deliverables:
 - structured tool layer
-- context retrieval
+- frozen `EncoderMemory` before any decoder step
+- one `LoopStep` transition for ingest and emit
+- Context KV + recurrent state + SWA memory banks
+- mandatory halt budget and typed halt reasons
 - bull/bear challenge step
 - forecast explanation contract
+- journaled `LoopTrace` bound to each `ForecastPackage`
 - historical analog query
-- hallucination/regression evaluation suite
+- exact vs current-policy replay
+- hallucination/regression + depth-ablation suite
 
-Finish gate: harness explanations are traceable to state/forecast IDs and never invent unsupported levels/probabilities.
+Directive: [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md). Launch contracts: [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md).
+
+Finish gate: harness explanations are traceable to state/forecast IDs, live and replay hashes match on fixtures, and loops never invent unsupported levels/probabilities.
 
 ## Phase 6 — React/TradingView UI
 
@@ -137,13 +144,15 @@ Finish gate: system runs continuously for a meaningful sample period without jou
 ## Phase 10 — Continuous improvement
 
 Loop forever:
-1. observe errors/drift;
+1. observe errors/drift **and** loop process failures (halt mix, replay mismatch, false reversals);
 2. generate bounded hypotheses;
-3. deploy competing research agents;
-4. benchmark challengers;
-5. watcher reviews evidence;
+3. deploy competing research agents from [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md);
+4. benchmark challengers, including RLH depth ablation;
+5. watcher reviews evidence under [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md);
 6. promote only qualified improvements;
 7. add regressions for consequential failures.
+
+Do not raise `max_depth` because a research tweet said "infinite reasoning depth." RLT itself defines infinite depth as an extensible temporal path, not infinite work per token.
 
 ## Initial parallel agent batch after foundation
 

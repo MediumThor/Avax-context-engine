@@ -13,8 +13,9 @@ At each eligible 5m close:
 3. assemble feature snapshot;
 4. run model ensemble;
 5. write ForecastPackage to journal;
-6. fsync/commit journal record;
-7. only then expose forecast to UI/harness.
+6. run Recursive Learning Harness against frozen EncoderMemory and write `LoopTrace`;
+7. fsync/commit journal records;
+8. only then expose forecast and explanation to UI.
 
 Future candles arriving before the forecast record is durable is a journal failure.
 
@@ -39,7 +40,8 @@ Each forecast stores:
 - upstream Freqtrade commit;
 - full horizon outputs;
 - data-health state;
-- latency metadata.
+- latency metadata;
+- `loop_trace_id` when the Recursive Learning Harness ran.
 
 ## Storage design
 
@@ -57,7 +59,7 @@ The replay API must retrieve:
 - market observations known at time T;
 - Context Engine snapshot at T;
 - model forecast written at T;
-- harness explanation generated at T if present;
+- `LoopTrace` generated at T if present (preferred over unjournaled prose);
 - future candles hidden by default;
 - outcomes separately revealable.
 
@@ -87,4 +89,6 @@ Model-development agents may query journal history but must use chronology-safe 
 
 ## Harness linkage
 
-Every operator-facing AI analysis should reference the forecast ID and context snapshot ID it used. If the harness is asked later why a forecast was made, it should reconstruct from journal/state rather than invent a retrospective rationale.
+Every operator-facing AI analysis should reference the forecast ID, context snapshot ID, and `loop_trace_id` it used. If the harness is asked later why a forecast was made, it should reconstruct from journal/state / [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md) replay rather than invent a retrospective rationale.
+
+`LoopTrace` is append-only. Corrections create a new trace with `supersedes`, never an overwrite. `LoopOutcome` attaches later.

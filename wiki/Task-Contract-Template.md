@@ -60,7 +60,7 @@ Watcher should prepend:
 
 ```md
 Watcher owner: Agent 00
-Review mode: normal | strict-quant | strict-schema | UI
+Review mode: normal | strict-quant | strict-schema | UI | rlh-loop
 Competing task group: none | <group-id>
 Integration dependency: <task-id or none>
 ```
