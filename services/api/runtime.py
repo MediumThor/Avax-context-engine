@@ -29,7 +29,21 @@ from packages.models.outcomes import mature_outcomes
 SOURCE = "binance-vision"
 FEATURE_SCHEMA = "1"
 QUANTILE_LOOKBACK = 400
+LIVE_LOOKBACK_DAYS = 10
+LIVE_FRESH_SECONDS = 6 * 60
+LIVE_PULL_MIN_INTERVAL = 15
+CHART_TIMEFRAMES = ("5m", "15m", "1h", "4h", "1d", "1w")
+TF_MINUTES = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
+CHART_LOOKBACK_DAYS = {"5m": 10, "15m": 20, "1h": 60, "4h": 180, "1d": 400, "1w": 900}
+CHART_LIMITS = {"5m": 576, "15m": 384, "1h": 336, "4h": 240, "1d": 250, "1w": 200}
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
+
+
+def normalize_chart_timeframe(value: str | None) -> str:
+    tf = (value or "5m").lower()
+    if tf not in CHART_TIMEFRAMES:
+        raise ValueError("timeframe must be one of 5m, 15m, 1h, 4h, 1d, 1w")
+    return tf
 
 
 def _now() -> datetime:
@@ -54,6 +68,8 @@ class PrototypeRuntime:
         self.source_label = "fixture" if self.use_fixture else SOURCE
         self._snap_cache: dict[tuple, object] = {}
         self._metrics_cache: dict[tuple, dict] = {}
+        self._last_pull: dict[str, datetime] = {}
+        self._live_error: str | None = None
         if self.use_fixture:
             self._seed_fixture()
 
@@ -68,34 +84,131 @@ class PrototypeRuntime:
         self.source_label = "fixture"
 
     def _ensure(self, symbol: str) -> None:
-        existing = self.store.load(self.source_label if self.use_fixture else SOURCE, symbol, "5m")
-        if existing:
-            return
         if self.use_fixture:
-            self._seed_fixture()
+            existing = self.store.load("fixture", symbol, "5m")
+            if not existing:
+                self._seed_fixture()
+            return
+        self._refresh_live(symbol)
+
+    def _pull_live_candles(self, symbol: str, after: datetime | None = None, *, timeframe: str = "5m") -> list:
+        from packages.market_data import BinanceVisionClient
+
+        tf = normalize_chart_timeframe(timeframe)
+        days = CHART_LOOKBACK_DAYS.get(tf, LIVE_LOOKBACK_DAYS)
+        client = BinanceVisionClient(timeout=20.0)
+        try:
+            if after is None:
+                return list(client.iter_recent_days(symbol, tf, days))
+            start_ms = int(after.timestamp() * 1000)
+            end_ms = int(_now().timestamp() * 1000)
+            return [c for c in client.fetch_klines(symbol, tf, start_ms, end_ms) if c.is_closed]
+        finally:
+            client.close()
+
+    def _pull_last_price(self, symbol: str) -> float:
+        from packages.market_data import BinanceVisionClient
+
+        client = BinanceVisionClient(timeout=8.0)
+        try:
+            return client.fetch_last_price(symbol)
+        finally:
+            client.close()
+
+    def _refresh_live(self, symbol: str, timeframe: str = "5m") -> None:
+        """Append newly closed Binance bars. Never silently become the fixture."""
+        tf = normalize_chart_timeframe(timeframe)
+        existing = self.store.load(SOURCE, symbol, tf)
+        now = _now()
+        last_close = existing[-1].close_time() if existing else None
+        fresh_seconds = LIVE_FRESH_SECONDS if tf == "5m" else TF_MINUTES[tf] * 60 + 60
+        if last_close and (now - last_close).total_seconds() < fresh_seconds:
+            self.source_label = SOURCE
+            return
+        pull_key = f"{symbol}:{tf}"
+        last_pull = self._last_pull.get(pull_key)
+        if last_pull and (now - last_pull).total_seconds() < LIVE_PULL_MIN_INTERVAL:
+            if not existing:
+                raise RuntimeError(self._live_error or f"live market data unavailable for {symbol} {tf}")
             return
         try:
-            from packages.market_data import BinanceVisionClient
-
-            client = BinanceVisionClient(timeout=12.0)
-            try:
-                candles = list(client.iter_recent_days(symbol, "5m", 10))
-            finally:
-                client.close()
+            candles = self._pull_live_candles(
+                symbol,
+                after=existing[-1].open_time if existing else None,
+                timeframe=tf,
+            )
+            self._last_pull[pull_key] = now
             if candles:
                 self.store.insert_many(SOURCE, candles)
                 self.source_label = SOURCE
+                self._live_error = None
                 return
-        except Exception:
-            pass
-        self.use_fixture = True
-        self._seed_fixture()
+            if existing:
+                return
+            raise RuntimeError(f"no live candles returned for {symbol} {tf}")
+        except RuntimeError:
+            raise
+        except Exception as exc:
+            self._last_pull[pull_key] = now
+            self._live_error = str(exc)
+            if existing:
+                return
+            raise RuntimeError(f"live market data unavailable for {symbol} {tf}: {exc}") from exc
 
     def candles(self, symbol: str, as_of: datetime | None = None, limit: int = 400):
         self._ensure(symbol)
         source = "fixture" if self.use_fixture else SOURCE
         xs = self.store.load_upto(source, symbol, "5m", as_of) if as_of else self.store.load(source, symbol, "5m")
         return xs[-limit:]
+
+    def chart_candles(
+        self,
+        symbol: str,
+        timeframe: str = "5m",
+        as_of: datetime | None = None,
+        limit: int | None = None,
+    ):
+        """Closed bars for chart display only. Does not rebuild the regime stack."""
+        tf = normalize_chart_timeframe(timeframe)
+        cap = limit or CHART_LIMITS[tf]
+        if self.use_fixture:
+            base = self.candles(symbol, as_of=as_of, limit=8000)
+            if tf == "5m":
+                return base[-cap:]
+            from packages.context_engine.resample import resample_closed
+
+            return resample_closed(base, TF_MINUTES[tf], tf)[-cap:]
+        self._refresh_live(symbol, tf)
+        source = SOURCE
+        xs = self.store.load_upto(source, symbol, tf, as_of) if as_of else self.store.load(source, symbol, tf)
+        return xs[-cap:]
+
+    def chart_payload(
+        self,
+        symbol: str,
+        timeframe: str = "5m",
+        as_of: datetime | None = None,
+        limit: int | None = None,
+    ) -> dict:
+        candles = self.chart_candles(symbol, timeframe, as_of=as_of, limit=limit)
+        return {
+            "symbol": symbol,
+            "timeframe": normalize_chart_timeframe(timeframe),
+            "source": "fixture" if self.use_fixture else SOURCE,
+            "as_of": candles[-1].close_time().isoformat() if candles else None,
+            "candles": [
+                {
+                    "time": int(c.open_time.timestamp()),
+                    "open": c.open,
+                    "high": c.high,
+                    "low": c.low,
+                    "close": c.close,
+                }
+                for c in candles
+            ],
+            "replay": as_of is not None,
+            "execution_enabled": False,
+        }
 
     def snapshot(self, symbol: str, as_of: datetime | None = None):
         avax = self.candles(symbol, as_of=as_of, limit=8000)
@@ -277,31 +390,56 @@ class PrototypeRuntime:
         return report
 
     def health_brief(self, symbol: str = "AVAXUSDT") -> dict:
-        source = "fixture" if self.use_fixture else SOURCE
-        existing = self.store.load(source, symbol, "5m")
-        if not existing:
-            if self.use_fixture:
-                self._ensure(symbol)
-                existing = self.store.load("fixture", symbol, "5m")
-            else:
-                return {"status": "unknown", "age_seconds": None, "last_close": None, "source": self.source_label}
-        last_close = existing[-1].close_time()
-        health = freshness(last_close)
         if self.use_fixture:
+            self._ensure(symbol)
+            existing = self.store.load("fixture", symbol, "5m")
+            if not existing:
+                return {"status": "unknown", "age_seconds": None, "last_close": None, "source": "fixture"}
+            health = freshness(existing[-1].close_time())
             health["status"] = "fixture"
-        health["source"] = "fixture" if self.use_fixture else SOURCE
+            health["source"] = "fixture"
+            return health
+        try:
+            self._refresh_live(symbol)
+        except RuntimeError as exc:
+            return {
+                "status": "unknown",
+                "age_seconds": None,
+                "last_close": None,
+                "source": SOURCE,
+                "error": str(exc),
+            }
+        existing = self.store.load(SOURCE, symbol, "5m")
+        if not existing:
+            return {"status": "unknown", "age_seconds": None, "last_close": None, "source": SOURCE}
+        health = freshness(existing[-1].close_time())
+        health["source"] = SOURCE
+        if self._live_error:
+            health["pull_error"] = self._live_error
         return health
 
-    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 240, persist: bool | None = None) -> dict:
+    def market_payload(
+        self,
+        symbol: str,
+        as_of: datetime | None = None,
+        chart_limit: int = 576,
+        persist: bool | None = None,
+        chart_timeframe: str = "5m",
+    ) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, 400))
+        if not candles:
+            raise RuntimeError(f"no candles available for {symbol}")
         snap = self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
         last_close = candles[-1].close_time()
         health = freshness(last_close)
         if self.use_fixture:
             health["status"] = "fixture"
+        health["source"] = "fixture" if self.use_fixture else SOURCE
         should_persist = persist if persist is not None else as_of is None
         forecast = self.forecast(symbol, as_of=as_of or last_close, persist=should_persist, snap=snap)
         metrics = self.metrics(symbol, as_of=as_of or last_close)
+        chart_tf = normalize_chart_timeframe(chart_timeframe)
+        chart_bars = self.chart_candles(symbol, chart_tf, as_of=as_of, limit=chart_limit)
         chart = [
             {
                 "time": int(c.open_time.timestamp()),
@@ -310,7 +448,7 @@ class PrototypeRuntime:
                 "low": c.low,
                 "close": c.close,
             }
-            for c in candles[-chart_limit:]
+            for c in chart_bars
         ]
         hint = None
         if self.use_fixture:
@@ -319,17 +457,27 @@ class PrototypeRuntime:
             full = sept_2026_failed_breakout(symbol) if symbol == "AVAXUSDT" else []
             if full:
                 hint = full[bounce_start_index(full) - 1].close_time().isoformat()
+        last_price = candles[-1].close
+        price_source = "last_close"
+        if not self.use_fixture and as_of is None:
+            try:
+                last_price = self._pull_last_price(symbol)
+                price_source = "ticker"
+            except Exception:
+                price_source = "last_close"
         payload = {
             "symbol": symbol,
             "source": "fixture" if self.use_fixture else SOURCE,
             "as_of": snap.as_of.isoformat(),
             "health": health,
-            "last_price": candles[-1].close,
+            "last_price": last_price,
+            "price_source": price_source,
             "snapshot": snap.to_dict(),
             "interpretation": snap.interpretation,
             "forecast": forecast,
             "metrics": metrics,
             "candles": chart,
+            "chart_timeframe": chart_tf,
             "replay": as_of is not None,
             "replay_hint_as_of": hint,
             "execution_enabled": False,
