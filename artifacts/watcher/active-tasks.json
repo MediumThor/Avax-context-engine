@@ -38,17 +38,43 @@
       "id": "WAVE2-01",
       "agent": "01",
       "title": "Data integrity helpers",
-      "status": "launched",
+      "status": "reviewed",
       "run_id": "bc-0d25ac7a-6464-53f8-b905-a450fdce985e",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/10",
       "write_scope": ["packages/market_data/integrity.py", "tests/test_data_integrity.py"]
+    },
+    {
+      "id": "WAVE2-03",
+      "agent": "03",
+      "title": "Leakage-safe feature assembler",
+      "status": "launched",
+      "run_id": "bc-b06e7a31-5035-5e97-b9d2-f1e883f82cfd",
+      "write_scope": ["packages/features/**", "tests/features/**"]
     },
     {
       "id": "WAVE2-02",
       "agent": "02",
       "title": "FreqAI adapter hardening",
-      "status": "launched",
+      "status": "reviewed",
       "run_id": "bc-2c2ec82e-6b02-5df3-a85d-426850658021",
+      "pr": "https://github.com/MediumThor/Avax-context-engine/pull/11",
       "write_scope": ["adapters/freqtrade/**", "scripts/bootstrap_freqtrade.sh"]
+    },
+    {
+      "id": "WAVE2-10",
+      "agent": "10",
+      "title": "ATR/zigzag second pivot method",
+      "status": "launched",
+      "run_id": "bc-80cac77d-c077-5d78-a7df-0c7a24cec433",
+      "write_scope": ["packages/context_engine/pivots_atr.py", "tests/test_pivots_atr.py"]
+    },
+    {
+      "id": "WAVE2-11",
+      "agent": "11",
+      "title": "Zone lifecycle",
+      "status": "launched",
+      "run_id": "bc-ccf75827-a6e7-5d1d-8efa-e2ad1403d9a4",
+      "write_scope": ["packages/context_engine/zones.py", "tests/test_zones.py"]
     },
     {
       "id": "WAVE2-15",
