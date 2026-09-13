@@ -48,13 +48,21 @@ export default function App() {
   const last = market?.candles.at(-1)
   const overlayZones = useMemo(() => {
     if (!market) return []
-    const seen = new Set<string>()
     const zones: OverlayZone[] = []
-    for (const state of Object.values(market.snapshot.timeframes)) {
+    const byId = new Map<string, OverlayZone>()
+    for (const tf of TF_ORDER) {
+      const state = market.snapshot.timeframes[tf]
+      if (!state) continue
       for (const zone of [...(state.support_zones ?? []), ...(state.resistance_zones ?? [])]) {
-        if (seen.has(zone.id)) continue
-        seen.add(zone.id)
-        zones.push({
+        const existing = byId.get(zone.id)
+        if (existing) {
+          const tfs = [...(existing.timeframes ?? [])]
+          if (!tfs.includes(state.timeframe)) {
+            existing.timeframes = [...tfs, state.timeframe]
+          }
+          continue
+        }
+        const row: OverlayZone = {
           id: zone.id,
           lower: zone.lower,
           upper: zone.upper,
@@ -70,7 +78,9 @@ export default function App() {
               ? `${zone.interaction}${zone.outcome ? ` · ${zone.outcome}` : ''}. Not confidence.`
               : 'Zone lifecycle from closed bars only. Not confidence.',
           },
-        })
+        }
+        byId.set(zone.id, row)
+        zones.push(row)
       }
     }
     return zones
