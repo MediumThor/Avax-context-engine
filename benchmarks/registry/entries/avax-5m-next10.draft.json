@@ -1,0 +1,145 @@
+{
+  "schema_version": "1",
+  "id": "avax-5m-next10",
+  "title": "AVAX 5m next-10-candle forecast",
+  "purpose": "Named evaluation gate for the core ForecastPackage task: at each eligible AVAXUSDT 5m close, emit horizons h=1..10 and later score those frozen packages. This draft names the task, metrics, baselines, and leakage rules. It does not record any run and does not invent scores.",
+  "kind": "forecast",
+  "dataset_id": "avaxusdt-5m-unsealed",
+  "symbol": "AVAXUSDT",
+  "time_range": {
+    "start": null,
+    "end": null,
+    "timezone": "UTC",
+    "sealed": false,
+    "note": "No canonical data manifest or sealed walk-forward window exists yet. Do not invent dates. A later sealed EvaluationPlan must name UTC start/end and a dataset checksum before this entry can leave draft."
+  },
+  "timeframe": "5m",
+  "horizons": {
+    "spec": "h=1..10",
+    "kind": "cumulative_from_origin",
+    "note": "Canonical forecast unit from wiki/Simulation-Accuracy.md. Cumulative from forecast origin unless a field is explicitly individual_candle."
+  },
+  "metrics": [
+    {
+      "id": "mae",
+      "name": "mean_absolute_error",
+      "description": "Return or price-path error as defined by the Evaluation Engine. Name only; no observed value.",
+      "aggregation": "by_horizon"
+    },
+    {
+      "id": "rmse",
+      "name": "root_mean_squared_error",
+      "description": "Companion squared-error name to MAE. Name only.",
+      "aggregation": "by_horizon"
+    },
+    {
+      "id": "direction",
+      "name": "direction_accuracy",
+      "description": "Sign agreement. Must never be reported as a generic accuracy badge without horizon, window, sample count, and baseline.",
+      "aggregation": "by_horizon"
+    },
+    {
+      "id": "brier",
+      "name": "brier_score",
+      "description": "Probability quality for directional or event forecasts. Name only.",
+      "aggregation": "by_horizon"
+    },
+    {
+      "id": "pinball",
+      "name": "pinball_loss",
+      "description": "Quantile loss (including q10/q50/q90 when those quantiles are emitted). Name only.",
+      "aggregation": "by_horizon_and_quantile"
+    },
+    {
+      "id": "interval_coverage",
+      "name": "interval_coverage",
+      "description": "Empirical coverage of forecast intervals (q10-q90 when those bands exist). Name only.",
+      "aggregation": "by_horizon"
+    },
+    {
+      "id": "calibration_ece",
+      "name": "calibration_ece",
+      "description": "Calibration / expected calibration error. Name only. No fabricated ECE.",
+      "aggregation": "by_horizon"
+    }
+  ],
+  "baseline_ids": [
+    "zero-return",
+    "persistence-drift",
+    "ema-trend-heuristic",
+    "simple-logistic-direction",
+    "simple-linear-return"
+  ],
+  "leakage_rules": [
+    {
+      "id": "no-future-information",
+      "rule": "No feature, model, label, resample, higher-timeframe aggregation, or context snapshot may contain information unavailable at the forecast timestamp."
+    },
+    {
+      "id": "completed-parent-candles",
+      "rule": "Higher-timeframe features use only completed parent candles unless an explicitly named partial-candle namespace is defined and tested."
+    },
+    {
+      "id": "train-window-fit",
+      "rule": "Scalers, calibration, model selection, and ensemble weights fit inside training or development windows only."
+    },
+    {
+      "id": "targets-excluded-from-features",
+      "rule": "Target columns must never enter feature matrices."
+    },
+    {
+      "id": "journal-before-outcome",
+      "rule": "Every live or simulated forecast must be journaled before outcomes are known. Historical predictions may not be overwritten to improve apparent accuracy."
+    }
+  ],
+  "validation_policy": {
+    "method": "chronological_walk_forward",
+    "random_shuffle_allowed": false,
+    "note": "Walk-forward or equivalent chronology-preserving validation is mandatory. Random time-series train/test splitting is prohibited for any accuracy claim."
+  },
+  "pass_fail_rules": [
+    {
+      "id": "chronological-only",
+      "rule": "A candidate that uses random-shuffle or other chronology-breaking validation fails this gate regardless of reported quality.",
+      "threshold_status": "not_applicable",
+      "watcher_required": true
+    },
+    {
+      "id": "beat-named-baselines-oos",
+      "rule": "A complex model is not an improvement unless it beats the named baselines out of sample after fees/slippage assumptions where relevant. Exact deltas are unset until Watcher seals them.",
+      "threshold_status": "unset",
+      "watcher_required": true
+    },
+    {
+      "id": "no-silent-coverage-tradeoff",
+      "rule": "A candidate must not be promoted by substituting a prettier error metric while interval coverage or calibration materially worsens. Materiality is unset until sealed.",
+      "threshold_status": "unset",
+      "watcher_required": true
+    },
+    {
+      "id": "regime-slice-stability",
+      "rule": "Promotion review must inspect high-volatility and bear-regime slices, not only a pooled window. Slice tolerances are unset until sealed.",
+      "threshold_status": "unset",
+      "watcher_required": true
+    },
+    {
+      "id": "founding-regression-intact",
+      "rule": "Promotion must not weaken or skip the avax-2026-09-failed-8 process regression.",
+      "threshold_status": "not_applicable",
+      "watcher_required": true
+    },
+    {
+      "id": "watcher-plus-oos-evidence",
+      "rule": "Leaving draft requires Watcher approval and out-of-sample evidence recorded against a sealed plan. In-sample fit is not evidence.",
+      "threshold_status": "not_applicable",
+      "watcher_required": true
+    }
+  ],
+  "status": "draft",
+  "owner_agent": "35",
+  "related_paths": [
+    "wiki/Simulation-Accuracy.md",
+    "wiki/Testing-Directive.md"
+  ],
+  "notes": "wiki/ML-FreqAI-Directive.md describes target walk-forward design guidance (multi-month 5m history and rolling train/validation/test lengths). Those durations are not a sealed window and are not scores. Baseline ids name Constitution §6 / Simulation-Accuracy mandatory families. Existing prototype helpers use labels zero and drift20; this entry does not claim those helpers have been scored on a frozen window."
+}

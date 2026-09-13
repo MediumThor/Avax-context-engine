@@ -1,0 +1,122 @@
+{
+  "schema_version": "1",
+  "id": "avax-2026-09-failed-8",
+  "title": "September 2026 AVAX failed ~$8 breakout (founding process regression)",
+  "purpose": "Draft registry pointer to the permanent dogfood case: failed breakout near $8, subsequent decline, and the rule that relief bounces must not reset a bearish higher-timeframe regime after structural invalidation. This entry does not invent prices, timestamps beyond the existing fixture range, forecast scores, or outcomes.",
+  "kind": "process_regression",
+  "dataset_id": "rlh-fixture:avax-2026-09-failed-8",
+  "dataset_ref": "benchmarks/rlh/avax-2026-09-failed-8/",
+  "symbol": "AVAXUSDT",
+  "time_range": {
+    "start": "2026-09-01T00:00:00Z",
+    "end": "2026-09-13T23:59:59Z",
+    "timezone": "UTC",
+    "sealed": false,
+    "note": "Copied from the existing RLH fixture manifest as_of_range. Exact candle timestamps and prices live in that fixture tree. This draft does not seal the window or add outcomes."
+  },
+  "timeframe": "multi",
+  "horizons": {
+    "spec": "not_applicable",
+    "kind": "not_applicable",
+    "note": "This gate is state-discipline and process invariants, not a next-10-candle scoreboard."
+  },
+  "metrics": [
+    {
+      "id": "parent_regime_after_failed_breakout",
+      "name": "parent_regime_after_failed_breakout",
+      "description": "Process invariant name from the RLH fixture. Not a forecast score."
+    },
+    {
+      "id": "relief_bounce_is_not_reversal",
+      "name": "relief_bounce_is_not_reversal",
+      "description": "5m/15m bounces remain relief inside the parent bear unless explicit reclaim rules fire."
+    },
+    {
+      "id": "invalidation_immutable",
+      "name": "invalidation_immutable",
+      "description": "Invalidation must not move lower to preserve a prior bull thesis after it has fired."
+    },
+    {
+      "id": "challenge_required",
+      "name": "challenge_required",
+      "description": "Directional synthesis must include a challenge step. Process name only."
+    },
+    {
+      "id": "encode_check_first",
+      "name": "encode_check_first",
+      "description": "Loop must check encoder facts before narrative synthesis."
+    },
+    {
+      "id": "halt_required",
+      "name": "halt_required",
+      "description": "Halt reason must be typed and present."
+    },
+    {
+      "id": "no_uncalibrated_percent",
+      "name": "no_uncalibrated_percent",
+      "description": "Uncalibrated confidence percentages are prohibited."
+    }
+  ],
+  "baseline_ids": [
+    "fixture-expected-invariants"
+  ],
+  "leakage_rules": [
+    {
+      "id": "as-of-cutoff",
+      "rule": "Future candles present in the fixture remain hidden at as_of. Features, encoder memory, and loop traces at T must not change when post-T candles are perturbed."
+    },
+    {
+      "id": "parent-regime-not-overwritten",
+      "rule": "A 5m observation must not silently overwrite 4h/1h regime state."
+    },
+    {
+      "id": "no-moving-goalposts",
+      "rule": "Once an invalidation condition is met, the thesis is closed or changed. Agents may not retroactively move invalidation levels."
+    },
+    {
+      "id": "no-hindsight-perfect-call",
+      "rule": "The benchmark demands point-in-time state discipline, not a hindsight-perfect trade call. Do not add fabricated forecast outcomes to satisfy this gate."
+    }
+  ],
+  "validation_policy": {
+    "method": "fixture_replay",
+    "random_shuffle_allowed": false,
+    "note": "Replay the fixture chronologically at each as_of. Random shuffle is prohibited. Do not score this pointer as if a walk-forward forecast run had been executed."
+  },
+  "pass_fail_rules": [
+    {
+      "id": "fixture-invariants",
+      "rule": "Replay must satisfy the expected_invariants.json already stored under the RLH fixture. This registry entry does not replace or rewrite those invariants.",
+      "threshold_status": "not_applicable",
+      "watcher_required": true
+    },
+    {
+      "id": "no-fabricated-outcomes",
+      "rule": "A change that adds invented prices, forecast scores, or post-hoc thesis edits to make the episode look predicted fails this gate.",
+      "threshold_status": "not_applicable",
+      "watcher_required": true
+    },
+    {
+      "id": "rlh-tree-untouched",
+      "rule": "Registry work must only point at benchmarks/rlh/avax-2026-09-failed-8/. It must not modify that tree.",
+      "threshold_status": "not_applicable",
+      "watcher_required": true
+    },
+    {
+      "id": "watcher-plus-oos-evidence",
+      "rule": "Promotion out of draft requires Watcher approval. Out-of-sample here means a fixture replay from a recorded commit, not a reshuffled or post-edited narrative.",
+      "threshold_status": "not_applicable",
+      "watcher_required": true
+    }
+  ],
+  "status": "draft",
+  "owner_agent": "35",
+  "related_paths": [
+    "benchmarks/rlh/avax-2026-09-failed-8/",
+    "benchmarks/rlh/avax-2026-09-failed-8/manifest.json",
+    "benchmarks/rlh/avax-2026-09-failed-8/expected_invariants.json",
+    "benchmarks/rlh/avax-2026-09-failed-8/notes.md",
+    "benchmarks/rlh/README.md"
+  ],
+  "notes": "Constitution §18 and wiki/Home.md declare this episode permanent. The RLH fixture is still a stub (manifest status=stub). This draft is a pointer so forecast work cannot drop or redefine the founding regression. Exact prices come from the benchmark data dump when it exists, not from this file."
+}
