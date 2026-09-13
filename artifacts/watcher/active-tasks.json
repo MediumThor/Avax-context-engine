@@ -3,14 +3,15 @@
   "model": "Grok 4.6",
   "base_branch": "cursor/recursive-learning-harness-ee66",
   "watcher": "00",
-  "updated_at": "2026-09-13T09:51:00Z",
+  "updated_at": "2026-09-13T09:55:00Z",
   "tasks": [
     {
       "id": "RLH-00",
       "agent": "00",
       "title": "Recursive watcher artifacts and review",
       "branch": "cursor/agent-00-rlh-watch-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-9996471d-d66b-544b-897a-746eb95bee07",
       "write_scope": ["artifacts/watcher/**"]
     },
     {
@@ -18,7 +19,8 @@
       "agent": "25",
       "title": "Schema stubs and generated types",
       "branch": "cursor/agent-25-rlh-schema-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-ce2386ac-ef67-5abf-89df-0f62bb3ebbeb",
       "write_scope": [
         "packages/contracts/recursive/**",
         "packages/contracts/README.md",
@@ -30,7 +32,8 @@
       "agent": "26",
       "title": "EncoderMemory builder and read tools",
       "branch": "cursor/agent-26-rlh-encoder-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-d8aaf7c2-47b5-5614-8ed4-ebd78c30f0d9",
       "write_scope": ["services/harness/encoder/**", "tests/harness/encoder/**"]
     },
     {
@@ -38,7 +41,8 @@
       "agent": "27",
       "title": "Same-transition LoopStep",
       "branch": "cursor/agent-27-rlh-loopstep-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-e46a3bba-daab-50da-98b1-3fcea720ddf7",
       "write_scope": ["services/harness/loop/**", "tests/harness/loop/**"],
       "write_scope_excludes": ["services/harness/loop/challenge/**"]
     },
@@ -47,7 +51,8 @@
       "agent": "28",
       "title": "Challenge and invalidation step",
       "branch": "cursor/agent-28-rlh-challenge-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-dac4081a-3646-574f-b494-24eebc3f0e53",
       "write_scope": [
         "services/harness/loop/challenge/**",
         "tests/harness/challenge/**",
@@ -60,7 +65,8 @@
       "agent": "29",
       "title": "SWA window and merge",
       "branch": "cursor/agent-29-rlh-swa-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-585b2aff-378b-5f1d-9f8c-84727305a991",
       "write_scope": ["services/harness/memory/**", "tests/harness/memory/**"]
     },
     {
@@ -68,7 +74,8 @@
       "agent": "30",
       "title": "Process metrics and fixture runner",
       "branch": "cursor/agent-30-rlh-eval-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-aa834c0d-7f9a-5d91-a09f-7482b09bf974",
       "write_scope": ["services/evaluator/rlh/**", "tests/rlh/**"]
     },
     {
@@ -76,7 +83,8 @@
       "agent": "33",
       "title": "CI gate for RLH contracts",
       "branch": "cursor/agent-33-rlh-ci-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-77a8126d-c585-5525-ae72-7b4b23eaf83f",
       "write_scope": [".github/workflows/**"]
     },
     {
@@ -84,7 +92,8 @@
       "agent": "36",
       "title": "Leakage red team",
       "branch": "cursor/agent-36-rlh-leakage-ee66",
-      "status": "active",
+      "status": "launched",
+      "run_id": "bc-52e0198b-cdf2-5fe2-ac05-32de29f90652",
       "write_scope": ["tests/leakage/rlh/**"]
     }
   ]

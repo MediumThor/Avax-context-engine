@@ -1,5 +1,5 @@
 {
-  "status": "wave1-launched",
+  "status": "wave1-agents-running",
   "harness_version": null,
   "last_loop_trace_at": null,
   "last_exact_replay_canary": null,
