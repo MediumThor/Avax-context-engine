@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from typing import Literal
+from datetime import datetime, timedelta, timezone
+from typing import Any, Literal
 
 Regime = Literal["bullish", "bearish", "neutral", "transition_up", "transition_down", "unknown"]
 
@@ -26,6 +26,10 @@ class Candle:
             raise ValueError("Invalid OHLC ordering")
         if self.high < self.low:
             raise ValueError("high must be >= low")
+
+    def close_time(self) -> datetime:
+        minutes = {"5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}.get(self.timeframe, 5)
+        return self.open_time + timedelta(minutes=minutes)
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,9 +77,15 @@ class MarketSnapshot:
     as_of: datetime
     timeframes: dict[str, TimeframeState]
     schema_version: str = "1"
+    cross_market: dict[str, Any] = field(default_factory=dict)
+    interpretation: str = ""
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        raw = asdict(self)
+        raw["as_of"] = self.as_of.isoformat()
+        for tf, state in self.timeframes.items():
+            raw["timeframes"][tf]["as_of"] = state.as_of.isoformat()
+        return raw
 
 
 def utc_now() -> datetime:

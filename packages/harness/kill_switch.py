@@ -55,7 +55,9 @@ def load(path: Path | None = None) -> dict[str, Any]:
 def save(state: dict[str, Any], path: Path | None = None) -> dict[str, Any]:
     target = path or switch_path()
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    tmp = target.with_suffix(target.suffix + ".tmp")
+    tmp.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(target)
     return state
 
 

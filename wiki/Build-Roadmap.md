@@ -1,5 +1,16 @@
 # Build Roadmap
 
+## Current prototype slice (main)
+
+SLICE-001 (honest market) is the first Constitution-safe vertical cut:
+
+1. Market page reads real Binance Vision candles or the September 2026 fixture. It never labels fixture/stale data `LIVE`.
+2. Baseline `drift20` forecasts are journaled before outcomes, with `p_close_above_origin: null` until a calibrated model exists.
+3. Reported baseline numbers are walk-forward only, with `sample_count`. Zero-model direction abstains.
+4. Replay `?as_of=` / `/api/v1/replay/{symbol}` hides later candles. The 5m relief bounce must not flip 4H.
+
+Still open after this slice: authenticated kill switch, thesis ledger objects, FreqAI walk-forward, LoopStep implementation.
+
 ## Phase 0 — Foundation and governance
 
 Deliverables:

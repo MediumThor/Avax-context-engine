@@ -1,0 +1,242 @@
+from __future__ import annotations
+
+import hashlib
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+
+from packages.context_engine import ContextEngine
+from packages.fixtures import btc_companion, sept_2026_failed_breakout
+from packages.harness.kill_switch import is_engaged
+from packages.journal import ForecastJournal
+from packages.market_data import CandleStore
+from packages.models import emit_baseline_forecast, walk_forward_baselines
+
+
+SOURCE = "binance-vision"
+FEATURE_SCHEMA = "1"
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def freshness(last_close: datetime, now: datetime | None = None) -> dict:
+    current = now or _now()
+    age = max(0.0, (current - last_close).total_seconds())
+    status = "live" if age <= 12 * 60 else "stale"
+    return {"status": status, "age_seconds": int(age), "last_close": last_close.isoformat()}
+
+
+class PrototypeRuntime:
+    def __init__(self, db_path: str | Path, journal_path: str | Path, *, use_fixture: bool = False):
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(journal_path).parent.mkdir(parents=True, exist_ok=True)
+        self.store = CandleStore(db_path)
+        self.journal = ForecastJournal(journal_path)
+        self.engine = ContextEngine()
+        self.use_fixture = use_fixture or os.environ.get("AVAX_USE_FIXTURE") == "1"
+        self.source_label = "fixture" if self.use_fixture else SOURCE
+        self._snap_cache: dict[tuple, object] = {}
+        self._metrics_cache: dict[tuple, dict] = {}
+        if self.use_fixture:
+            self._seed_fixture()
+
+    def close(self) -> None:
+        self.store.close()
+        self.journal.close()
+
+    def _seed_fixture(self) -> None:
+        avax = sept_2026_failed_breakout("AVAXUSDT")
+        self.store.insert_many("fixture", avax)
+        self.store.insert_many("fixture", btc_companion(avax))
+        self.source_label = "fixture"
+
+    def _ensure(self, symbol: str) -> None:
+        existing = self.store.load(self.source_label if self.use_fixture else SOURCE, symbol, "5m")
+        if existing:
+            return
+        if self.use_fixture:
+            self._seed_fixture()
+            return
+        try:
+            from packages.market_data import BinanceVisionClient
+
+            client = BinanceVisionClient(timeout=12.0)
+            try:
+                candles = list(client.iter_recent_days(symbol, "5m", 10))
+            finally:
+                client.close()
+            if candles:
+                self.store.insert_many(SOURCE, candles)
+                self.source_label = SOURCE
+                return
+        except Exception:
+            pass
+        self.use_fixture = True
+        self._seed_fixture()
+
+    def candles(self, symbol: str, as_of: datetime | None = None, limit: int = 400):
+        self._ensure(symbol)
+        source = "fixture" if self.use_fixture else SOURCE
+        xs = self.store.load_upto(source, symbol, "5m", as_of) if as_of else self.store.load(source, symbol, "5m")
+        return xs[-limit:]
+
+    def snapshot(self, symbol: str, as_of: datetime | None = None):
+        avax = self.candles(symbol, as_of=as_of, limit=8000)
+        cache_key = (
+            symbol,
+            avax[-1].close_time().isoformat() if avax else None,
+            as_of.isoformat() if as_of else None,
+        )
+        cached = self._snap_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        btc = []
+        try:
+            btc = self.candles("BTCUSDT", as_of=as_of or avax[-1].close_time(), limit=8000)
+        except Exception:
+            btc = []
+        cross = {}
+        if btc:
+            btc_snap = self.engine.build_snapshot(btc, as_of=as_of)
+            ret = None
+            if len(btc) > 24:
+                ret = (btc[-1].close / btc[-25].close) - 1.0
+            cross = {
+                "BTCUSDT": {
+                    "regime_5m": btc_snap.timeframes.get("5m").regime if "5m" in btc_snap.timeframes else "unknown",
+                    "regime_4h": btc_snap.timeframes.get("4h").regime if "4h" in btc_snap.timeframes else "unknown",
+                    "ret_24": ret,
+                }
+            }
+        snap = self.engine.build_snapshot(avax, as_of=as_of, cross_market=cross)
+        self._snap_cache[cache_key] = snap
+        return snap
+
+    def forecast(self, symbol: str, as_of: datetime | None = None, persist: bool = True, snap=None) -> dict:
+        candles = self.candles(symbol, as_of=as_of, limit=8000)
+        payload = emit_baseline_forecast(candles)
+        snap = snap or self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
+        snapshot_id = hashlib.sha256(repr(snap.to_dict()).encode()).hexdigest()[:16]
+        manifest_id = None
+        try:
+            source = "fixture" if self.use_fixture else SOURCE
+            manifest_id = self.store.manifest(source, symbol, "5m").sha256[:16]
+        except Exception:
+            pass
+        if persist and not is_engaged():
+            self.journal.get_or_append(
+                forecast_id=f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}",
+                symbol=symbol,
+                forecasted_at=payload["forecasted_at"],
+                model_id=payload["model_id"],
+                payload=payload,
+                context_snapshot_id=snapshot_id,
+                feature_schema_version=FEATURE_SCHEMA,
+                data_manifest_id=manifest_id,
+            )
+        latest = self.journal.latest(symbol)
+        return {
+            "forecast": payload,
+            "journaled": latest is not None and latest["forecasted_at"] == payload["forecasted_at"],
+            "context_snapshot_id": snapshot_id,
+            "kill_switch_blocked_write": persist and is_engaged(),
+        }
+
+    def metrics(self, symbol: str, as_of: datetime | None = None) -> dict:
+        candles = self.candles(symbol, as_of=as_of, limit=8000)
+        if len(candles) < 120:
+            return {"available": False, "reason": "insufficient-history"}
+        cache_key = (
+            symbol,
+            candles[-1].close_time().isoformat(),
+            as_of.isoformat() if as_of else None,
+        )
+        cached = self._metrics_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        report = walk_forward_baselines(candles, horizons=10, min_history=80, step=15)
+        report["available"] = True
+        report["symbol"] = symbol
+        self._metrics_cache[cache_key] = report
+        return report
+
+    def health_brief(self, symbol: str = "AVAXUSDT") -> dict:
+        source = "fixture" if self.use_fixture else SOURCE
+        existing = self.store.load(source, symbol, "5m")
+        if not existing:
+            if self.use_fixture:
+                self._ensure(symbol)
+                existing = self.store.load("fixture", symbol, "5m")
+            else:
+                return {"status": "unknown", "age_seconds": None, "last_close": None, "source": self.source_label}
+        last_close = existing[-1].close_time()
+        health = freshness(last_close)
+        if self.use_fixture:
+            health["status"] = "fixture"
+        health["source"] = "fixture" if self.use_fixture else SOURCE
+        return health
+
+    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 240, persist: bool | None = None) -> dict:
+        candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, 400))
+        snap = self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
+        last_close = candles[-1].close_time()
+        health = freshness(last_close)
+        if self.use_fixture:
+            health["status"] = "fixture"
+        should_persist = persist if persist is not None else as_of is None
+        forecast = self.forecast(symbol, as_of=as_of or last_close, persist=should_persist, snap=snap)
+        metrics = self.metrics(symbol, as_of=as_of or last_close)
+        chart = [
+            {
+                "time": int(c.open_time.timestamp()),
+                "open": c.open,
+                "high": c.high,
+                "low": c.low,
+                "close": c.close,
+            }
+            for c in candles[-chart_limit:]
+        ]
+        hint = None
+        if self.use_fixture:
+            from packages.fixtures import bounce_start_index, sept_2026_failed_breakout
+
+            full = sept_2026_failed_breakout(symbol) if symbol == "AVAXUSDT" else []
+            if full:
+                hint = full[bounce_start_index(full) - 1].close_time().isoformat()
+        payload = {
+            "symbol": symbol,
+            "source": "fixture" if self.use_fixture else SOURCE,
+            "as_of": snap.as_of.isoformat(),
+            "health": health,
+            "last_price": candles[-1].close,
+            "snapshot": snap.to_dict(),
+            "interpretation": snap.interpretation,
+            "forecast": forecast,
+            "metrics": metrics,
+            "candles": chart,
+            "replay": as_of is not None,
+            "replay_hint_as_of": hint,
+            "execution_enabled": False,
+        }
+        return payload
+
+
+_RUNTIME: dict[tuple[str, str, bool], PrototypeRuntime] = {}
+
+
+def get_runtime() -> PrototypeRuntime:
+    db = os.environ.get("AVAX_MARKET_DB", "data/market.sqlite3")
+    journal = os.environ.get("AVAX_JOURNAL_DB", "data/journal.sqlite3")
+    fixture = os.environ.get("AVAX_USE_FIXTURE", "0") == "1"
+    key = (db, journal, fixture)
+    if key not in _RUNTIME:
+        _RUNTIME[key] = PrototypeRuntime(db, journal, use_fixture=fixture)
+    return _RUNTIME[key]
+
+
+def reset_runtime() -> None:
+    for runtime in _RUNTIME.values():
+        runtime.close()
+    _RUNTIME.clear()

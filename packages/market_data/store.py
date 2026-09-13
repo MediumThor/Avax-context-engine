@@ -60,6 +60,9 @@ class CandleStore:
         from datetime import datetime
         return [Candle(symbol,timeframe,datetime.fromisoformat(r[0]),r[1],r[2],r[3],r[4],r[5],True) for r in rows]
 
+    def load_upto(self, source: str, symbol: str, timeframe: str, as_of) -> list[Candle]:
+        return [c for c in self.load(source, symbol, timeframe) if c.close_time() <= as_of]
+
     def manifest(self, source: str, symbol: str, timeframe: str) -> DataManifest:
         candles=self.load(source,symbol,timeframe)
         if not candles: raise ValueError("No candles for manifest")
