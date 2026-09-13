@@ -150,3 +150,11 @@ def get_loop(loop_id: str) -> dict:
         return get_runtime().journal.get_loop_trace(loop_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="loop trace not found") from exc
+
+
+@app.get("/api/v1/theses/{thesis_id}")
+def get_thesis(thesis_id: str) -> dict:
+    stored = get_runtime().journal.get_thesis(thesis_id)
+    if stored is None:
+        raise HTTPException(status_code=404, detail="thesis not found")
+    return stored

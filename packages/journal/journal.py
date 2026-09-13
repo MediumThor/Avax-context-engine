@@ -34,6 +34,18 @@ class ForecastJournal:
           UNIQUE(forecast_id, content_hash),
           FOREIGN KEY(forecast_id) REFERENCES forecasts(id)
         );
+        CREATE TABLE IF NOT EXISTS theses (
+          id TEXT PRIMARY KEY,
+          lineage_id TEXT NOT NULL,
+          symbol TEXT NOT NULL,
+          direction TEXT NOT NULL,
+          timeframe TEXT,
+          status TEXT NOT NULL,
+          version INTEGER NOT NULL,
+          created_at TEXT NOT NULL,
+          invalidation_fingerprint TEXT NOT NULL,
+          payload_json TEXT NOT NULL
+        );
         """
         )
         cols = {row[1] for row in self.db.execute("PRAGMA table_info(forecasts)")}
@@ -218,6 +230,78 @@ class ForecastJournal:
             (forecast_id,),
         ).fetchall()
         return [json.loads(row[0]) for row in rows]
+
+    def get_thesis(self, thesis_id: str) -> dict | None:
+        row = self.db.execute(
+            """SELECT lineage_id, symbol, invalidation_fingerprint, payload_json
+               FROM theses WHERE id=?""",
+            (thesis_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {
+            "id": thesis_id,
+            "lineage_id": row[0],
+            "symbol": row[1],
+            "invalidation_fingerprint": row[2],
+            "payload": json.loads(row[3]),
+        }
+
+    def list_theses(self, symbol: str) -> list[dict]:
+        rows = self.db.execute(
+            """SELECT id, invalidation_fingerprint, payload_json
+               FROM theses WHERE symbol=? ORDER BY created_at ASC""",
+            (symbol,),
+        ).fetchall()
+        return [
+            {
+                "id": row[0],
+                "invalidation_fingerprint": row[1],
+                "payload": json.loads(row[2]),
+            }
+            for row in rows
+        ]
+
+    def sync_theses(self, theses: list[dict] | tuple) -> dict:
+        """Insert new thesis versions. Never rewrite invalidation on an existing id."""
+        wrote = 0
+        kept = 0
+        refused_move = 0
+        for row in theses:
+            if not isinstance(row, dict) or not row.get("id"):
+                continue
+            fingerprint = str(row.get("invalidation_fingerprint") or "")
+            existing = self.db.execute(
+                "SELECT invalidation_fingerprint FROM theses WHERE id=?",
+                (row["id"],),
+            ).fetchone()
+            if existing:
+                kept += 1
+                if existing[0] != fingerprint:
+                    refused_move += 1
+                continue
+            self.db.execute(
+                """INSERT INTO theses(
+                       id, lineage_id, symbol, direction, timeframe, status, version,
+                       created_at, invalidation_fingerprint, payload_json
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    row["id"],
+                    str(row.get("lineage_id") or row["id"]),
+                    str(row.get("symbol") or "AVAXUSDT"),
+                    str(row.get("direction") or ""),
+                    row.get("timeframe"),
+                    str(row.get("status") or "active"),
+                    int(row.get("version") or 1),
+                    str(row.get("created_at") or ""),
+                    fingerprint,
+                    self._canonical(row),
+                ),
+            )
+            wrote += 1
+        if wrote:
+            self.db.commit()
+        return {"wrote": wrote, "kept": kept, "refused_move": refused_move}
 
     def close(self) -> None:
         self.db.close()

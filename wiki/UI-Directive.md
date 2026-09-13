@@ -21,7 +21,7 @@ The default screen is a single analysis workspace with six synchronized informat
 2. **Main chart** — candlesticks, volume, structural zones, context overlays, forecast fan.
 3. **Context rail** — 1W/1D/4H/1H/15m/5m regime and state transitions.
 4. **Forecast panel** — horizons `h=1..10` (displayed as +1..+10), model ensemble, quantiles, calibration, and disagreement.
-5. **Thesis panel** — active bull/bear hypotheses, evidence, counter-evidence, confirmation and immutable invalidation.
+5. **Thesis panel** — active bull/bear hypotheses, evidence, counter-evidence, confirmation and immutable invalidation. Journaled rows show `ledger journaled`; that is storage provenance, not confidence.
 6. **Loop inspector** (replay and accuracy surfaces) — Recursive Learning Harness depth, halt reason, citations, and whether the explanation is incumbent or `harness-degraded`.
 
 On phones, these regions are not rendered as five simultaneous columns. The market header and chart remain visible; Context, Forecast, Thesis, and Journal use a touch-friendly segmented bottom sheet. Selection state is shared so opening a panel never creates a second, stale copy of market context.

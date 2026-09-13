@@ -91,6 +91,7 @@ export interface ThesisSummary {
   invalidation_rules?: ThesisRuleSummary[]
   confirmation_rules?: ThesisRuleSummary[]
   note?: string
+  ledger?: 'journaled' | 'ephemeral'
 }
 
 export interface FibLevelSummary {

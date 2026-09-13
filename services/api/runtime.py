@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -97,8 +98,9 @@ class PrototypeRuntime:
         xs = self.store.load_upto(source, symbol, "5m", as_of) if as_of else self.store.load(source, symbol, "5m")
         return xs[-limit:]
 
-    def snapshot(self, symbol: str, as_of: datetime | None = None):
+    def snapshot(self, symbol: str, as_of: datetime | None = None, persist_theses: bool | None = None):
         avax = self.candles(symbol, as_of=as_of, limit=8000)
+        should_write = persist_theses if persist_theses is not None else as_of is None
         cache_key = (
             symbol,
             avax[-1].close_time().isoformat() if avax else None,
@@ -106,6 +108,10 @@ class PrototypeRuntime:
         )
         cached = self._snap_cache.get(cache_key)
         if cached is not None:
+            if should_write and not is_engaged():
+                self.journal.sync_theses(cached.theses)
+                cached = self._freeze_theses_from_ledger(cached)
+                self._snap_cache[cache_key] = cached
             return cached
         btc = []
         try:
@@ -126,8 +132,29 @@ class PrototypeRuntime:
                 }
             }
         snap = self.engine.build_snapshot(avax, as_of=as_of, cross_market=cross)
+        if should_write and not is_engaged():
+            self.journal.sync_theses(snap.theses)
+        snap = self._freeze_theses_from_ledger(snap)
         self._snap_cache[cache_key] = snap
         return snap
+
+    def _freeze_theses_from_ledger(self, snap):
+        """Keep stored invalidation. A later rebuild may not move a journaled price."""
+        bound: list[dict[str, Any]] = []
+        for row in snap.theses:
+            item = dict(row)
+            stored = self.journal.get_thesis(str(item.get("id") or ""))
+            if stored:
+                payload = stored["payload"]
+                item["invalidation_rules"] = payload.get("invalidation_rules", item.get("invalidation_rules"))
+                item["invalidation_fingerprint"] = stored["invalidation_fingerprint"]
+                if payload.get("created_at"):
+                    item["created_at"] = payload["created_at"]
+                item["ledger"] = "journaled"
+            else:
+                item["ledger"] = "ephemeral"
+            bound.append(item)
+        return replace(snap, theses=tuple(bound))
 
     def forecast(self, symbol: str, as_of: datetime | None = None, persist: bool = True, snap=None) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=8000)
@@ -137,7 +164,9 @@ class PrototypeRuntime:
         except Exception:
             btc = []
         payload = self.emit_live_forecast(candles, as_of=as_of, btc=btc)
-        snap = snap or self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
+        snap = snap or self.snapshot(
+            symbol, as_of=as_of or candles[-1].close_time(), persist_theses=persist
+        )
         snapshot_id = hashlib.sha256(repr(snap.to_dict()).encode()).hexdigest()[:16]
         feature_schema = self._attach_mtf_feature_snapshot(payload, candles, as_of=as_of)
         manifest_id = None
@@ -418,12 +447,14 @@ class PrototypeRuntime:
 
     def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 240, persist: bool | None = None) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, 400))
-        snap = self.snapshot(symbol, as_of=as_of or candles[-1].close_time())
         last_close = candles[-1].close_time()
+        should_persist = persist if persist is not None else as_of is None
+        snap = self.snapshot(
+            symbol, as_of=as_of or last_close, persist_theses=should_persist
+        )
         health = freshness(last_close)
         if self.use_fixture:
             health["status"] = "fixture"
-        should_persist = persist if persist is not None else as_of is None
         forecast = self.forecast(symbol, as_of=as_of or last_close, persist=should_persist, snap=snap)
         metrics = self.metrics(symbol, as_of=as_of or last_close)
         chart = [

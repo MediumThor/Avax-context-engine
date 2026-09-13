@@ -202,11 +202,13 @@ See `packages/contracts/recursive/kill-switch.schema.json` and `packages/harness
 | POST | `/api/v1/agents/kill-switch/reset` | logged resume |
 | POST | `/api/v1/loops/run` | stub runner; 423 if severed. Live persist journals a LoopTrace after the forecast row. |
 | GET | `/api/v1/loops/{id}` | stored LoopTrace plus `forecast_id`; 404 if missing |
+| GET | `/api/v1/theses/{id}` | frozen journaled thesis payload plus `invalidation_fingerprint`; 404 if missing |
 
 ## API surface (v1)
 
 | method | path | purpose |
 | --- | --- | --- |
+| GET | `/api/v1/theses/{id}` | implemented: frozen journaled thesis + fingerprint |
 | GET | `/api/v1/loops/{id}` | implemented: stored LoopTrace + forecast_id |
 | GET | `/api/v1/loops?symbol=&from=&to=` | list traces |
 | POST | `/api/v1/loops/replay` | rebuild under `ReplayPackage` |

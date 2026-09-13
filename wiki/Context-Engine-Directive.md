@@ -112,6 +112,8 @@ Invalidation rules are immutable for that thesis version. If analysis changes, c
 
 `ContextEngine.build_snapshot` rebuilds a leakage-safe ledger from closed bars known at `as_of` and attaches compact `theses` summaries. A 5m observation cannot fire a 4h invalidation. Competing bull and bear versions may stay active until their own frozen rules fire.
 
+Live snapshots (`persist_theses=True`, kill switch off) then insert those summaries into the journal `theses` table. The same id is insert-only: a later rebuild cannot change `invalidation_fingerprint`. Replay and kill-switch paths bind stored rules when present and mark `ledger` `journaled` or `ephemeral`. They do not insert. `GET /api/v1/theses/{id}` returns the frozen row.
+
 ## Pattern hypotheses
 
 Pattern modules may emit hypotheses for:
