@@ -1,0 +1,12 @@
+{
+  "name": "freqtrade",
+  "repo": "https://github.com/freqtrade/freqtrade.git",
+  "commit": "c064be5325ad6941a2789add795434e6a13dffe9",
+  "license": "GPL-3.0",
+  "license_name": "GNU General Public License v3.0",
+  "vendor_path": "vendor/freqtrade",
+  "fork": false,
+  "complete_clone_required": true,
+  "role": "pinned upstream research backbone",
+  "notes": "Clone the complete upstream repository and checkout this pin. Do not copy upstream source into packages/. Combined distribution of a derivative work requires GPL review."
+}

@@ -6,16 +6,25 @@ from freqtrade.strategy import IStrategy
 
 
 class AvaxContextStrategy(IStrategy):
-    """FreqAI feature/target bridge only. It intentionally emits no trade entries or exits."""
+    """FreqAI feature/target bridge only.
+
+    This strategy is research/read-only. It never emits trade entries or exits.
+    Target columns use the FreqAI `&-` prefix and are labels, not features.
+    FreqAI remains infrastructure: this file does not claim out-of-sample
+    superiority over project baselines.
+    """
 
     timeframe = "5m"
     can_short = False
     process_only_new_candles = True
     startup_candle_count = 240
+    use_exit_signal = False
     minimal_roi = {"0": 1000}
     stoploss = -0.99
 
-    def feature_engineering_expand_all(self, dataframe: DataFrame, period: int, metadata: dict, **kwargs) -> DataFrame:
+    def feature_engineering_expand_all(
+        self, dataframe: DataFrame, period: int, metadata: dict, **kwargs
+    ) -> DataFrame:
         dataframe["%-rsi-period"] = ta.RSI(dataframe, timeperiod=period)
         dataframe["%-ema-period"] = ta.EMA(dataframe, timeperiod=period)
         dataframe["%-atr-period"] = ta.ATR(dataframe, timeperiod=period)
@@ -36,17 +45,20 @@ class AvaxContextStrategy(IStrategy):
         return dataframe
 
     def set_freqai_targets(self, dataframe: DataFrame, metadata: dict, **kwargs) -> DataFrame:
-        for h in range(1, 11):
-            dataframe[f"&-cum-ret-{h}"] = dataframe["close"].shift(-h) / dataframe["close"] - 1.0
+        # `&-` labels only. FreqAI must not treat these as features.
+        for horizon in range(1, 11):
+            dataframe[f"&-cum-ret-{horizon}"] = dataframe["close"].shift(-horizon) / dataframe["close"] - 1.0
         return dataframe
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         return self.freqai.start(dataframe, metadata, self)
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe["enter_long"] = 0; dataframe["enter_short"] = 0
+        dataframe["enter_long"] = 0
+        dataframe["enter_short"] = 0
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe["exit_long"] = 0; dataframe["exit_short"] = 0
+        dataframe["exit_long"] = 0
+        dataframe["exit_short"] = 0
         return dataframe
