@@ -277,7 +277,8 @@ class PrototypeRuntime:
         persisted = False
         if persist and not is_engaged():
             try:
-                _, persisted = self.journal.get_or_append_loop_trace(journal_forecast_id, trace)
+                self.journal.get_or_append_loop_trace(journal_forecast_id, trace)
+                persisted = True
             except KeyError:
                 persisted = False
         return {

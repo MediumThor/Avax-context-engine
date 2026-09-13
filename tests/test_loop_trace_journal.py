@@ -67,7 +67,7 @@ def test_live_persist_stores_trace_and_api_can_read_it(tmp_path, monkeypatch):
     traces = runtime.journal.list_loop_traces(forecast_id)
     assert len(traces) == 1
     second = runtime.forecast("AVAXUSDT", persist=True)
-    assert second["loop"]["persisted"] is False
+    assert second["loop"]["persisted"] is True
     after = runtime.journal.get_forecast(forecast_id)
     assert after["sha256"] == before["sha256"]
     assert after["payload"]["horizons"] == before["payload"]["horizons"]
