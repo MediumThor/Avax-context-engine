@@ -19,7 +19,9 @@ from packages.models import (
     attach_simple_return_aliases_payload,
     emit_baseline_forecast,
     emit_quantile_forecast,
+    score_journaled_forecasts,
     walk_forward_baselines,
+    walk_forward_probabilities,
 )
 from packages.models.outcomes import mature_outcomes
 
@@ -241,9 +243,36 @@ class PrototypeRuntime:
         cached = self._metrics_cache.get(cache_key)
         if cached is not None:
             return cached
-        report = walk_forward_baselines(candles, horizons=10, min_history=80, step=15)
+        report = walk_forward_baselines(candles, horizons=10, min_history=80, step=20)
+        cal = walk_forward_probabilities(candles, horizons=10, min_history=80, step=20, as_of=as_of)
+        journaled = score_journaled_forecasts(self.journal, symbol, as_of=as_of or candles[-1].close_time())
+        for key, block in report.get("horizons", {}).items():
+            extra = cal["horizons"].get(key, {})
+            journal_h = journaled["horizons"].get(key, {})
+            block["probability"] = extra.get("probability")
+            block["interval"] = extra.get("interval")
+            # Prefer journaled Brier/ECE when that sample is large enough; otherwise walk-forward.
+            j_prob = journal_h.get("probability") or {}
+            if j_prob.get("brier") is not None:
+                merged = dict(block.get("probability") or {})
+                merged.update(j_prob)
+                merged["source"] = "journal"
+                block["probability"] = merged
+            elif block.get("probability"):
+                block["probability"]["source"] = "walk_forward"
+            j_iv = journal_h.get("interval") or {}
+            if j_iv.get("coverage") is not None:
+                merged_iv = dict(block.get("interval") or {})
+                merged_iv.update(j_iv)
+                merged_iv["source"] = "journal"
+                block["interval"] = merged_iv
+            elif block.get("interval"):
+                block["interval"]["source"] = "walk_forward"
         report["available"] = True
         report["symbol"] = symbol
+        report["probability_calibration_ref"] = cal["calibration_ref"]
+        report["interval_ref"] = cal["interval_ref"]
+        report["promotion_allowed"] = False
         self._metrics_cache[cache_key] = report
         return report
 

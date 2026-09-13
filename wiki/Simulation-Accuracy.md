@@ -8,7 +8,9 @@ Simulations determine whether the system adds measurable forecasting value. They
 
 At every eligible 5m close, the system emits one forecast package containing horizons h=1..10. The package is frozen and later scored as each horizon matures.
 
-Research helper `walk_forward_quantiles` (PR branch `cursor/quantile-walkforward-8771`) scores `freqai.quantiles.research.v1` q50 MAE and empirical q10–q90 coverage against `baseline.zero` and `baseline.drift20` on chronological origins only. It never sets a product promotion flag. Coverage is a hit rate, not ECE.
+Research helper `walk_forward_quantiles` scores `freqai.quantiles.research.v1` q50 MAE and empirical q10–q90 coverage against `baseline.zero` and `baseline.drift20` on chronological origins only. It never sets a product promotion flag. Coverage is a hit rate, not ECE.
+
+`walk_forward_probabilities` scores the live `empirical_signed_base_rate.v1` P(up) (Brier / ECE) and an empirical residual-vs-drift20 q10–q90 hit rate. Those scores are attached to `/api/v1/market` metrics when the walk-forward sample is large enough. They are not a FreqAI-beats-baseline claim. `score_journaled_forecasts` uses the same gates on matured journal rows.
 
 ## Core simulations
 

@@ -98,6 +98,8 @@ export interface MarketPayload {
         sample_count: number
         zero?: { mae?: number; rmse?: number }
         drift20: { mae: number; rmse?: number; signed_direction?: { accuracy: number | null; sample_count: number } }
+        probability?: { sample_count?: number; brier?: number | null; ece?: number | null }
+        interval?: { sample_count?: number; coverage?: number | null }
       }
     >
   }
