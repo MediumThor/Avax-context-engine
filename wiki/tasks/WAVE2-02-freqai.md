@@ -64,7 +64,7 @@ Docs to update:
 - wiki/tasks/WAVE2-02-freqai.md
 
 Finish criteria:
-Tests green. Pin unchanged. No live trading path. Completion report below. Branch pushed and PR opened to main.
+Tests green. Pin unchanged. No live trading path. Completion report below. Branch pushed to `cursor/freqtrade-adapter-8021`. GitHub token cannot create PRs (`createPullRequest` 403); open from https://github.com/MediumThor/Avax-context-engine/compare/main...cursor/freqtrade-adapter-8021
 ```
 
 Watcher owner: Agent 00
