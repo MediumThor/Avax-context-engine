@@ -578,6 +578,7 @@ class PrototypeRuntime:
                 "high": c.high,
                 "low": c.low,
                 "close": c.close,
+                "volume": c.volume,
             }
             for c in candles[-chart_limit:]
         ]
