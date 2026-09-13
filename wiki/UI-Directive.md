@@ -26,6 +26,8 @@ The default screen is a single analysis workspace with six synchronized informat
 
 On phones, these regions are not rendered as five simultaneous columns. The market header and chart remain visible; Context, Forecast, Thesis, and Journal use a touch-friendly segmented bottom sheet. Selection state is shared so opening a panel never creates a second, stale copy of market context.
 
+On desktop (`min-width: 900px`) the workspace is viewport-locked: Lightweight Charts stays in the left pane while the context rail scrolls. Thesis and zone cards must not push the candles off-screen.
+
 ## Main chart requirements
 
 Use Lightweight Charts directly; do not recreate a charting engine.
