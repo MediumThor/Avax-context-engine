@@ -69,7 +69,7 @@ Tablet and desktop render the same destinations as a left rail. Route names, sel
 ## Deep-link contract
 
 Preferred query keys:
-- `tf=5m|15m|1h|4h|1d|1w`
+- `tf=5m|15m|1h|4h|1d|1w` — Market/Replay honor this. Invalid values degrade to `5m`. The pane uses leakage-safe resampled closed bars from the 5m store; HTF zones stay. Forecast remains the next 10 five-minute candles.
 - `at=<ISO timestamp>` for replay contexts
 - `as_of=<ISO timestamp>` for fixture/replay market slice
 - `panel=<context|forecast|thesis|journal>` — phone analysis sheet; desktop ignores the chrome and still shows the full rail

@@ -195,6 +195,8 @@ export interface MarketPayload {
     promotion_allowed?: boolean
   }
   candles: Candle[]
+  chart_timeframe?: string
+  chart_candles?: Partial<Record<string, Candle[]>>
   replay: boolean
   replay_hint_as_of?: string | null
   execution_enabled: boolean

@@ -18,11 +18,14 @@ import {
   destRoute,
   hrefNeedsCanonicalize,
   parseLocation,
+  type ChartTf,
   type DestId,
   type RouteState,
   type SheetPanel,
+  CHART_TFS,
   SHEET_LABELS,
   SHEET_PANELS,
+  TF_MINUTES,
 } from './nav/destinations'
 import { AccuracyView } from './views/AccuracyView'
 import { HealthView } from './views/HealthView'
@@ -137,7 +140,12 @@ export default function App() {
   const regimes = TF_ORDER.map((tf) => market?.snapshot.timeframes[tf]).filter(
     (state): state is TimeframeState => Boolean(state),
   )
-  const last = market?.candles.at(-1)
+  const chartSeries = useMemo(() => {
+    if (!market) return []
+    const rows = market.chart_candles?.[route.tf]
+    return rows && rows.length > 0 ? rows : market.candles
+  }, [market, route.tf])
+  const tfStep = TF_MINUTES[route.tf] * 60
   const overlayZones = useMemo(() => {
     if (!market) return []
     const zones: OverlayZone[] = []
@@ -179,18 +187,22 @@ export default function App() {
   }, [market])
   const chartPivots: SwingPivot[] = useMemo(() => {
     if (!market) return []
+    const selectedMins = TF_MINUTES[route.tf]
     const out: SwingPivot[] = []
     const seen = new Set<string>()
-    for (const tf of ['5m', '1h', '4h'] as const) {
+    for (const tf of TF_ORDER) {
+      const mins = TF_MINUTES[tf as ChartTf]
+      if (!mins || mins < selectedMins) continue
       for (const pivot of market.snapshot.timeframes[tf]?.swing_pivots ?? []) {
-        const key = `${tf}:${pivot.time}:${pivot.kind}`
+        const snapped = Math.floor(pivot.time / tfStep) * tfStep
+        const key = `${tf}:${snapped}:${pivot.kind}`
         if (seen.has(key)) continue
         seen.add(key)
-        out.push({ ...pivot, timeframe: pivot.timeframe ?? tf })
+        out.push({ ...pivot, time: snapped, timeframe: pivot.timeframe ?? tf })
       }
     }
     return out
-  }, [market])
+  }, [market, route.tf, tfStep])
   const overlayEvents: OverlayEvent[] = useMemo(() => {
     if (!market) return []
     const out: OverlayEvent[] = []
@@ -209,7 +221,7 @@ export default function App() {
         if (!raw) continue
         const ms = Date.parse(raw)
         if (!Number.isFinite(ms)) continue
-        const time = Math.floor(ms / 1000)
+        const time = Math.floor(Math.floor(ms / 1000) / tfStep) * tfStep
         out.push({
           id: `${zone.id}:${kind}:${time}`,
           kind,
@@ -224,7 +236,7 @@ export default function App() {
       }
     }
     return out
-  }, [market])
+  }, [market, tfStep])
   const accuracySlices = useMemo(() => accuracySlicesFromMarket(market), [market])
 
   function goDest(dest: DestId) {
@@ -248,6 +260,10 @@ export default function App() {
 
   function selectSheet(next: SheetPanel) {
     applyRoute({ ...route, panel: next }, 'replace')
+  }
+
+  function selectTf(next: ChartTf) {
+    applyRoute({ ...route, tf: next }, 'replace')
   }
 
   const showMarket = route.dest === 'market' || route.dest === 'replay'
@@ -311,39 +327,49 @@ export default function App() {
               <div className="chartPanel">
                 <div className="chartHeader">
                   <strong>{market ? `$${market.last_price.toFixed(2)}` : '—'}</strong>
-                  {last && market && (
-                    <span className={last.close >= market.candles[0].close ? 'bullish' : 'negative'}>
-                      5m
+                  {chartSeries.length > 0 && (
+                    <span className={chartSeries.at(-1)!.close >= chartSeries[0].close ? 'bullish' : 'negative'}>
+                      {route.tf}
                     </span>
                   )}
                   <span className="muted">{market?.source ?? ''}</span>
                 </div>
-                <div className="regimeStrip" aria-label="Regime by timeframe">
-                  {regimes.map((state) => (
-                    <span className={`regimeChip ${state.regime}`} key={`strip-${state.timeframe}`}>
-                      {state.timeframe} {state.regime}
-                    </span>
-                  ))}
-                </div>
+                <nav className="tfSwitch" aria-label="Chart timeframe">
+                  {CHART_TFS.map((tf) => {
+                    const state = market?.snapshot.timeframes[tf]
+                    return (
+                      <button
+                        key={tf}
+                        type="button"
+                        className={state ? state.regime : undefined}
+                        aria-pressed={route.tf === tf}
+                        onClick={() => selectTf(tf)}
+                      >
+                        {tf}
+                        {state ? ` ${state.regime}` : ''}
+                      </button>
+                    )
+                  })}
+                </nav>
                 {loading && <p className="pad muted">Loading market state…</p>}
                 {error && <p className="pad killError">{error}</p>}
-                {market && (
+                {market && chartSeries.length > 0 && (
                   <MarketChart
-                    candles={market.candles}
+                    candles={chartSeries}
                     zones={overlayZones}
                     pivots={chartPivots}
                     events={overlayEvents}
                     className="chart"
                   />
                 )}
-                {market && (
+                {market && chartSeries.length > 0 && (
                   <ContextOverlays
                     zones={overlayZones}
                     events={overlayEvents}
-                    priceMin={Math.min(...market.candles.map((c) => c.low))}
-                    priceMax={Math.max(...market.candles.map((c) => c.high))}
-                    timeStart={market.candles[0]?.time}
-                    timeEnd={market.candles.at(-1)?.time}
+                    priceMin={Math.min(...chartSeries.map((c) => c.low))}
+                    priceMax={Math.max(...chartSeries.map((c) => c.high))}
+                    timeStart={chartSeries[0]?.time}
+                    timeEnd={chartSeries.at(-1)?.time}
                     aria-label="Structural zones from the Context Engine snapshot"
                   />
                 )}
@@ -373,10 +399,16 @@ export default function App() {
                 <section className="card" data-sheet="context" id="sheet-panel-context" role="tabpanel" aria-labelledby="sheet-tab-context">
                   <h2>Regime stack</h2>
                   {regimes.map((state) => (
-                    <div className="row" key={state.timeframe}>
+                    <button
+                      type="button"
+                      className="row rowTf"
+                      key={state.timeframe}
+                      aria-pressed={route.tf === state.timeframe}
+                      onClick={() => selectTf(state.timeframe as ChartTf)}
+                    >
                       <span>{state.timeframe}</span>
                       <b className={state.regime}>{state.regime}</b>
-                    </div>
+                    </button>
                   ))}
                   <p className="muted">{market?.interpretation || 'Waiting for snapshot.'}</p>
                 </section>

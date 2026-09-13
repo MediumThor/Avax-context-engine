@@ -87,9 +87,19 @@ def system() -> dict:
 
 
 @app.get("/api/v1/market/{symbol}")
-def market(symbol: str, as_of: str | None = Query(default=None), limit: int = Query(default=1000, ge=50, le=2000)) -> dict:
+def market(
+    symbol: str,
+    as_of: str | None = Query(default=None),
+    limit: int = Query(default=1000, ge=50, le=2000),
+    tf: str | None = Query(default=None),
+) -> dict:
     try:
-        return get_runtime().market_payload(symbol.upper(), as_of=_parse_as_of(as_of), chart_limit=limit)
+        return get_runtime().market_payload(
+            symbol.upper(),
+            as_of=_parse_as_of(as_of),
+            chart_limit=limit,
+            chart_timeframe=tf or "5m",
+        )
     except LiveDataUnavailable as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:

@@ -71,7 +71,7 @@ Each timeframe row shows:
 - nearest validated support/resistance;
 - last meaningful state-change time.
 
-Clicking a timeframe changes chart granularity but does not erase the higher-timeframe hierarchy.
+Clicking a timeframe changes chart granularity but does not erase the higher-timeframe hierarchy. Market/Replay `?tf=` (and the chart/rail controls) switch the pane through leakage-safe resampled closed bars. Parent-timeframe zones remain. The forecast fan stays the next 10 five-minute candles and is not redrawn as if those horizons were 4h bars.
 
 ## Thesis panel
 

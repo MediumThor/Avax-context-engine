@@ -18,12 +18,16 @@ def test_five_destinations_are_named_and_routed():
     assert "aria-label=\"Primary destinations\"" in nav_tsx
     assert ".destBtn{" in css and "min-height:44px" in css
     assert "DestNav" in app
+    assert "tfSwitch" in app
+    assert "aria-label=\"Chart timeframe\"" in app
     assert "Market" in wiki and "Replay" in wiki and "Accuracy" in wiki
     assert "Health" in wiki and "More" in wiki
 
 
 def test_invalid_dest_and_as_of_plus_are_canonical():
     dests = Path("apps/web/src/nav/destinations.ts").read_text(encoding="utf-8")
-    assert "return { dest: 'market', symbol: DEFAULT_SYMBOL, asOf: null, panel: 'context' }" in dests
+    assert "return { dest: 'market', symbol: DEFAULT_SYMBOL, asOf: null, panel: 'context', tf: DEFAULT_TF }" in dests
+    assert "export function readTf" in dests
+    assert "tf=${encodeURIComponent(route.tf)}" in dests
     assert "raw.replace(/\\+/g, '%2B')" in dests
     assert "encodeURIComponent(route.asOf)" in dests
