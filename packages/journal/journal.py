@@ -23,6 +23,17 @@ class ForecastJournal:
           forecast_id TEXT NOT NULL, horizon INTEGER NOT NULL, payload_json TEXT NOT NULL,
           PRIMARY KEY(forecast_id, horizon), FOREIGN KEY(forecast_id) REFERENCES forecasts(id)
         );
+        CREATE TABLE IF NOT EXISTS loop_traces (
+          id TEXT PRIMARY KEY,
+          forecast_id TEXT NOT NULL,
+          encoder_memory_id TEXT,
+          as_of TEXT NOT NULL,
+          content_hash TEXT NOT NULL,
+          payload_json TEXT NOT NULL,
+          journaled_at TEXT NOT NULL,
+          UNIQUE(forecast_id, content_hash),
+          FOREIGN KEY(forecast_id) REFERENCES forecasts(id)
+        );
         """
         )
         cols = {row[1] for row in self.db.execute("PRAGMA table_info(forecasts)")}
@@ -160,6 +171,53 @@ class ForecastJournal:
             "context_snapshot_id": row[2],
             "feature_schema_version": row[3],
         }
+
+    def get_or_append_loop_trace(self, forecast_id: str, trace: dict) -> tuple[str, bool]:
+        """Append a LoopTrace. Never overwrites an existing id or content_hash."""
+        existing = self.db.execute(
+            "SELECT id FROM loop_traces WHERE forecast_id=? AND content_hash=?",
+            (forecast_id, trace["content_hash"]),
+        ).fetchone()
+        if existing:
+            return existing[0], False
+        by_id = self.db.execute("SELECT content_hash FROM loop_traces WHERE id=?", (trace["id"],)).fetchone()
+        if by_id:
+            return str(trace["id"]), False
+        forecast = self.db.execute("SELECT id FROM forecasts WHERE id=?", (forecast_id,)).fetchone()
+        if forecast is None:
+            raise KeyError(forecast_id)
+        raw = self._canonical(trace)
+        self.db.execute(
+            """INSERT INTO loop_traces(id,forecast_id,encoder_memory_id,as_of,content_hash,payload_json,journaled_at)
+               VALUES(?,?,?,?,?,?,?)""",
+            (
+                trace["id"],
+                forecast_id,
+                trace.get("encoder_memory_id"),
+                trace["as_of"],
+                trace["content_hash"],
+                raw,
+                trace.get("journaled_at") or trace["as_of"],
+            ),
+        )
+        self.db.commit()
+        return str(trace["id"]), True
+
+    def get_loop_trace(self, loop_id: str) -> dict:
+        row = self.db.execute(
+            "SELECT forecast_id, payload_json FROM loop_traces WHERE id=?",
+            (loop_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(loop_id)
+        return {"forecast_id": row[0], "trace": json.loads(row[1])}
+
+    def list_loop_traces(self, forecast_id: str) -> list[dict]:
+        rows = self.db.execute(
+            "SELECT payload_json FROM loop_traces WHERE forecast_id=? ORDER BY journaled_at ASC",
+            (forecast_id,),
+        ).fetchall()
+        return [json.loads(row[0]) for row in rows]
 
     def close(self) -> None:
         self.db.close()

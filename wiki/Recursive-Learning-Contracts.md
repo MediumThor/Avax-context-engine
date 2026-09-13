@@ -200,13 +200,14 @@ See `packages/contracts/recursive/kill-switch.schema.json` and `packages/harness
 | GET | `/api/v1/agents/kill-switch` | current engage state + audit events |
 | POST | `/api/v1/agents/kill-switch` | sever all recursive agent work |
 | POST | `/api/v1/agents/kill-switch/reset` | logged resume |
-| POST | `/api/v1/loops/run` | stub runner; 423 if severed. Live loops currently attach a compact summary on `GET /api/v1/market` (`forecast.loop`) after the forecast is journaled. Traces are not stored yet. |
+| POST | `/api/v1/loops/run` | stub runner; 423 if severed. Live persist journals a LoopTrace after the forecast row. |
+| GET | `/api/v1/loops/{id}` | stored LoopTrace plus `forecast_id`; 404 if missing |
 
 ## API surface (v1)
 
 | method | path | purpose |
 | --- | --- | --- |
-| GET | `/api/v1/loops/{id}` | fetch journaled trace |
+| GET | `/api/v1/loops/{id}` | implemented: stored LoopTrace + forecast_id |
 | GET | `/api/v1/loops?symbol=&from=&to=` | list traces |
 | POST | `/api/v1/loops/replay` | rebuild under `ReplayPackage` |
 | GET | `/api/v1/loops/{id}/outcome` | attached scores |

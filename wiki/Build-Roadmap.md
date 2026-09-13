@@ -11,7 +11,7 @@ Several phases have prototype code on `main` (`811ea80`, WAVE-2 integrate + hone
 | 2 — Context Engine | Pivots/zones/regime/patterns/cross-market/analogs + live snapshot theses with frozen invalidation (this branch). Zone lifecycle still does not drive `build_snapshot`. |
 | 3 — Forecasting | Journaled next-10 quantiles + walk-forward vs drift20 on `main` (`80a4d70`); challenger now training on `avax.features.mtf.v1` (this branch, not promoted) |
 | 4 — Journal/evaluation | Journal + walk-forward baseline MAE; this branch adds walk-forward Brier/ECE/coverage for empirical P(up) and residual q10–q90 when n is sufficient. Not a promotion claim. |
-| 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; live forecast journals first then runs a bounded loop that reads frozen snapshot analogs and theses. LoopTraces are not persisted; `/loops/run` remains a stub |
+| 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; live forecast journals first, runs a bounded loop, then appends LoopTrace without rewriting the forecast. `/loops/run` remains a stub |
 | 6 — Web App | ForecastFan / overlays / AccuracyPanel mounted; fan draws only when q10/q50/q90 are journaled |
 | 7-10 | Not complete |
 

@@ -22,6 +22,10 @@ export function LoopTraceCard({ loop }: { loop: LoopSummary }) {
             <span>Hypotheses</span>
             <b>{(loop.hypothesis_ids ?? []).length}</b>
           </div>
+          <div className="row">
+            <span>Trace</span>
+            <b>{loop.persisted ? 'journaled' : 'not stored'}</b>
+          </div>
           {(loop.hypothesis_ids ?? []).length > 0 && (
             <p className="muted">{loop.hypothesis_ids?.join(', ')}</p>
           )}

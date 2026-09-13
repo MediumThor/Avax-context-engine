@@ -167,6 +167,7 @@ class PrototypeRuntime:
             snapshot_id=snapshot_id,
             manifest_id=manifest_id,
             feature_schema=feature_schema,
+            persist=persist,
         )
         latest = self.journal.latest(symbol)
         return {
@@ -188,12 +189,14 @@ class PrototypeRuntime:
         snapshot_id: str,
         manifest_id: str | None,
         feature_schema: str,
+        persist: bool,
     ) -> dict[str, Any]:
         """Bounded loop after journal write. Never mutates the forecast payload."""
         skipped = {
             "ran": False,
             "reason": "kill_switch",
             "note": "Kill switch skipped the loop. Forecast row unchanged.",
+            "persisted": False,
         }
         if is_engaged():
             return skipped
@@ -205,6 +208,7 @@ class PrototypeRuntime:
                 snapshot_id=snapshot_id,
                 manifest_id=manifest_id,
                 feature_schema=feature_schema,
+                persist=persist,
             )
         except AgentsSevered:
             return skipped
@@ -212,6 +216,7 @@ class PrototypeRuntime:
             return {
                 "ran": False,
                 "reason": "loop_error",
+                "persisted": False,
                 "note": f"Loop did not finish ({type(exc).__name__}). Forecast row unchanged. Not confidence.",
             }
 
@@ -224,6 +229,7 @@ class PrototypeRuntime:
         snapshot_id: str,
         manifest_id: str | None,
         feature_schema: str,
+        persist: bool,
     ) -> dict[str, Any]:
         from services.harness.encoder import build_encoder_memory, snapshot_analogs, snapshot_theses
         from services.harness.encoder.tools import EncoderTools
@@ -267,6 +273,14 @@ class PrototypeRuntime:
             journaled_at=str(payload.get("forecasted_at") or memory["as_of"]),
         )
         halt = trace.get("halt") or {}
+        journal_forecast_id = f"{symbol}:{payload['forecasted_at']}:{payload['model_id']}"
+        persisted = False
+        if persist and not is_engaged():
+            try:
+                self.journal.get_or_append_loop_trace(journal_forecast_id, trace)
+                persisted = True
+            except KeyError:
+                persisted = False
         return {
             "ran": True,
             "loop_id": trace.get("id"),
@@ -276,6 +290,7 @@ class PrototypeRuntime:
             "analog_count": len(analogs),
             "hypothesis_ids": list(memory.get("hypothesis_ids") or []),
             "zone_count": len(memory.get("zone_ids") or []),
+            "persisted": persisted,
             "note": "Loop reads frozen snapshot analogs and theses. Not a forecast and not confidence.",
         }
 
