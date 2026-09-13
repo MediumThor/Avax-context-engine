@@ -32,17 +32,17 @@ Living assignment board. Agent 00 updates this when a lane is claimed, blocked, 
 
 ## Wave 1 (parallel, Grok 4.6)
 
-| agent | task | branch | contract | status |
+| agent | task | branch | contract | status | run |
 | --- | --- | --- | --- | --- |
-| 00 | Watcher artifacts + review authority | `cursor/agent-00-rlh-watch-ee66` | [RLH-00](tasks/RLH-00-watch.md) | active |
-| 25 | Schema stubs / generated types | `cursor/agent-25-rlh-schema-ee66` | [RLH-25](tasks/RLH-25-schema-stubs.md) | active |
-| 26 | EncoderMemory builder + read tools | `cursor/agent-26-rlh-encoder-ee66` | [RLH-26](tasks/RLH-26-encoder-memory.md) | active |
-| 27 | Same-transition LoopStep | `cursor/agent-27-rlh-loopstep-ee66` | [RLH-27](tasks/RLH-27-loopstep.md) | active |
-| 28 | Challenge + invalidation step | `cursor/agent-28-rlh-challenge-ee66` | [RLH-28](tasks/RLH-28-challenge.md) | active |
-| 29 | SWA window + merge | `cursor/agent-29-rlh-swa-ee66` | [RLH-29](tasks/RLH-29-swa.md) | active |
-| 30 | Process metrics + fixture runner | `cursor/agent-30-rlh-eval-ee66` | [RLH-30](tasks/RLH-30-eval.md) | active |
-| 33 | CI gate for RLH contracts | `cursor/agent-33-rlh-ci-ee66` | [RLH-33](tasks/RLH-33-ci.md) | active |
-| 36 | Leakage red team | `cursor/agent-36-rlh-leakage-ee66` | [RLH-36](tasks/RLH-36-leakage.md) | active |
+| 00 | Watcher artifacts + review authority | `cursor/agent-00-rlh-watch-ee66` | [RLH-00](tasks/RLH-00-watch.md) | launched | [00](bc-9996471d-d66b-544b-897a-746eb95bee07) |
+| 25 | Schema stubs / generated types | `cursor/agent-25-rlh-schema-ee66` | [RLH-25](tasks/RLH-25-schema-stubs.md) | launched | [25](bc-ce2386ac-ef67-5abf-89df-0f62bb3ebbeb) |
+| 26 | EncoderMemory builder + read tools | `cursor/agent-26-rlh-encoder-ee66` | [RLH-26](tasks/RLH-26-encoder-memory.md) | launched | [26](bc-d8aaf7c2-47b5-5614-8ed4-ebd78c30f0d9) |
+| 27 | Same-transition LoopStep | `cursor/agent-27-rlh-loopstep-ee66` | [RLH-27](tasks/RLH-27-loopstep.md) | launched | [27](bc-e46a3bba-daab-50da-98b1-3fcea720ddf7) |
+| 28 | Challenge + invalidation step | `cursor/agent-28-rlh-challenge-ee66` | [RLH-28](tasks/RLH-28-challenge.md) | launched | [28](bc-dac4081a-3646-574f-b494-24eebc3f0e53) |
+| 29 | SWA window + merge | `cursor/agent-29-rlh-swa-ee66` | [RLH-29](tasks/RLH-29-swa.md) | launched | [29](bc-585b2aff-378b-5f1d-9f8c-84727305a991) |
+| 30 | Process metrics + fixture runner | `cursor/agent-30-rlh-eval-ee66` | [RLH-30](tasks/RLH-30-eval.md) | launched | [30](bc-aa834c0d-7f9a-5d91-a09f-7482b09bf974) |
+| 33 | CI gate for RLH contracts | `cursor/agent-33-rlh-ci-ee66` | [RLH-33](tasks/RLH-33-ci.md) | launched | [33](bc-77a8126d-c585-5525-ae72-7b4b23eaf83f) |
+| 36 | Leakage red team | `cursor/agent-36-rlh-leakage-ee66` | [RLH-36](tasks/RLH-36-leakage.md) | launched | [36](bc-52e0198b-cdf2-5fe2-ac05-32de29f90652) |
 
 ## Wave 2 (do not start until wave 1 integrates)
 
