@@ -33,6 +33,30 @@
       "status": "in_flight",
       "temporary_source": "cursor/honest-market-slice-ee66",
       "write_scope": ["apps/web/**", "services/api/**", "packages/models/baselines.py"]
+    },
+    {
+      "id": "WAVE2-01",
+      "agent": "01",
+      "title": "Data integrity helpers",
+      "status": "launched",
+      "run_id": "bc-0d25ac7a-6464-53f8-b905-a450fdce985e",
+      "write_scope": ["packages/market_data/integrity.py", "tests/test_data_integrity.py"]
+    },
+    {
+      "id": "WAVE2-02",
+      "agent": "02",
+      "title": "FreqAI adapter hardening",
+      "status": "launched",
+      "run_id": "bc-2c2ec82e-6b02-5df3-a85d-426850658021",
+      "write_scope": ["adapters/freqtrade/**", "scripts/bootstrap_freqtrade.sh"]
+    },
+    {
+      "id": "WAVE2-15",
+      "agent": "15",
+      "title": "Thesis ledger",
+      "status": "launched",
+      "run_id": "bc-791f836d-35e3-516f-ac7c-b9740b555f27",
+      "write_scope": ["packages/context_engine/thesis.py", "tests/test_thesis.py"]
     }
   ]
 }
