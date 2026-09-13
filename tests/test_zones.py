@@ -285,13 +285,14 @@ def test_september_failed_eight_spirit_no_moving_invalidation():
         bar(4, 8.12, 8.15, 8.00, 8.02),
         bar(5, 8.00, 8.04, 7.88, 7.91),  # support penetrated
         bar(6, 7.90, 7.92, 7.76, 7.80),  # support accepted
-        bar(7, 7.78, RELIEF_HIGH, 7.50, RELIEF_CLOSE),  # relief bounce, no reclaim
+        bar(7, 7.70, 8.02, 7.50, RELIEF_CLOSE),  # wick into ~$8, close 7.58 — not a reclaim
     ]
     atrs = [ATR] * len(candles)
     tracker = track_zones(candles, [resistance(), support()], config=config, atrs=atrs)
     resist = tracker.get("z-r-815-820")
     supp = tracker.get("z-s-794-806")
 
+    assert RELIEF_HIGH < SUPPORT_LOW
     assert resist.lower == RESISTANCE_LOW and resist.upper == RESISTANCE_HIGH
     assert resist.accepted_through is False
     assert resist.interaction in {"rejected", "testing", "approaching"}
@@ -380,13 +381,16 @@ def test_all_required_interaction_states_are_reachable():
         ],
         support(),
     )
-    collect(
-        [
-            bar(0, 8.05, 8.10, 8.00, 8.08),
-            bar(1, 8.20, 8.90, 8.18, 8.80),
-        ],
-        resistance(id="z-r-retire"),
+    retire_tracker = ZoneTracker(
+        [resistance(id="z-r-retire")],
+        config=AcceptanceConfig(close_count=1, retire_atr=1.5, mode="close_count"),
     )
+    for candle in (
+        bar(0, 8.05, 8.10, 8.00, 8.08),
+        bar(1, 8.20, 8.90, 8.18, 8.80),
+    ):
+        retire_tracker.ingest(candle, ATR)
+        seen.add(retire_tracker.current()[0].interaction)
     for state in (
         "approaching",
         "testing",

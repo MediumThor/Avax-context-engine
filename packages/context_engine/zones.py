@@ -213,6 +213,10 @@ def _outcome_for(
     if interaction in {"accepted", "retesting"}:
         return "accepted_through"
     if interaction == "retired":
+        if prior is not None:
+            return prior
+        if accepted_through:
+            return "accepted_through"
         return prior
     if interaction == "rejected":
         return "held"
@@ -709,6 +713,9 @@ class ZoneTracker:
             if accept or (beyond and not intersects):
                 return "accepted", ("retest_held",) + accept_cause
             return "retesting", ("retest_opposite_side",) + in_zone
+
+        if accept and far_beyond and state in {"approaching", "testing", "penetrated", "rejected"}:
+            return "retired", ("acceptance_beyond", "retired_extended_beyond")
 
         if state == "penetrated":
             if accept:

@@ -84,4 +84,14 @@ Contract `status` mapping: approaching/testing/rejected/penetrated → `active`;
 
 ## Completion report
 
-Pending test run on this branch.
+- **What changed:** Added `packages/context_engine/zones.py` — a chronological zone tracker that treats support/resistance as frozen ranges with append-only provenance. Interaction states are approaching → testing → rejected | penetrated → accepted → retesting → reclaimed | retired. Acceptance is configurable via close count and/or ATR distance; wicks are probes only. `cluster_zones` is imported for seeding and is not rewritten. Bounds cannot be moved after creation (`ImmutableZoneBoundsError`).
+- **Files changed:**
+  - `packages/context_engine/zones.py` (new)
+  - `tests/test_zones.py` (new)
+  - `wiki/tasks/WAVE2-11-zones.md` (this file)
+- **Tests run:** `python3 -m pytest tests/test_zones.py tests/test_context_engine.py tests/test_leakage.py -q` → **22 passed**.
+- **Metrics before/after:** No forecasting metrics. Before: `cluster_zones` emitted static ranges with no lifecycle. After: wick-through is not acceptance; one close beyond is penetration unless ATR distance fires; failed breakout and successful reclaim are distinct outcomes; September-spirit relief bounce does not reclaim ~$8 support or move its bounds; future-bar perturbation does not change earlier state.
+- **Known limitations:** Volume expansion is optional (`volume_multiple`) and not used by default. Tracker is not yet wired into `engine.py` (forbidden this task). Role for mixed clusters still comes from `cluster_zones` at seed time. Retire distance is ATR-multiple based, not calendar time.
+- **Documentation updated:** this task contract only. `Data-Contracts.md` / `structure.py` unchanged.
+- **Contract/schema changed:** no shared schema owner change. Additive types only (`ZoneSpec`, `TrackedZone`, `AcceptanceConfig`, `ZoneProvenance`). `to_dict()` includes both directive `kind`/`tests` and contract `role`/`test_count`.
+- **Recommended next task:** Agent 00 / 16 wire `ZoneTracker` into snapshot replay (without silently overwriting 4H state from 5m). Agent 19 can render these ranges and provenance. Agent 13 can consume `failed_breakout` / `successful_reclaim` outcomes as hypotheses.
