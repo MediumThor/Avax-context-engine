@@ -1,3 +1,11 @@
 {
-  "queue": []
+  "canonical_branch": "main",
+  "integration_strategy": "immediate-mainline",
+  "queue": [],
+  "rules": [
+    "Accepted agent work is integrated directly into current main.",
+    "Temporary branches/worktrees are isolation surfaces only.",
+    "Post-integration tests run on main before a task is marked complete.",
+    "Conflicting candidate changes are serialized by Agent 00 against the latest main."
+  ]
 }
