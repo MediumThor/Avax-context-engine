@@ -22,7 +22,7 @@ Rules:
 
 1. Built by the causal encoder (Context Engine + feature assembler) **before** the first `LoopStep`.
 2. Immutable for the life of that `LoopTrace`.
-3. Hierarchical: `1W` / `1D` / `4H` / `1H` / `15m` / `5m` are separate slices.
+3. Hierarchical: `1w` / `1d` / `4h` / `1h` / `15m` / `5m` are separate machine-facing slices.
 4. A 5m observed token updates only the 5m slice. It cannot rewrite parent regime, parent swing state, or parent invalidations.
 5. Rebuildable from raw candles + engine versions. Cache corruption is recoverable.
 6. Hash (`encoder_memory_hash`) is stored on the journal row.
@@ -59,7 +59,7 @@ Rules:
 2. Warm-start from the previous candle's halted state is allowed as initialization, never as evidence.
 3. If `s_t` asserts a zone, probability, or invalidation missing from EncoderMemory / ForecastPackage, `D_φ` must drop the claim and emit a contradiction event.
 4. `confidence_source` is an enum, not a made-up percentage.
-5. Parent/child regime language must follow [`Market-State-Spec.md`](Market-State-Spec.md): a 5m bounce inside a 4H bear is not a reversal.
+5. Parent/child regime language must follow [`Market-State-Spec.md`](Market-State-Spec.md): a 5m bounce inside a 4h bear is not a reversal.
 
 ## Bank 3 — Sliding-window KV `C_t^D`
 
@@ -129,4 +129,4 @@ RLT's unbounded temporal depth is the path across tokens. For this project the l
 
 Each trace is a new decoder prefill over a new encoder memory, optionally warm-started. That is how the system stays living without treating one candle as an infinite inner loop.
 
-Higher-timeframe encoder slices change only when those candles close. The recurrent path may notice a 5m event; it may not promote that event to 4H memory.
+Higher-timeframe encoder slices change only when those candles close. The recurrent path may notice a 5m event; it may not promote that event to 4h memory.

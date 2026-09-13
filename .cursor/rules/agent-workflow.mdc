@@ -5,11 +5,12 @@ alwaysApply: true
 
 # Agent workflow
 
-Use `/wiki/Agent-Orchestration.md`.
+Use `/wiki/Agent-Orchestration.md` and `/wiki/Agent-Build-Plan.md`.
 
-Every task needs a bounded contract before implementation. Use branch/worktree `agent/<nn>-<slug>` where practical. Do not overlap write scopes with another agent.
+Every task needs a bounded contract before implementation. Store it in the issue/task system or under `.cursor/plans/`. Use branch/worktree `agent/<nn>-<slug>`. Do not overlap write scopes with another agent.
 
 Before claiming completion:
+
 - run the task's tests;
 - run applicable leakage/regression checks;
 - update relevant wiki/contracts;
@@ -19,3 +20,5 @@ Before claiming completion:
 Agent 00 is the Watcher. Treat Watcher correction prompts as blocking review feedback. Do not work around a rejection by weakening tests or changing benchmark definitions.
 
 Prefer small mergeable increments over giant rewrites. Shared schemas have one owner per batch.
+
+`main` is the only durable integrated product branch. A task is not delivered merely because it exists on an agent or integration branch.

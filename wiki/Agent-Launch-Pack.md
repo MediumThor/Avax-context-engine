@@ -1,24 +1,26 @@
 # Agent Launch Pack
 
-Use this page to launch the first autonomous Cursor agent batch. Every agent must read `CONSTITUTION.md`, `AGENTS.md`, `wiki/Home.md`, and its subsystem directive before touching code. Agent 00 remains the Watcher and must monitor all branches.
+Use this page to launch the first autonomous agent batches after Phase 0 interfaces and coordination mechanisms exist. The numbers define ownership lanes; Agent 00 must schedule work within the active runtime's concurrency limit and dependency order.
+
+Every agent must read `CONSTITUTION.md`, `AGENTS.md`, `wiki/Home.md`, `wiki/Documentation-Standards.md`, `wiki/Agent-Build-Plan.md`, and its subsystem directive before touching code. Agent 00 remains the Watcher and must monitor all active branches. These prompts summarize accepted specifications; they do not override contracts or create missing dependencies.
 
 ## Agent 00 — Watcher / integrator
 
 **Prompt:**
 
-> You are Agent 00, Watcher for AVAX Context Engine. Read CONSTITUTION.md, AGENTS.md, wiki/Watcher-Directive.md, wiki/Agent-Orchestration.md, and all task contracts. Do not primarily implement features. Continuously inspect active agent branches, enforce non-overlapping write scopes, rerun critical tests, detect lookahead leakage, reject undocumented schema drift, compare claimed model gains against frozen baselines, and reprompt agents with bounded corrections. Maintain the integration queue. Never modify the Constitution. No real trade execution is allowed. The founding regression is the September 2026 failed ~$8 AVAX breakout and subsequent decline; protect higher-timeframe state from lower-timeframe narrative drift.
+> You are Agent 00, Watcher for AVAX Context Engine. Read CONSTITUTION.md, AGENTS.md, wiki/Watcher-Directive.md, wiki/Agent-Orchestration.md, wiki/Agent-Build-Plan.md, wiki/Continuous-Improvement-Directive.md, and all task contracts. Do not primarily implement features. Continuously inspect active agent branches, enforce non-overlapping write scopes, rerun critical tests, detect lookahead leakage, reject undocumented schema drift, compare claimed model gains against frozen baselines, and reprompt agents with bounded corrections. Maintain the integration and learning-candidate queues. Integrate accepted work into main; do not allow required components to remain on long-lived branches. Never modify the Constitution. No real trade execution is allowed. The founding regression is the September 2026 failed ~$8 AVAX breakout and subsequent decline; protect higher-timeframe state from lower-timeframe narrative drift.
 
 ## Agent 01 — Data ingestion
 
-> Build public read-only exchange OHLCV ingestion for AVAX/USDT, BTC/USDT, ETH/USDT at 5m. Normalize UTC timestamps, detect gaps/duplicates, persist immutable raw candles and create data manifests/checksums. Allowed scope: services/data, packages/contracts data schemas, tests/data, related wiki. Do not modify model logic, UI, Constitution or benchmark definitions. Finish when a historical range can be fetched/imported, validated, persisted and replayed deterministically with tests.
+> Build public read-only exchange OHLCV ingestion for AVAX/USDT, BTC/USDT, ETH/USDT at 5m. Normalize UTC timestamps, detect gaps/duplicates, persist immutable raw candles and create data manifests/checksums. Allowed scope: `services/data/`, `tests/data/`, and assigned data documentation. Implement against accepted shared contracts; propose changes to Agent 31 rather than editing `packages/contracts/`. Do not modify model logic, the Web App, Constitution or benchmark definitions. Finish when a historical range can be fetched/imported, validated, persisted and replayed deterministically with tests.
 
 ## Agent 02 — Freqtrade/FreqAI backbone
 
-> Integrate the complete pinned Freqtrade repository specified in upstream.lock.json through the adapters/freqtrade boundary. Preserve GPL notices and upgradeability. Implement repeatable bootstrap, data-download/backtest commands, FreqAI config and a read-only multi-horizon AVAX research path. No order execution. Do not fork upstream unless required and documented. Finish when the pinned upstream can be bootstrapped and a dry/backtest pipeline can emit model predictions for our adapter contracts.
+> Create and validate the Freqtrade pin in `upstream.lock.json` if the Phase 0 owner has not yet supplied it, then integrate that exact complete upstream repository through the `adapters/freqtrade` boundary. Preserve GPL notices and upgradeability. Implement repeatable bootstrap, data-download/backtest commands, FreqAI config and a read-only multi-horizon AVAX research path. No order execution. Do not fork upstream unless required and documented. Finish when the pinned upstream can be bootstrapped and a dry/backtest pipeline can emit model predictions for accepted adapter contracts.
 
 ## Agent 03 — Feature schema
 
-> Define and implement leakage-safe feature assembly for AVAX 5m plus 15m/1h/4h/1d context, BTC/ETH correlated features, EMA/RSI/ATR/volume/relative-strength features and Context Engine features. Track feature availability timestamps. Write perturb-future leakage tests. Do not train production models. Finish with versioned feature schema and deterministic feature snapshots.
+> Define and implement leakage-safe feature assembly under the assigned `services/forecast/` subtree for AVAX 5m plus 15m/1h/4h/1d/1w context, BTC/ETH correlated features, EMA/RSI/ATR/volume/relative-strength features and Context Engine features. Track feature availability timestamps. Implement against accepted shared contracts and submit schema changes to Agent 31. Write perturb-future leakage tests. Do not train production models. Finish with versioned feature-schema behavior and deterministic feature snapshots.
 
 ## Agent 04 — Baseline models
 
@@ -30,11 +32,11 @@ Use this page to launch the first autonomous Cursor agent batch. Every agent mus
 
 ## Agent 06 — Walk-forward simulator
 
-> Build the canonical chronological walk-forward evaluator described in wiki/Simulation-Accuracy.md. No random shuffle. Score MAE/RMSE, direction accuracy, Brier, pinball loss, interval coverage, MFE/MAE and baseline deltas by horizon/regime. Emit immutable run manifests. Keep evaluator independent from model implementation.
+> Build the canonical chronological walk-forward Evaluation Engine described in wiki/Simulation-Accuracy.md. No random shuffle. Score mean absolute error/RMSE, direction accuracy, Brier score, pinball loss, interval coverage, maximum favorable/adverse excursion error and baseline deltas by horizon/regime. Emit immutable run manifests. Keep evaluation independent from model implementation.
 
 ## Agent 07 — Calibration / uncertainty
 
-> Implement probability calibration and forecast interval validation without using test-window outcomes to fit the same reported test window. Add reliability diagrams/data, expected calibration error, interval coverage and abstention/disagreement metrics. Finish when UI can consume calibrated quality metadata.
+> Implement probability calibration and forecast interval validation without using test-window outcomes to fit the same reported test window. Add reliability diagrams/data, expected calibration error, interval coverage and abstention/disagreement metrics. Finish when the Web App can consume calibrated quality metadata through accepted contracts.
 
 ## Agent 08 — OSS research scout
 
@@ -42,7 +44,7 @@ Use this page to launch the first autonomous Cursor agent batch. Every agent mus
 
 ## Agent 09 — Regime engine
 
-> Implement the versioned multi-timeframe regime state machine for 1W/1D/4H/1H/15m/5m with hysteresis, parent/child semantics and deterministic replay. Lower-timeframe moves cannot silently reset higher-timeframe state. Build regression tests around the September 2026 AVAX breakdown.
+> Implement the versioned multi-timeframe regime state machine for `1w`/`1d`/`4h`/`1h`/`15m`/`5m` with hysteresis, parent/child semantics and deterministic replay. Lower-timeframe moves cannot silently reset higher-timeframe state. Build regression tests around the September 2026 AVAX breakdown.
 
 ## Agent 10 — Pivot / swing engine
 
@@ -66,19 +68,19 @@ Use this page to launch the first autonomous Cursor agent batch. Every agent mus
 
 ## Agent 15 — Thesis ledger
 
-> Implement immutable-versioned bull/bear thesis objects. Once invalidation triggers, close the thesis; do not move its invalidation. Changed reasoning creates a new thesis version. Add transition/audit tests and API contracts.
+> Implement immutable-versioned bull/bear thesis objects. Once invalidation triggers, close the thesis; do not move its invalidation. Changed reasoning creates a new thesis version. Add transition/audit and contract-conformance tests; submit shared API contract changes to Agent 31.
 
 ## Agent 16 — State replay
 
-> Build deterministic Context Engine snapshot persistence and historical replay. Given raw candles + engine version, reproduce the same transition sequence. Expose point-in-time `what was known then` queries for UI and AI harness.
+> Build deterministic Context Engine snapshot persistence, versioned context fingerprints and historical replay. Given raw candles + engine version, reproduce the same transition sequence. Expose point-in-time `what was known then` queries for the Web App, Forecast Engine, analog search and Internal AI Harness.
 
 ## Agent 17 — Web shell / design system
 
-> Build the React/TSX application shell following wiki/UI-Directive.md. Establish responsive grid, design tokens, loading/error/stale states and accessible primitives. Do not invent market metrics or touch model logic.
+> Build the mobile-first React/TSX application shell following wiki/UI-Directive.md. Begin at 360px and 390px widths with touch-safe primitives, a compact persistent market header, chart-first workspace, and one stateful analysis bottom sheet; progressively enhance the same components for tablet and desktop. Establish design tokens plus loading/error/stale/replay states. Do not invent market metrics or touch model logic.
 
 ## Agent 18 — TradingView chart
 
-> Build the Lightweight Charts wrapper with candles, volume, EMA layers, resize cleanup and typed overlay APIs. Prepare primitives for structural zones, pivots and forecast fan. No trading/order UI.
+> Build the Lightweight Charts wrapper with candles, volume, EMA layers, resize cleanup and typed overlay APIs. Make touch pan, pinch/crosshair inspection, page-scroll boundaries and unmount behavior explicit. Prepare primitives for structural zones, pivots and forecast fan. No trading/order UI.
 
 ## Agent 19 — Context overlays
 
@@ -94,19 +96,19 @@ Use this page to launch the first autonomous Cursor agent batch. Every agent mus
 
 ## Agent 22 — Navigation/mobile
 
-> Implement routes and mobile behavior from wiki/Navigation-Directive.md. Preserve symbol/timeframe state, make replay mode unmistakable, and ensure no hover-only controls on mobile.
+> Implement the phone navigation reference from wiki/Navigation-Directive.md, then progressively enhance the same route/state model for tablet and desktop. Preserve symbol/timeframe/horizon/replay/overlay state, make replay mode unmistakable, and ensure no hover-only controls or chart gesture traps.
 
 ## Agent 23 — Accessibility/performance
 
-> Audit keyboard access, responsive chart behavior, listener cleanup, render performance and accessible metric labels. Do not alter model or context semantics.
+> Audit touch and keyboard access, 360px/390px layouts, responsive chart behavior, gesture conflicts, listener cleanup, render performance and accessible metric labels. Do not alter model or context semantics.
 
 ## Agent 24 — Visual QA
 
-> Independently review UI against wiki/UI-Directive.md with mobile/tablet/desktop captures and visual regression tests. Open bounded correction tasks; do not redesign data semantics.
+> Independently review UI against wiki/UI-Directive.md with phone-first 360px/390px evidence, followed by tablet/desktop captures and visual regression tests. Open bounded correction tasks; do not redesign data semantics.
 
 ## Agent 25 — AI tool contracts
 
-> Implement the custom Internal AI Harness tools defined in wiki/AI-Harness-Directive.md. The model must query structured state/forecast/evaluation data, not screenshots as primary truth. Tools are read-only.
+> Implement the custom read-only Internal AI Harness tools defined in wiki/AI-Harness-Directive.md under `services/harness/`. The model must query structured state/forecast/evaluation data, not screenshots as primary truth. Shared API/schema changes remain owned by Agent 31.
 
 ## Agent 26 — Context retrieval
 
@@ -122,19 +124,19 @@ Use this page to launch the first autonomous Cursor agent batch. Every agent mus
 
 ## Agent 29 — Harness memory
 
-> Build harness memory around snapshot IDs, hypothesis versions, transitions, model versions and operator annotations. Mutable prose summaries cannot be the sole source of truth.
+> Build harness-side retrieval memory around snapshot IDs, hypothesis versions, transitions, forecast/model versions, learning candidates, failed approaches, promotion decisions and operator annotations. Consume Agent 35's accepted learning records and assemble bounded context packets from source IDs. Mutable prose summaries cannot be the sole source of truth.
 
-## Agent 30 — AI harness evaluation
+## Agent 30 — Internal AI Harness evaluation
 
-> Build historical snapshot tests for regime respect, invalidation discipline, no invented support, faithful probability communication and `no thesis change` behavior. Red-team hallucinations.
+> Build historical snapshot tests for regime respect, tactical countertrend labeling, invalidation discipline, no invented support, faithful probability communication and `no thesis change` behavior. Red-team hallucinations.
 
 ## Agent 31 — API/OpenAPI contracts
 
-> Build FastAPI endpoints and canonical Pydantic/OpenAPI contracts for candles, snapshots, zones, forecasts, journal, metrics and health. Generate TypeScript client/types where practical.
+> Build FastAPI endpoints and canonical Pydantic/OpenAPI contracts for candles, snapshots, zones, hypotheses, forecasts, journal, metrics, health, learning candidates and promotion decisions. Act as sole shared-schema owner for the batch. Generate TypeScript client/types and contract tests.
 
 ## Agent 32 — Dev environment
 
-> Make one documented local command boot the stack. Implement Docker/dev fixtures, .env.example and Freqtrade bootstrap integration. No secrets, no real trading keys.
+> Make one documented local command boot the stack. Implement Docker/dev fixtures and `.env.example`, composing against Agent 02's accepted Freqtrade adapter/bootstrap rather than duplicating it. No secrets, no real trading keys.
 
 ## Agent 33 — CI/reproducibility
 
@@ -142,11 +144,11 @@ Use this page to launch the first autonomous Cursor agent batch. Every agent mus
 
 ## Agent 34 — Observability/data health
 
-> Implement structured logging, data freshness/gap metrics, model age, journal health, service health and aggregate `/health`. UI must know when forecasts are stale/degraded.
+> Implement structured logging, data freshness/gap metrics, model age, journal health, service health and aggregate `/health`. The Web App must know when forecasts are stale/degraded through accepted contracts.
 
 ## Agent 35 — Benchmark registry
 
-> Build immutable benchmark/run manifests with commit/config/data hashes and predeclared promotion gates. Evaluation definitions are versioned independently from candidate models.
+> Build immutable benchmark/run manifests plus the learning-candidate, experiment and promotion-decision registry from wiki/Continuous-Improvement-Directive.md. Record commit/config/data hashes and predeclared promotion gates. Evaluation definitions are versioned independently from candidate models.
 
 ## Agent 36 — Leakage red team
 
@@ -158,7 +160,7 @@ Use this page to launch the first autonomous Cursor agent batch. Every agent mus
 
 ## Agent 38 — Dogfood operator
 
-> Use live/read-only and replay views as an operator. Convert confusing or misleading behavior into tagged DATA/STATE/MODEL/HARNESS/UI/EVAL/OPS issues and regression tests.
+> Use live/read-only and replay views as an operator. Convert confusing or misleading behavior into evidence-linked DATA/STATE/MODEL/HARNESS/UI/EVAL/OPS learning candidates and regression tests. Do not promote a change from one anecdotal miss.
 
 ## Agent 39 — Independent benchmark replication
 

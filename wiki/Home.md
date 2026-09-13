@@ -1,48 +1,94 @@
 # Wiki Home
 
-This repository is designed to be operated by humans and many cooperating AI agents. The wiki is the shared operational memory. It is not optional documentation.
+This wiki is the versioned operating memory for AVAX Context Engine. It defines project law, current implementation status, target behavior, machine contracts, agent ownership, and evidence gates.
 
-## Start here
+> **Current state:** `main` contains an integrated prototype, not a finished platform. See [`Agent-Build-Plan.md`](Agent-Build-Plan.md) for a code-verified inventory and remaining gates. Described behavior is a target requirement unless the page or build plan identifies an implemented and tested path.
+
+## Authority order
+
+When sources disagree, stop and open a correction task. Apply this order:
 
 1. [`../CONSTITUTION.md`](../CONSTITUTION.md) — immutable project law.
-2. [`../AGENTS.md`](../AGENTS.md) — universal agent protocol.
-3. [`Architecture.md`](Architecture.md) — system boundaries and data flow.
-4. [`Agent-Orchestration.md`](Agent-Orchestration.md) — how up to 40 agents work concurrently.
-5. [`Watcher-Directive.md`](Watcher-Directive.md) — Agent 00 review/correction loop.
-6. [`Agent-Roster.md`](Agent-Roster.md) — prototype on `main` + recursive agent kill switch.
-7. [`Agent-Launch-Pack.md`](Agent-Launch-Pack.md) — copy-ready directives for Agents 00-39.
+2. Implemented canonical schemas and their contract tests.
+3. [`Data-Contracts.md`](Data-Contracts.md), [`Market-State-Spec.md`](Market-State-Spec.md), [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md), and [`Recursive-Loop-Spec.md`](Recursive-Loop-Spec.md).
+4. Subsystem directives.
+5. [`Architecture.md`](Architecture.md) — component boundaries and data flow.
+6. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) and [`Build-Roadmap.md`](Build-Roadmap.md) — status, dependencies, and delivery sequence.
+7. Launch prompts, task templates, landing pages, and prose summaries.
 
-## Subsystem directives
+No lower-authority source may weaken the Constitution, schema tests, chronology rules, journal immutability, kill switch, or no-execution boundary.
 
-- [`Context-Engine-Directive.md`](Context-Engine-Directive.md)
-- [`AI-Harness-Directive.md`](AI-Harness-Directive.md)
-- [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md) — encoder + all-token recurrent loop
-- [`Recursive-Loop-Spec.md`](Recursive-Loop-Spec.md)
-- [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md)
-- [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md)
-- [`Recursive-Evaluation.md`](Recursive-Evaluation.md)
-- [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md)
-- [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md) — launch contracts for lanes 25-30
-- [`ML-FreqAI-Directive.md`](ML-FreqAI-Directive.md)
-- [`UI-Directive.md`](UI-Directive.md)
-- [`Navigation-Directive.md`](Navigation-Directive.md)
-- [`Operability-Directive.md`](Operability-Directive.md)
-- [`Testing-Directive.md`](Testing-Directive.md)
-- [`Dogfooding-Directive.md`](Dogfooding-Directive.md)
-- [`Simulation-Accuracy.md`](Simulation-Accuracy.md)
-- [`Data-Contracts.md`](Data-Contracts.md)
-- [`Prediction-Journal.md`](Prediction-Journal.md)
-- [`Market-State-Spec.md`](Market-State-Spec.md)
-- [`Build-Roadmap.md`](Build-Roadmap.md)
-- [`Open-Source-Dependencies.md`](Open-Source-Dependencies.md)
-- [`Task-Contract-Template.md`](Task-Contract-Template.md)
+## Before any agent work
+
+1. Read [`../CONSTITUTION.md`](../CONSTITUTION.md), [`../AGENTS.md`](../AGENTS.md), and [`Documentation-Standards.md`](Documentation-Standards.md).
+2. Pull and record the latest `main` SHA.
+3. Read [`Agent-Build-Plan.md`](Agent-Build-Plan.md), [`Agent-Orchestration.md`](Agent-Orchestration.md), and the relevant subsystem directive.
+4. Check [`Agent-Roster.md`](Agent-Roster.md), active Watcher artifacts, path ownership, and dependencies.
+5. For RLH work, check the operator kill switch. If engaged, stop.
+6. Create or update a bounded contract from [`Task-Contract-Template.md`](Task-Contract-Template.md).
+
+## Reading paths
+
+### Build the AVAX data/context/forecast spine
+
+1. [`Architecture.md`](Architecture.md)
+2. [`Data-Contracts.md`](Data-Contracts.md)
+3. [`Context-Engine-Directive.md`](Context-Engine-Directive.md)
+4. [`Market-State-Spec.md`](Market-State-Spec.md)
+5. [`ML-FreqAI-Directive.md`](ML-FreqAI-Directive.md)
+6. [`Prediction-Journal.md`](Prediction-Journal.md)
+7. [`Simulation-Accuracy.md`](Simulation-Accuracy.md)
+
+### Build or review the Recursive Learning Harness
+
+1. [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md)
+2. [`Recursive-Loop-Spec.md`](Recursive-Loop-Spec.md)
+3. [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md)
+4. [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md)
+5. [`Recursive-Evaluation.md`](Recursive-Evaluation.md)
+6. [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md)
+7. [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md)
+
+### Build the mobile-first operator experience
+
+1. [`UI-Directive.md`](UI-Directive.md)
+2. [`Navigation-Directive.md`](Navigation-Directive.md)
+3. [`AI-Harness-Directive.md`](AI-Harness-Directive.md)
+4. [`Operability-Directive.md`](Operability-Directive.md)
+5. [`Testing-Directive.md`](Testing-Directive.md)
+
+### Improve the living system
+
+1. [`Dogfooding-Directive.md`](Dogfooding-Directive.md)
+2. [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md)
+3. [`Watcher-Directive.md`](Watcher-Directive.md)
+4. [`Recursive-Evaluation.md`](Recursive-Evaluation.md)
+
+## Documentation map
+
+| Area | Primary sources |
+| --- | --- |
+| Governance | [`../CONSTITUTION.md`](../CONSTITUTION.md), [`../AGENTS.md`](../AGENTS.md), [`Documentation-Standards.md`](Documentation-Standards.md) |
+| Current build | [`Agent-Build-Plan.md`](Agent-Build-Plan.md), [`Build-Roadmap.md`](Build-Roadmap.md), [`Agent-Roster.md`](Agent-Roster.md) |
+| Architecture/dependencies | [`Architecture.md`](Architecture.md), [`Open-Source-Dependencies.md`](Open-Source-Dependencies.md), [`Operability-Directive.md`](Operability-Directive.md) |
+| Core state/contracts | [`Data-Contracts.md`](Data-Contracts.md), [`Context-Engine-Directive.md`](Context-Engine-Directive.md), [`Market-State-Spec.md`](Market-State-Spec.md) |
+| Forecast/evaluation | [`ML-FreqAI-Directive.md`](ML-FreqAI-Directive.md), [`Prediction-Journal.md`](Prediction-Journal.md), [`Simulation-Accuracy.md`](Simulation-Accuracy.md) |
+| Recursive harness | [`Recursive-Learning-Harness.md`](Recursive-Learning-Harness.md), [`Recursive-Loop-Spec.md`](Recursive-Loop-Spec.md), [`Recursive-Memory-Model.md`](Recursive-Memory-Model.md), [`Recursive-Learning-Contracts.md`](Recursive-Learning-Contracts.md), [`Recursive-Evaluation.md`](Recursive-Evaluation.md) |
+| Product interface | [`UI-Directive.md`](UI-Directive.md), [`Navigation-Directive.md`](Navigation-Directive.md), [`AI-Harness-Directive.md`](AI-Harness-Directive.md) |
+| Agent operations | [`Agent-Orchestration.md`](Agent-Orchestration.md), [`Watcher-Directive.md`](Watcher-Directive.md), [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md), [`Agent-Launch-Pack.md`](Agent-Launch-Pack.md), [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md), [`Task-Contract-Template.md`](Task-Contract-Template.md), [`tasks/`](tasks/) |
+| Learning/quality | [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md), [`Dogfooding-Directive.md`](Dogfooding-Directive.md), [`Testing-Directive.md`](Testing-Directive.md) |
 
 ## Permanent regression case
 
-The September 2026 AVAX move from the ~$8 failed-breakout region into the low-$7 area is a permanent regression scenario. The system must demonstrate that it does not repeatedly reinterpret structural deterioration as a bullish retest after explicit invalidation has occurred.
+The September 2026 AVAX move from the failed-breakout region near $8 into the low-$7 area is permanent. The system must not repeatedly reinterpret structural deterioration as a bullish retest after explicit invalidation.
 
-## Core product loop
+This benchmark demands point-in-time state discipline, not hindsight-perfect calls. Exact timestamps, source data, and expected invariants belong in the versioned fixture under `benchmarks/rlh/avax-2026-09-failed-8/`.
 
-`market data -> normalized event stream -> timeframe state -> structural context -> FreqAI/model ensemble -> frozen EncoderMemory -> next-10-candle forecast -> Recursive Learning Harness loop -> UI + prediction journal + LoopTrace -> realized outcomes -> evaluator / depth ablation -> watcher -> improvement queue`
+## Product loop
 
-The project is intentionally living: every forecast produces a future labeled example; every labeled example can improve evaluation; every proposed improvement is tested; only evidence-gated improvements are promoted.
+```text
+closed market data -> validated observations -> Context Engine snapshot
+-> frozen features/EncoderMemory -> ForecastPackage -> bounded RLH LoopTrace
+-> atomic journal -> mobile-first Web App -> matured outcomes
+-> Evaluation Engine -> evidence-linked improvement -> Watcher -> main
+```

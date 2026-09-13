@@ -10,10 +10,10 @@ The Recursive Learning Harness may read Context Engine snapshots as frozen `Enco
 
 ## Required timeframe hierarchy
 
-- 1W
-- 1D
-- 4H
-- 1H
+- 1w
+- 1d
+- 4h
+- 1h
 - 15m
 - 5m
 
@@ -23,7 +23,7 @@ Each timeframe maintains independent state while also referencing parent/child s
 
 At minimum:
 
-- trend regime: bullish / bearish / neutral / transition;
+- trend regime: bullish / bearish / neutral / transition_up / transition_down / unknown;
 - swing sequence: HH/HL/LH/LL;
 - volatility regime: compressed / normal / expanded;
 - EMA geometry and slope state;
@@ -47,7 +47,7 @@ Each zone must store:
   "lower": 7.15,
   "upper": 7.35,
   "kind": "support",
-  "timeframes": ["1D", "4H"],
+  "timeframes": ["1d", "4h"],
   "sources": ["swing_cluster", "volume_reaction"],
   "strength": 0.0,
   "tests": 0,
@@ -94,6 +94,7 @@ Example:
 {
   "id": "bear-continuation-20260913",
   "direction": "bear",
+  "regime_relation": "aligned",
   "status": "active",
   "evidence": [],
   "counter_evidence": [],
@@ -105,7 +106,7 @@ Example:
 }
 ```
 
-Invalidation rules are immutable for that thesis version. If analysis changes, close the old thesis and create a new one.
+Invalidation rules are immutable for that thesis version. If analysis changes, close the old thesis and create a new one. Each thesis also records whether it is aligned, countertrend, mixed, or unknown relative to its parent-timeframe regime.
 
 ## Pattern hypotheses
 
@@ -127,6 +128,7 @@ Every pattern is a hypothesis with evidence and invalidation, never an unquestio
 Elliott counts are inherently ambiguous. The engine may maintain multiple candidate counts ranked by rule compliance and fit. Never force a count because five visible peaks exist.
 
 Track:
+
 - pivot sequence;
 - overlap rules;
 - relative wave lengths;
@@ -143,6 +145,7 @@ Fib anchors must come from confirmed structural swings and record exact anchor t
 BTC is mandatory contextual input. ETH and AVAXBTC are strongly recommended.
 
 Store:
+
 - rolling beta/correlation;
 - relative-strength returns;
 - BTC regime;
@@ -156,8 +159,9 @@ Every meaningful change emits an append-only event:
 
 ```json
 {
-  "at": "...",
-  "entity": "AVAXUSDT:1H",
+  "observed_at": "...",
+  "known_at": "...",
+  "entity": "AVAXUSDT:1h",
   "from": "bearish",
   "to": "transition",
   "cause": ["reclaim_zone_7_50_7_55", "higher_low_confirmed"],
@@ -167,6 +171,28 @@ Every meaningful change emits an append-only event:
 
 This enables replay and postmortem analysis.
 
+## Incremental context build order
+
+At each eligible closed `5m` candle, process context in a deterministic order:
+
+1. Validate source completeness and timestamp alignment.
+2. Close and persist any newly completed parent-timeframe candles.
+3. Confirm newly knowable pivots using `known_at`.
+4. Update structural-zone interactions and lifecycle events.
+5. Update cross-market state on timestamp-aligned observations.
+6. Evaluate timeframe state from parent to child with hysteresis.
+7. Append hypothesis/thesis versions and immutable invalidations.
+8. Build the versioned context fingerprint and allocate the linked snapshot/fingerprint IDs.
+9. Append transitions and durably persist the `MarketStateSnapshot` plus fingerprint as one accepted state update.
+
+The engine may optimize this pipeline, but deterministic replay must preserve the same accepted outputs and ordering semantics.
+
+## Context fingerprint
+
+A context fingerprint is a versioned, machine-readable projection of the snapshot used for historical analog search and forecasting. It includes regime, structure, zone distance/state, volatility, cross-market alignment, and active-hypothesis features with their availability timestamps.
+
+The fingerprint must reference its source snapshot and schema version. It may not include mutable prose, future outcomes, or values that were not known at the snapshot's `as_of` time.
+
 ## Acceptance criteria
 
 Context Engine v1 is complete when:
@@ -174,6 +200,6 @@ Context Engine v1 is complete when:
 - state can be rebuilt from raw candles deterministically;
 - no lookahead is present;
 - zones and pivots expose `observed_at`/`known_at` semantics;
-- hierarchy prevents 5m noise from silently resetting 4H state;
+- hierarchy prevents 5m noise from silently resetting 4h state;
 - the September 2026 regression replay produces the expected regime transition around failed resistance and breakdown;
 - every state rendered in UI has provenance.

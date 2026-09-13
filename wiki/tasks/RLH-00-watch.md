@@ -3,7 +3,9 @@
 ```md
 Task: Own Watcher artifacts and review RLH-wave-1 completions. Do not implement harness features.
 Agent: 00
-Branch: cursor/agent-00-rlh-watch-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-00-rlh-watch-ee66
 Model: Grok 4.6
 Priority: P0
 

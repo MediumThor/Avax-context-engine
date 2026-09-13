@@ -2,7 +2,7 @@
 
 ## Mission
 
-The Internal AI Harness is the reasoning interface between structured market state and the operator. It is custom. It must not become a replacement for the deterministic Context Engine or quantitative evaluator.
+The Internal AI Harness is the reasoning interface between structured market state and the operator. It is custom. It must not become a replacement for the deterministic Context Engine or quantitative Evaluation Engine.
 
 The harness is allowed to explain, compare, challenge, summarize, retrieve analogs and propose experiments. It is not allowed to invent data, rewrite historical predictions, or manufacture calibrated probabilities.
 
@@ -19,34 +19,52 @@ The harness is allowed to explain, compare, challenge, summarize, retrieve analo
 ## Required tools
 
 ### market.get_snapshot
+
 Returns symbol, timestamp, data freshness and all timeframe regime summaries.
 
 ### market.get_series
+
 Returns bounded OHLCV and optional derived features for a specified symbol/timeframe/range.
 
 ### context.get_zones
+
 Returns validated support/resistance zones, status, strength and provenance.
 
 ### context.get_structure
+
 Returns swing sequence, pivot metadata, breakout/retest events and regime transitions.
 
 ### context.get_hypotheses
+
 Returns active competing pattern/thesis hypotheses with evidence, counter-evidence, confirmation and invalidation.
 
 ### forecast.get_current
+
 Returns the immutable current forecast for horizons +1..+10, model ensemble components, quantiles and calibration metadata.
 
 ### forecast.get_history
+
 Returns prior forecasts and realized outcomes for analogous or recent periods.
 
 ### evaluation.get_metrics
+
 Returns global and regime-sliced performance, calibration and baseline comparisons.
 
 ### analog.search
+
 Searches historical context-state fingerprints for similar prior conditions without leaking future information into a live forecast.
 
 ### system.get_health
-Returns source freshness, missing candles, model age, context-engine status and journal write status.
+
+Returns source freshness, missing candles, model age, Context Engine status and journal write status.
+
+### learning.get_cases
+
+Returns evidence-linked learning candidates and their status for agent/operator review. It is read-only.
+
+### learning.get_decisions
+
+Returns accepted, rejected, or quarantined promotion decisions with links to reproducible run manifests. It is read-only.
 
 ## Harness output contract
 
@@ -62,11 +80,19 @@ Primary analysis should be structured internally as:
   "forecast_summary": {},
   "invalidation": {},
   "data_health": {},
-  "confidence_source": "calibrated|model-disagreement|insufficient-data"
+  "confidence_source": "calibrated"
 }
 ```
 
-The user-facing explanation can be concise, but it must preserve the distinction between measured facts, model forecasts and interpretation.
+Allowed `confidence_source` values are `calibrated`, `model-disagreement`, and `insufficient-data`.
+
+The user-facing explanation can be concise, but it must preserve the distinction between measured facts, model forecasts and interpretation. Each directional case must carry the Hypothesis contract's `regime_relation` and identify the timeframes that support or conflict with it.
+
+## Countertrend classification
+
+When the higher-timeframe regime is bullish, a lower-timeframe bearish setup must be labeled a **tactical countertrend retracement hypothesis** unless explicit higher-timeframe reversal criteria have triggered. The harness must not present that setup as a durable short thesis merely because price is extended or a 5m pattern is bearish.
+
+The same hierarchy applies in reverse for lower-timeframe bullish setups inside a confirmed higher-timeframe bearish regime. This classification is decision-support context, not an order recommendation.
 
 ## No screenshot primacy
 
@@ -79,6 +105,7 @@ For every directional synthesis, invoke an internal challenge step:
 - What evidence would make the opposite direction more likely?
 - Has any claimed support/resistance actually been validated?
 - Is a lower-timeframe observation being allowed to override a higher-timeframe regime?
+- Is a countertrend idea clearly labeled as tactical rather than a confirmed regime reversal?
 - Is a probability being quoted from calibrated model output or intuition?
 - Did any invalidation already trigger?
 
@@ -93,7 +120,8 @@ The harness memory should contain:
 - recent state transitions;
 - model version/performance summary;
 - operator annotations separately tagged from system facts;
-- prior analysis mistakes promoted into regression rules.
+- prior analysis mistakes promoted into regression rules;
+- learning candidates, failed approaches, and promotion decisions by stable ID.
 
 Do not store mutable prose summaries as the sole truth source.
 

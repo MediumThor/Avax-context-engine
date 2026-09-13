@@ -1,15 +1,28 @@
 # Build Roadmap
 
-## Current prototype slice (main)
+## Current status
 
-SLICE-001 (honest market) is the first Constitution-safe vertical cut:
+Several phases have prototype code on `main` (`0876e71` WAVE-2 integrate), but no phase is complete merely because its directory exists. [`Agent-Build-Plan.md`](Agent-Build-Plan.md) is the code-verified inventory and execution order.
+
+| Phase | Gate status on `main` |
+| --- | --- |
+| 0 — Foundation/governance | In progress: Constitution, RLH schemas, CI, layout, pins |
+| 1 — Data/replay | Integrity helpers + snapshot replay on `main`; honest live/fixture ingest is SLICE-001 |
+| 2 — Context Engine | Pivots/zones/regime/thesis/patterns/cross-market on `main`; engine `as_of` is SLICE-001 |
+| 3 — Forecasting | Feature assembler + FreqAI adapter + baselines; walk-forward of a trained model still open |
+| 4 — Journal/evaluation | Journal + walk-forward/calibration modules; honest journaled UI path is SLICE-001 |
+| 5 — RLH | EncoderMemory / LoopStep / challenge / SWA / probes on `main`; not wired to live forecasts |
+| 6 — Web App | Isolated ForecastFan / overlays / AccuracyPanel; shell honesty is SLICE-001 |
+| 7-10 | Not complete |
+
+SLICE-001 (this PR) is the Constitution-safe vertical cut:
 
 1. Market page reads real Binance Vision candles or the September 2026 fixture. It never labels fixture/stale data `LIVE`.
 2. Baseline `drift20` forecasts are journaled before outcomes, with `p_close_above_origin: null` until a calibrated model exists.
 3. Reported baseline numbers are walk-forward only, with `sample_count`. Zero-model direction abstains.
 4. Replay `?as_of=` / `/api/v1/replay/{symbol}` hides later candles. The 5m relief bounce must not flip 4H.
 
-Still open after this slice: authenticated kill switch, thesis ledger objects, FreqAI walk-forward, LoopStep implementation.
+Agent 00 updates status only after tests pass on an accepted `main` SHA.
 
 ## Phase 0 — Foundation and governance
 
@@ -23,7 +36,7 @@ Deliverables:
 - CI skeleton
 - Freqtrade/FreqAI upstream pin/bootstrap
 
-Finish gate: agents can be launched independently without inventing architecture.
+Finish gate: canonical contracts, locked foundation versions, CI, task/lock coordination, and the repository skeleton are accepted on `main`; agents can work without inventing interfaces.
 
 ## Phase 1 — Data and replay
 
@@ -99,7 +112,7 @@ Finish gate: harness explanations are traceable to state/forecast IDs, live and 
 ## Phase 6 — React/TradingView UI
 
 Deliverables:
-- TSX app shell
+- mobile-first TSX app shell
 - Lightweight Charts candlesticks/volume
 - structural zones
 - timeframe context rail
@@ -108,9 +121,9 @@ Deliverables:
 - replay mode
 - accuracy/calibration dashboard
 - health/system pages
-- mobile responsive pass
+- phone-first 360px/390px validation followed by tablet/desktop progressive enhancement
 
-Finish gate: operator can understand market state, uncertainty and performance without opening raw logs.
+Finish gate: the operator can complete the market/context/forecast/thesis/replay loop on a phone without opening raw logs; larger layouts progressively enhance the same routes and contracts.
 
 ## Phase 7 — Simulation tournament
 
@@ -156,8 +169,8 @@ Finish gate: system runs continuously for a meaningful sample period without jou
 
 Loop forever:
 1. observe errors/drift **and** loop process failures (halt mix, replay mismatch, false reversals);
-2. generate bounded hypotheses;
-3. deploy competing research agents from [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md);
+2. create evidence-linked learning candidates and bounded hypotheses;
+3. deploy competing research agents from accepted task contracts;
 4. benchmark challengers, including RLH depth ablation;
 5. watcher reviews evidence under [`Recursive-Watcher-Protocol.md`](Recursive-Watcher-Protocol.md);
 6. promote only qualified improvements;
@@ -165,25 +178,8 @@ Loop forever:
 
 Do not raise `max_depth` because a research tweet said "infinite reasoning depth." RLT itself defines infinite depth as an extensible temporal path, not infinite work per token.
 
-## Initial parallel agent batch after foundation
+Follow [`Continuous-Improvement-Directive.md`](Continuous-Improvement-Directive.md): predeclare evaluation, preserve rejected lessons, and verify every accepted change on `main`.
 
-Recommended first 16 agents:
+## Agent execution
 
-- 01 data ingestion
-- 02 Freqtrade bootstrap/adapter
-- 03 feature schema
-- 04 baseline models
-- 06 walk-forward runner
-- 09 regime state machine
-- 10 pivot engine
-- 11 zone clustering
-- 14 BTC cross-market context
-- 15 thesis ledger
-- 17 web shell/design tokens
-- 18 Lightweight Charts wrapper
-- 25 AI tool contracts
-- 31 FastAPI/OpenAPI contracts
-- 33 CI/reproducibility
-- 36 leakage red-team
-
-Agent 00 watches the entire batch.
+[`Agent-Build-Plan.md`](Agent-Build-Plan.md) is authoritative for dependency gates, whole-product waves, and write ownership. [`Agent-Roster.md`](Agent-Roster.md) and Watcher artifacts are authoritative for currently active work. [`Recursive-Agent-Batch.md`](Recursive-Agent-Batch.md) applies specifically to the active RLH implementation; it is not a whole-product launch order.

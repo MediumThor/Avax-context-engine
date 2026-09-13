@@ -2,12 +2,13 @@
 
 Agent / task:
 
+Source `main` commit:
+
 Allowed write scope:
 
 Forbidden write scope:
 
 ## What changed
-
 
 ## Tests run
 
@@ -16,6 +17,7 @@ Forbidden write scope:
 - [ ] leakage checks where applicable
 - [ ] historical regression where applicable
 - [ ] UI/e2e where applicable
+- [ ] mobile 360px/390px touch checks where applicable
 
 Commands/results:
 
@@ -26,6 +28,8 @@ Before:
 After:
 
 Benchmark/run artifact:
+
+Learning candidate / evaluation plan:
 
 ## Contracts/docs
 
@@ -40,6 +44,6 @@ Benchmark/run artifact:
 - [ ] no benchmark gate weakened to make this pass
 - [ ] prediction journal semantics preserved
 - [ ] higher-timeframe context semantics preserved
+- [ ] accepted work is ready to integrate into `main`
 
 ## Known limitations / next task
-

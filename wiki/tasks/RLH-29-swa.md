@@ -3,7 +3,9 @@
 ```md
 Task: W-sized sliding-window KV and merge that prefers EncoderMemory on fact conflicts.
 Agent: 29
-Branch: cursor/agent-29-rlh-swa-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-29-rlh-swa-ee66
 Model: Grok 4.6
 Priority: P0
 

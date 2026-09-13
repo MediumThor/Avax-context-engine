@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://avax-context-engine.local/benchmarks/registry/schema.json",
+  "title": "BenchmarkRegistryEntry",
+  "description": "Versioned evaluation-gate definition. Names the dataset window, metrics, baselines, leakage rules, and pass/fail rules. Does not store scored results. Schema version 1 forbids numeric performance fields so draft entries cannot smuggle invented scores.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "dataset_id",
+    "time_range",
+    "timeframe",
+    "metrics",
+    "baseline_ids",
+    "leakage_rules",
+    "status",
+    "owner_agent"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1",
+      "description": "Registry schema version. A later revision is required before numeric sealed thresholds may appear."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9.-]*$",
+      "description": "Stable entry identifier. Changing a sealed gate requires a new id, not an in-place edit."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["forecast", "process_regression"]
+    },
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Named dataset or fixture id. Must not invent a dump that does not exist."
+    },
+    "dataset_ref": {
+      "type": "string",
+      "description": "Repository-relative pointer to a fixture or future data manifest. Read-only for RLH fixtures."
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Canonical contract symbol without separators, e.g. AVAXUSDT."
+    },
+    "time_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end", "sealed"],
+      "properties": {
+        "start": {
+          "type": ["string", "null"],
+          "description": "Inclusive UTC start, or null when no window is sealed."
+        },
+        "end": {
+          "type": ["string", "null"],
+          "description": "Inclusive UTC end, or null when no window is sealed."
+        },
+        "timezone": {
+          "type": "string",
+          "const": "UTC"
+        },
+        "sealed": {
+          "type": "boolean",
+          "description": "true only after Watcher seals the window against a data manifest. Draft entries MUST be false."
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "timeframe": {
+      "type": "string",
+      "enum": ["5m", "15m", "1h", "4h", "1d", "1w", "multi"],
+      "description": "Primary observation cadence. Use multi when the gate is explicitly cross-timeframe."
+    },
+    "horizons": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "spec": {
+          "type": "string",
+          "description": "Horizon specification as text, e.g. h=1..10. Not a score."
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["cumulative_from_origin", "not_applicable"]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Metric NAMES only. No observed values, thresholds, or deltas.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "aggregation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "baseline_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Named baselines the gate compares against. IDs only; no recorded baseline scores."
+    },
+    "leakage_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "rule"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "validation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "random_shuffle_allowed"],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["chronological_walk_forward", "fixture_replay"]
+        },
+        "random_shuffle_allowed": {
+          "type": "boolean",
+          "const": false
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "pass_fail_rules": {
+      "type": "array",
+      "description": "Named rules. Schema v1 stores no numeric thresholds.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "rule", "threshold_status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "threshold_status": {
+            "type": "string",
+            "enum": ["unset", "not_applicable"]
+          },
+          "watcher_required": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "accepted", "frozen"]
+    },
+    "owner_agent": {
+      "type": "string",
+      "pattern": "^[0-9]{2}$",
+      "description": "Agent lane that owns this entry, e.g. 35."
+    },
+    "related_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

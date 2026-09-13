@@ -15,18 +15,20 @@ At every eligible 5m close, the system emits one forecast package containing hor
 Chronologically retrain/evaluate over retained market history. No random shuffle.
 
 Output by horizon:
+
 - cumulative-return MAE/RMSE;
 - individual-candle return MAE if modeled;
 - direction accuracy;
 - Brier score;
 - quantile pinball loss;
 - q10-q90 coverage;
-- MFE/MAE error;
+- maximum favorable/adverse excursion error;
 - baseline delta.
 
 ### 2. Regime slices
 
 Score independently for:
+
 - bullish trend;
 - bearish trend;
 - range;
@@ -52,6 +54,7 @@ This measures whether the custom Context Engine actually adds predictive value r
 ### 4. Pattern ablation
 
 Separately test contributions from:
+
 - structural zones;
 - swing state;
 - failed-breakout state;
@@ -70,9 +73,10 @@ For each forecast state, find prior context fingerprints using only information 
 Replay the AVAX sequence around the failed ~$8 breakout and subsequent decline.
 
 Measure:
+
 - regime state at each 5m close;
 - when bear thesis activates;
-- whether a relief rally incorrectly resets 4H/1H state;
+- whether a relief rally incorrectly resets `4h`/`1h` state;
 - whether invalidation drifts after being triggered;
 - model forecast quality through the break;
 - harness explanation consistency.
@@ -82,17 +86,21 @@ The benchmark does not demand perfect foresight. It demands coherent state disci
 ## Simulation modes
 
 ### Frozen historical
+
 Model, code and data snapshot are fixed. Used for regression.
 
 ### Rolling challenger
+
 Retrain according to production cadence. Used for model selection.
 
 ### Shadow-live
+
 Run current and challenger models on incoming live data without affecting UI default. Outcomes score both.
 
 ## Baselines
 
 Mandatory baselines:
+
 - no-change price;
 - recent drift;
 - EMA trend heuristic;
@@ -108,6 +116,7 @@ Do not overinterpret tiny accuracy differences. Report confidence intervals or b
 ## Promotion gate example
 
 A challenger may be promoted only if it:
+
 - improves mean Brier score over incumbent by a predefined threshold OR materially improves calibration without unacceptable other degradation;
 - does not materially worsen q10-q90 coverage;
 - does not materially worsen high-volatility/bear-regime slices;
@@ -130,7 +139,7 @@ Every simulation emits a machine-readable manifest:
   "run_id": "...",
   "commit": "...",
   "data_manifest": "...",
-  "feature_schema": "...",
+  "feature_schema_version": "...",
   "model_config": "...",
   "windows": [],
   "metrics": {},
@@ -139,4 +148,4 @@ Every simulation emits a machine-readable manifest:
 }
 ```
 
-UI and wiki summaries must link back to these artifacts.
+Web App and wiki summaries must link back to these artifacts.

@@ -3,7 +3,9 @@
 ```md
 Task: Generate typed stubs from packages/contracts/recursive without forking a second schema.
 Agent: 25
-Branch: cursor/agent-25-rlh-schema-ee66
+Base: latest main
+Integration target: main
+Registered temporary source: cursor/agent-25-rlh-schema-ee66
 Model: Grok 4.6
 Priority: P0
 

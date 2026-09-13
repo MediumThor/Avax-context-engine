@@ -17,7 +17,7 @@ Hard rules:
 
 - One `LoopStep` for ingest and emit. No "generation may cheat" path.
 - Encoder memory is frozen before the first decoder step.
-- 5m loop steps must not overwrite 4H/1D/1W encoder slices.
+- 5m loop steps must not overwrite 4h/1d/1w encoder slices.
 - Halt is mandatory. Infinite depth is temporal across candles, not unbounded work per candle.
 - No invented zones or probabilities. No uncalibrated confidence percentages.
 - Do not delete or weaken `benchmarks/rlh/avax-2026-09-failed-8`.

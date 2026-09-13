@@ -33,7 +33,7 @@ Context timeframes:
 - 1h
 - 4h
 - 1d
-- optionally 1w for regime only
+- 1w for regime context; an initial model may omit lower-frequency numeric features only when the Context Engine still supplies weekly state
 
 ## Forecast targets
 
@@ -57,6 +57,8 @@ Do not confuse:
 - path maximum/minimum through t+h.
 
 Store them separately and name them explicitly.
+
+Use MAE only for **mean absolute error** in evaluation output. Write maximum adverse excursion in full or use `max_adverse_excursion` in field names.
 
 ## Features
 
@@ -189,7 +191,7 @@ Quantiles:
 
 Trading relevance without trading execution:
 - sign accuracy conditioned on predicted edge
-- MAE of MFE/MAE
+- mean absolute error for maximum favorable/adverse excursion forecasts
 - zone-touch probability accuracy
 - performance by volatility/regime bucket
 

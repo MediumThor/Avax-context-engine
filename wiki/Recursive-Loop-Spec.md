@@ -72,6 +72,8 @@ Across candles, a new `as_of` starts a new `LoopTrace` but may **warm-start** `s
 - `evaluation.get_metrics`
 - `analog.search`
 - `system.get_health`
+- `learning.get_cases`
+- `learning.get_decisions`
 
 Plus RLH-only tools:
 
@@ -80,6 +82,8 @@ Plus RLH-only tools:
 - `loop.halt` — emit `HaltDecision`
 
 Tools receive `as_of` and must refuse data with `known_at > as_of`. A refused tool call is a successful leakage test, not a retry-with-wider-window event.
+
+Learning tools may return only candidates, decisions, lessons, and evidence that existed by `as_of`. A current-policy research run may opt into newer lessons, but must be labeled as a rebuild and can never replace the historical trace.
 
 ## Required step order for directional synthesis
 

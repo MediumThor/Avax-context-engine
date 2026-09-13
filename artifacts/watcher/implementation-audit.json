@@ -1,0 +1,35 @@
+{
+  "as_of": "2026-09-13T10:25:00Z",
+  "base": "origin/main@32339ae",
+  "notes": [
+    "Local checkout was stale at agent start (6c87ac9). Synced to origin/main before audit.",
+    "Wave-1 Cursor Task agents (bc-9996… through bc-52e0…) went IDLE in ~70s with no branches and no code. Treated as failed launches, not completed work.",
+    "foundation/scaffold-v0 is an ancestor of main; no stranded unique commits.",
+    "PR 7 kill-switch work is already on main.",
+    "PR 8 honest-market-slice is the only in-flight product slice overlapping UI/API/baselines."
+  ],
+  "wiki_vs_code": [
+    {
+      "claim": "EncoderMemory builder exists",
+      "wiki": "Recursive-Memory-Model.md",
+      "before": "OWNER stub only",
+      "after": "services/harness/encoder/builder.py"
+    },
+    {
+      "claim": "LoopStep D_φ is one function for ingest and emit",
+      "wiki": "Recursive-Loop-Spec.md",
+      "before": "OWNER stub only",
+      "after": "services/harness/loop/step.py + runner.py"
+    },
+    {
+      "claim": "FreqAI training runs",
+      "wiki": "ML-FreqAI-Directive.md",
+      "status": "adapter stub only; bootstrap script clones pin"
+    },
+    {
+      "claim": "UI shows live AVAX",
+      "wiki": "UI-Directive.md",
+      "status": "main still uses demo candles; PR 8 intends fixture-or-Binance"
+    }
+  ]
+}

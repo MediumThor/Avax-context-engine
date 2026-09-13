@@ -8,15 +8,17 @@ A living system must be observable, reproducible and recoverable. Operability is
 
 One documented command should bring up the complete local stack after dependencies are installed, preferably through Docker Compose:
 
-- web UI;
+- Web App;
 - API gateway;
 - Context Engine;
-- evaluator;
-- AI harness;
+- Evaluation Engine;
+- Internal AI Harness;
 - database/cache if required;
 - Freqtrade/FreqAI service or adapter target.
 
 Provide a second minimal mode for fast UI/context development using fixture data.
+
+The target full-stack command is `docker compose up --build` from a clean checkout. Phase 0 may wrap it in a shorter task-runner command, but the underlying Compose path must remain documented and reproducible.
 
 ## Environment policy
 
@@ -29,6 +31,7 @@ Provide a second minimal mode for fast UI/context development using fixture data
 ## Health contracts
 
 Every service exposes health information including:
+
 - process health;
 - version/commit;
 - dependency health;
@@ -39,13 +42,14 @@ Every service exposes health information including:
 - last successful `LoopTrace` write;
 - last exact-replay canary result.
 
-Aggregate health must be available through `/health` and UI.
+Aggregate health must be available through `/health` and the Web App.
 
 The recursive agent kill switch is an operability control, not a model parameter. `GET/POST /api/v1/agents/kill-switch` and `POST /api/v1/agents/kill-switch/reset` are the API. Engaged state must appear in `/health`.
 
 ## Logging
 
 Structured JSON logs in services. Include:
+
 - timestamp UTC;
 - service;
 - version;
@@ -60,6 +64,7 @@ Never log secrets or raw auth headers.
 ## Metrics
 
 At minimum collect:
+
 - candle ingestion lag;
 - missing/duplicate candle count;
 - context update latency;
@@ -83,11 +88,14 @@ Separate immutable/raw and derived state:
 - outcomes append to predictions by ID rather than replacing forecasts;
 - derived caches may be rebuilt.
 
+The production persistence target uses PostgreSQL for canonical relational records/indexes, a content-addressed filesystem/S3-compatible adapter for complete immutable payloads, and Parquet for bulk research exports. The current SQLite stores remain prototype/test implementations. Local recovery must not require a cloud service.
+
 ## Recovery
 
 The system must be able to rebuild context state from raw candle history. A corrupted cache cannot be a catastrophic event.
 
 Document:
+
 - clean rebuild;
 - model rollback;
 - context schema migration;
@@ -97,6 +105,7 @@ Document:
 ## Version visibility
 
 The UI system page must expose:
+
 - app commit SHA;
 - Context Engine schema version;
 - feature schema version;
@@ -108,6 +117,7 @@ The UI system page must expose:
 ## Release gates
 
 A release candidate is promotable only when:
+
 - build/lint/typecheck pass;
 - unit/integration tests pass;
 - leakage suite passes;

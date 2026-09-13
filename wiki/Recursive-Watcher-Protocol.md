@@ -96,6 +96,8 @@ The UI kill switch is an emergency stop the operator can fire without waiting fo
 - refuse new `LoopStep` / `/api/v1/loops/run` work;
 - leave journals immutable.
 
+The current repository implementation is cooperative: it updates the registry/health state and rejects new loop execution. Every agent and connected orchestrator must poll or receive this state and stop. Until an external runtime termination adapter exists, do not claim the API forcibly killed that external process.
+
 Watcher treats an engaged switch as `watcher_abort` for any in-flight loop. Reset is logged; it is not a silent unmute.
 
 ## Emergency stop
@@ -139,7 +141,7 @@ Competitors must not read each other's `D_φ` until evaluation. Winner is chosen
 ## Living-project cadence
 
 ```text
-every 5m:  journal ForecastPackage + LoopTrace
+every 5m:  commit ForecastPackage; append LoopTrace before explanation
 every matured horizon: append LoopOutcome
 hourly:    replay canary + health
 daily:     dogfood review of worst process failures

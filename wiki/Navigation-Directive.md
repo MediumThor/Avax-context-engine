@@ -2,7 +2,7 @@
 
 ## Goal
 
-Navigation must reinforce the system's mental model: current market state first, evidence second, evaluation third, project operations last. Avoid app sprawl.
+Navigation must reinforce the system's mental model on a phone: current market state first, evidence second, evaluation third, project operations last. Avoid app sprawl and breakpoint-specific route trees.
 
 ## Primary routes
 
@@ -48,9 +48,9 @@ The prototype shell keeps the kill switch on the primary workspace so it is neve
 5. Accuracy links must carry the currently selected model and horizon filters when possible.
 6. Browser URLs must encode meaningful state so views are shareable/reproducible.
 
-## Mobile navigation
+## Mobile-first navigation
 
-Use a compact bottom navigation with no more than five primary destinations:
+The phone implementation defines navigation behavior. Use a compact bottom navigation with no more than five primary destinations:
 - Market
 - Replay
 - Accuracy
@@ -58,6 +58,8 @@ Use a compact bottom navigation with no more than five primary destinations:
 - More
 
 Within Market, use a bottom sheet or segmented control for Structure / Forecast / Thesis / Journal.
+
+Tablet and desktop may render the same destinations as a side rail or top-level workspace navigation, but route names, selected state, deep links, and browser history behavior remain identical.
 
 ## Deep-link contract
 
@@ -81,3 +83,5 @@ Every route must define:
 - API-error state;
 - mobile layout;
 - browser back/forward behavior.
+
+Test every route at 360px and 390px before accepting tablet or desktop evidence. The kill-switch status/action must remain reachable without displacing the primary chart or depending on hover.
