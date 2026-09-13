@@ -11,7 +11,8 @@ def test_market_chart_attaches_zone_bands():
     assert "attachPrimitive" in chart
     assert "zones={overlayZones}" in app
     assert "Does not invent future width" in primitive
-    assert "rgba(255,89,100,0.16)" in primitive
+    assert "rgba(255,89,100,0.22)" in primitive
+    assert "autoscaleInfo" in primitive
     assert "knownUnix" in primitive
     assert "timeEnd" in primitive
     assert app.index("<h2>Thesis</h2>") < app.index("<h2>Forecast · next 10</h2>")

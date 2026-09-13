@@ -17,9 +17,9 @@ export interface ChartZone {
 }
 
 function fillFor(role: string): string {
-  if (role === 'support') return 'rgba(37,208,154,0.16)'
-  if (role === 'resistance') return 'rgba(255,89,100,0.16)'
-  return 'rgba(240,195,106,0.16)'
+  if (role === 'support') return 'rgba(37,208,154,0.22)'
+  if (role === 'resistance') return 'rgba(255,89,100,0.22)'
+  return 'rgba(240,195,106,0.22)'
 }
 
 function knownUnix(iso?: string | null): number | null {
@@ -108,6 +108,18 @@ export class ZoneBandPrimitive implements ISeriesPrimitive<Time> {
 
   paneViews() {
     return [this.view]
+  }
+
+  autoscaleInfo() {
+    if (!this.zones.length) return null
+    let minValue = Number.POSITIVE_INFINITY
+    let maxValue = Number.NEGATIVE_INFINITY
+    for (const zone of this.zones) {
+      minValue = Math.min(minValue, zone.lower)
+      maxValue = Math.max(maxValue, zone.upper)
+    }
+    if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) return null
+    return { priceRange: { minValue, maxValue } }
   }
 
   layout(): Rect[] {
