@@ -9,7 +9,7 @@ import { LoopTraceCard } from './components/LoopTraceCard'
 import { ShadowJournalCard } from './components/ShadowJournalCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { fetchSystem, type SystemPayload } from './api/health'
-import { drainShadowJournal, fetchMarket } from './api/market'
+import { drainShadowJournal, fetchForecastMetrics, fetchMarket } from './api/market'
 import type { MarketPayload, SwingPivot, TimeframeState } from './api/types'
 import { accuracySlicesFromMarket } from './accuracy/fromMarket'
 import { DestNav } from './nav/DestNav'
@@ -103,6 +103,15 @@ export default function App() {
     }, 20_000)
     return () => window.clearInterval(id)
   }, [route.dest, route.symbol, fetchAsOf, market?.source])
+
+  useEffect(() => {
+    if (route.dest !== 'accuracy') return
+    fetchForecastMetrics(route.symbol, fetchAsOf, true)
+      .then((metrics) => {
+        setMarket((prev) => (prev ? { ...prev, metrics } : prev))
+      })
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'metrics unavailable'))
+  }, [route.dest, route.symbol, fetchAsOf])
 
   useEffect(() => {
     if (route.dest !== 'more') return

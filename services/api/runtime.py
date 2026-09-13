@@ -24,6 +24,7 @@ from packages.models import (
     score_journaled_forecasts,
     walk_forward_baselines,
     walk_forward_probabilities,
+    walk_forward_quantiles,
 )
 from packages.models.outcomes import mature_outcomes
 
@@ -35,6 +36,8 @@ FEATURE_SCHEMA = "1"
 class LiveDataUnavailable(RuntimeError):
     """Live Binance Vision pull failed. Do not seed the September fixture."""
 QUANTILE_LOOKBACK = 400
+QUANTILE_WF_MIN_HISTORY = 120
+QUANTILE_WF_STEP = 80
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
 SHADOW_CATCHUP_BUDGET = 24
 SHADOW_DRAIN_BUDGET = 200
@@ -586,7 +589,7 @@ class PrototypeRuntime:
         except Exception:
             return FEATURE_SCHEMA
 
-    def metrics(self, symbol: str, as_of: datetime | None = None) -> dict:
+    def metrics(self, symbol: str, as_of: datetime | None = None, *, include_challenger: bool = False) -> dict:
         candles = self.candles(symbol, as_of=as_of, limit=8000)
         if len(candles) < 120:
             return {"available": False, "reason": "insufficient-history"}
@@ -594,6 +597,7 @@ class PrototypeRuntime:
             symbol,
             candles[-1].close_time().isoformat(),
             as_of.isoformat() if as_of else None,
+            include_challenger,
         )
         cached = self._metrics_cache.get(cache_key)
         if cached is not None:
@@ -601,6 +605,22 @@ class PrototypeRuntime:
         report = walk_forward_baselines(candles, horizons=10, min_history=80, step=20)
         cal = walk_forward_probabilities(candles, horizons=10, min_history=80, step=20, as_of=as_of)
         journaled = score_journaled_forecasts(self.journal, symbol, as_of=as_of or candles[-1].close_time())
+        qwf: dict[str, Any] = {"horizons": {}, "promotion_allowed": False, "origin_count": 0}
+        if include_challenger:
+            backend = os.environ.get("AVAX_QUANTILE_BACKEND", "python")
+            if backend not in _QUANTILE_BACKENDS:
+                backend = "python"
+            try:
+                qwf = walk_forward_quantiles(
+                    candles,
+                    horizons=10,
+                    min_history=QUANTILE_WF_MIN_HISTORY,
+                    step=QUANTILE_WF_STEP,
+                    lookback=QUANTILE_LOOKBACK,
+                    backend=backend,
+                )
+            except Exception:
+                qwf = {"horizons": {}, "promotion_allowed": False, "origin_count": 0}
         for key, block in report.get("horizons", {}).items():
             extra = cal["horizons"].get(key, {})
             journal_h = journaled["horizons"].get(key, {})
@@ -637,10 +657,23 @@ class PrototypeRuntime:
                     block["zero"] = merged_zero
             elif block.get("drift20"):
                 block["drift20"]["source"] = "walk_forward"
+            qh = (qwf.get("horizons") or {}).get(key) or {}
+            q50 = qh.get("q50")
+            if q50 and q50.get("mae") is not None:
+                block["q50"] = {**q50, "source": "walk_forward", "sample_count": qh.get("sample_count")}
+                block["q50_mae_minus_drift20_mae"] = qh.get("q50_mae_minus_drift20_mae")
         report["available"] = True
         report["symbol"] = symbol
         report["probability_calibration_ref"] = cal["calibration_ref"]
         report["interval_ref"] = cal["interval_ref"]
+        report["challenger"] = {
+            "model_id": qwf.get("model_id"),
+            "origin_count": qwf.get("origin_count"),
+            "q50_mae_below_drift20_on_all_scored_horizons": qwf.get(
+                "q50_mae_below_drift20_on_all_scored_horizons"
+            ),
+            "notes": qwf.get("notes"),
+        }
         report["promotion_allowed"] = False
         self._metrics_cache[cache_key] = report
         return report
