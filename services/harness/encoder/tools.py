@@ -23,7 +23,7 @@ def _iso(value: datetime | str | None) -> str | None:
         if value.tzinfo is None:
             raise ValueError("as_of must be timezone-aware")
         return value.isoformat().replace("+00:00", "Z")
-    return value
+    return str(value).replace("+00:00", "Z")
 
 
 class EncoderTools:

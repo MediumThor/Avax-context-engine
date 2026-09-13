@@ -92,6 +92,8 @@ def test_journal_records_mtf_feature_snapshot(tmp_path):
     stored = runtime.journal.get_forecast(latest["id"])
     assert stored["feature_schema_version"] == FEATURE_SCHEMA_VERSION
     assert payload["model_id"] == QUANTILE_MODEL
+    assert out["loop"]["ran"] is True
+    assert "loop" not in payload
     runtime.close()
 
 
@@ -113,6 +115,10 @@ def test_api_market_returns_quantile_envelope(tmp_path, monkeypatch):
         assert forecast.get("calibration_ref")
     assert row["q10_cum_return"] <= row["q50_cum_return"] <= row["q90_cum_return"]
     assert forecast["mtf_feature_snapshot"]["feature_schema_version"] == FEATURE_SCHEMA_VERSION
+    loop = body["forecast"].get("loop") or {}
+    assert loop.get("ran") is True
+    assert loop.get("analog_count", 0) >= 1
+    assert "confidence" not in loop
     reset_runtime()
 
 

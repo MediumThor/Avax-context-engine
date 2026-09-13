@@ -106,6 +106,8 @@ A green "accuracy" badge without target definition and sample count is prohibite
 
 Loop depth is not an accuracy badge. Show `depth_used` / `halt_reason` as process metadata, not as "smarter because more loops."
 
+Current rail card (`LoopTraceCard`): halt reason, analog retrieve count, and hypothesis ids from the live loop summary. Analog count is not confidence.
+
 ## Recursive agent kill switch
 
 The kill-switch state and action are always accessible from the compact sticky market header. On phones, confirmation uses a focused sheet/dialog rather than a permanently expanded card that displaces the chart. It is the operator's fail-closed control for RLH loop execution and promotion.

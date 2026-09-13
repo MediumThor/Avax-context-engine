@@ -200,7 +200,7 @@ See `packages/contracts/recursive/kill-switch.schema.json` and `packages/harness
 | GET | `/api/v1/agents/kill-switch` | current engage state + audit events |
 | POST | `/api/v1/agents/kill-switch` | sever all recursive agent work |
 | POST | `/api/v1/agents/kill-switch/reset` | logged resume |
-| POST | `/api/v1/loops/run` | stub runner; 423 if severed |
+| POST | `/api/v1/loops/run` | stub runner; 423 if severed. Live loops currently attach a compact summary on `GET /api/v1/market` (`forecast.loop`) after the forecast is journaled. Traces are not stored yet. |
 
 ## API surface (v1)
 

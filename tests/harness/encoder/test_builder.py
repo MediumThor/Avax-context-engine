@@ -1,8 +1,21 @@
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from packages.context_engine import Candle, ContextEngine
-from services.harness.encoder import PARENT_TIMEFRAMES, build_encoder_memory, overlay_5m_observation
+from packages.fixtures import sept_2026_failed_breakout
+from services.harness.encoder import (
+    PARENT_TIMEFRAMES,
+    build_encoder_memory,
+    overlay_5m_observation,
+    snapshot_analogs,
+    snapshot_hypothesis_ids,
+    snapshot_theses,
+    snapshot_zone_ids,
+)
+from services.harness.encoder.tools import EncoderTools, ToolRefusal
+from services.harness.loop import run_loop
 
 
 def _candles(n: int = 400, start: float = 10.0, step: float = -0.004) -> list[Candle]:
@@ -92,3 +105,59 @@ def test_5m_overlay_cannot_write_parent_slices():
         assert updated["timeframe_slices"][name] == parents[name]
     assert updated["timeframe_slices"]["5m"]["regime"] == "bullish"
     assert updated["content_hash"] != memory["content_hash"]
+
+
+def test_fixture_snapshot_fills_encoder_ids_and_analog_search():
+    snap = ContextEngine().build_snapshot(sept_2026_failed_breakout())
+    memory = build_encoder_memory(
+        as_of=snap.as_of, snapshot=snap, forecast_package=_forecast(), data_manifest_id="m1"
+    )
+    assert memory["hypothesis_ids"] == snapshot_hypothesis_ids(snap)
+    assert memory["hypothesis_ids"]
+    assert memory["zone_ids"] == snapshot_zone_ids(snap)
+    assert memory["zone_ids"]
+    analogs = snapshot_analogs(snap)
+    theses = snapshot_theses(snap)
+    assert analogs
+    for row in analogs:
+        assert row["known_at"].endswith("Z")
+        assert row["known_at"] <= memory["as_of"]
+    for row in theses:
+        assert row["known_at"].endswith("Z")
+        assert row["known_at"] <= memory["as_of"]
+    tools = EncoderTools(memory, analogs=analogs, hypotheses=theses)
+    found = tools.call("analog.search", {"as_of": memory["as_of"]})
+    assert len(found["response"]) == len(analogs)
+    hyps = tools.call("context.get_hypotheses", {"as_of": memory["as_of"]})
+    assert [row["id"] for row in hyps["response"]] == memory["hypothesis_ids"]
+    bait = list(analogs) + [{"id": "bait", "known_at": "2099-01-01T00:00:00Z"}]
+    with pytest.raises(ToolRefusal) as exc:
+        EncoderTools(memory, analogs=bait).call("analog.search", {"as_of": memory["as_of"]})
+    assert exc.value.reason == "future_data"
+
+
+def test_live_loop_with_snapshot_analogs_is_replay_stable():
+    snap = ContextEngine().build_snapshot(sept_2026_failed_breakout())
+    memory = build_encoder_memory(
+        as_of=snap.as_of, snapshot=snap, forecast_package=_forecast(), data_manifest_id="m1"
+    )
+    analogs = snapshot_analogs(snap)
+    theses = snapshot_theses(snap)
+    kwargs = {
+        "memory": memory,
+        "forecast": _forecast(),
+        "tools": EncoderTools(memory, analogs=analogs, hypotheses=theses),
+        "hypotheses": theses,
+        "commit_sha": "live-context",
+    }
+    live = run_loop(**kwargs)
+    replay = run_loop(
+        memory=memory,
+        forecast=_forecast(),
+        tools=EncoderTools(memory, analogs=analogs, hypotheses=theses),
+        hypotheses=theses,
+        commit_sha="live-context",
+    )
+    assert live["content_hash"] == replay["content_hash"]
+    retrieve = next(step for step in live["steps"] if step["kind"] == "RETRIEVE")
+    assert len(retrieve["emit"]["tool_response_hashes"]) >= 5

@@ -5,6 +5,7 @@ import { ForecastFan } from './components/ForecastFan'
 import { ContextOverlays } from './components/ContextOverlays'
 import { ContextEvidence } from './components/ContextEvidence'
 import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
+import { LoopTraceCard } from './components/LoopTraceCard'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { fetchMarket } from './api/market'
 import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
@@ -189,6 +190,7 @@ export default function App() {
               />
             )}
           </section>
+          {market?.forecast.loop && <LoopTraceCard loop={market.forecast.loop} />}
           <section className="card">
             <h2>Walk-forward scores</h2>
             <AccuracyPanel

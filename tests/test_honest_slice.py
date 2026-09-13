@@ -174,4 +174,10 @@ def test_api_fixture_market_is_not_live(tmp_path, monkeypatch):
         assert row["known_at"] <= body["as_of"]
         assert "Not a forecast" in row["note"]
         assert "confidence" not in row
+    loop = body["forecast"].get("loop") or {}
+    assert loop.get("ran") is True
+    assert loop.get("analog_count", 0) >= 1
+    assert loop.get("hypothesis_ids")
+    assert "confidence" not in loop
+    assert "Not a forecast" in (loop.get("note") or "")
     reset_runtime()

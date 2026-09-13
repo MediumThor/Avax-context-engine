@@ -99,6 +99,19 @@ export interface FibLevelSummary {
   role?: string
 }
 
+export interface LoopSummary {
+  ran: boolean
+  reason?: string
+  loop_id?: string
+  encoder_memory_id?: string
+  encoder_memory_hash?: string
+  halt_reason?: string
+  analog_count?: number
+  hypothesis_ids?: string[]
+  zone_count?: number
+  note?: string
+}
+
 export interface MarketPayload {
   symbol: string
   source: string
@@ -114,7 +127,11 @@ export interface MarketPayload {
     theses?: ThesisSummary[]
   }
   interpretation: string
-  forecast: { forecast: { horizons: ForecastHorizon[]; model_id: string; notes: string }; journaled: boolean }
+  forecast: {
+    forecast: { horizons: ForecastHorizon[]; model_id: string; notes: string }
+    journaled: boolean
+    loop?: LoopSummary
+  }
   metrics: {
     available: boolean
     validation?: string

@@ -118,6 +118,14 @@ def run_loop(
     for tool_name in ("market.get_snapshot", "system.get_health", "forecast.get_current"):
         record = tools.call(tool_name, {"as_of": memory["as_of"]})
         retrieve_hashes.append(record["response_hash"])
+    # Extra retrieves only when the caller supplied frozen rows. Empty default
+    # tools keep existing LoopTrace hashes unchanged.
+    if tools.analogs:
+        record = tools.call("analog.search", {"as_of": memory["as_of"]})
+        retrieve_hashes.append(record["response_hash"])
+    if tools.hypotheses:
+        record = tools.call("context.get_hypotheses", {"as_of": memory["as_of"]})
+        retrieve_hashes.append(record["response_hash"])
     emit_step("RETRIEVE", emit={"tool_response_hashes": retrieve_hashes})
     if len(steps) >= max_depth:
         halt = _halt(

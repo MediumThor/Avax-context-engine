@@ -31,7 +31,7 @@ def _iso(value: datetime | str) -> str:
         if value.tzinfo is None:
             raise ValueError("as_of must be timezone-aware")
         return value.isoformat().replace("+00:00", "Z")
-    return value
+    return str(value).replace("+00:00", "Z")
 
 
 def _slice_from_state(state: TimeframeState | Mapping[str, Any] | None) -> dict[str, Any]:
@@ -71,6 +71,52 @@ def _snapshot_symbol(snapshot: MarketSnapshot | Mapping[str, Any]) -> str:
     if isinstance(snapshot, MarketSnapshot):
         return snapshot.symbol
     return str(snapshot.get("symbol", "AVAXUSDT"))
+
+
+def snapshot_zone_ids(snapshot: MarketSnapshot | Mapping[str, Any]) -> list[str]:
+    tfs = _snapshot_timeframes(snapshot)
+    ids: list[str] = []
+    for state in tfs.values():
+        zones = []
+        if isinstance(state, TimeframeState):
+            zones = list(state.support_zones) + list(state.resistance_zones)
+        elif isinstance(state, Mapping):
+            zones = list(state.get("support_zones") or []) + list(state.get("resistance_zones") or [])
+        for zone in zones:
+            zone_id = zone.id if hasattr(zone, "id") else zone.get("id")
+            if zone_id and zone_id not in ids:
+                ids.append(str(zone_id))
+    return ids
+
+
+def snapshot_hypothesis_ids(snapshot: MarketSnapshot | Mapping[str, Any]) -> list[str]:
+    theses = snapshot.theses if isinstance(snapshot, MarketSnapshot) else snapshot.get("theses") or ()
+    return [str(row["id"]) for row in theses if isinstance(row, Mapping) and row.get("id")]
+
+
+def snapshot_analogs(snapshot: MarketSnapshot | Mapping[str, Any]) -> list[dict[str, Any]]:
+    rows = snapshot.analogs if isinstance(snapshot, MarketSnapshot) else snapshot.get("analogs") or ()
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            continue
+        item = dict(row)
+        if "known_at" in item:
+            item["known_at"] = _iso(item["known_at"])
+        out.append(item)
+    return out
+
+
+def snapshot_theses(snapshot: MarketSnapshot | Mapping[str, Any]) -> list[dict[str, Any]]:
+    rows = snapshot.theses if isinstance(snapshot, MarketSnapshot) else snapshot.get("theses") or ()
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            continue
+        item = dict(row)
+        item["known_at"] = _iso(item.get("known_at") or item.get("created_at") or "")
+        out.append(item)
+    return out
 
 
 def _closed_only(observations: Iterable[Mapping[str, Any]], as_of: str) -> list[Mapping[str, Any]]:
@@ -118,8 +164,8 @@ def build_encoder_memory(
         "feature_schema_version": feature_schema_version,
         "context_engine_version": context_engine_version,
         "timeframe_slices": slices,
-        "zone_ids": list(zone_ids or forecast_package.get("zone_ids") or []),
-        "hypothesis_ids": list(hypothesis_ids or []),
+        "zone_ids": list(zone_ids or snapshot_zone_ids(snapshot) or forecast_package.get("zone_ids") or []),
+        "hypothesis_ids": list(hypothesis_ids if hypothesis_ids is not None else snapshot_hypothesis_ids(snapshot)),
         "cross_market": dict(cross_market or {}),
         "health": health,
     }
