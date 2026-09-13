@@ -29,7 +29,8 @@ def test_walk_forward_quantiles_scores_without_promotion():
     assert h1["q50"]["mae"] >= 0
     assert h1["drift20"]["mae"] >= 0
     assert 0.0 <= h1["q10_q90"]["coverage"] <= 1.0
-    assert "ECE" not in report["notes"]
+    assert "ece" not in report
+    assert "ece" not in h1
 
 
 def test_walk_forward_ignores_future_perturbation():
