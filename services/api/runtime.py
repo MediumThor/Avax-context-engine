@@ -34,6 +34,7 @@ QUANTILE_LOOKBACK = 400
 _QUANTILE_BACKENDS = {"auto", "python", "sklearn", "lightgbm"}
 SHADOW_CATCHUP_BUDGET = 24
 SHADOW_DRAIN_BUDGET = 200
+SHADOW_DRAIN_ROUNDS_MAX = 25
 SHADOW_CATCHUP_MODEL = "baseline.drift20"
 
 
@@ -456,7 +457,13 @@ class PrototypeRuntime:
             "note": "Catch-up uses drift20 only. Not a quantile emit and not a promotion claim.",
         }
 
-    def drain_shadow_journal(self, symbol: str, *, budget: int = SHADOW_DRAIN_BUDGET) -> dict[str, Any]:
+    def drain_shadow_journal(
+        self,
+        symbol: str,
+        *,
+        budget: int = SHADOW_DRAIN_BUDGET,
+        rounds: int = 1,
+    ) -> dict[str, Any]:
         """Fill more missing mature-able 5m origins. Does not emit a quantile or run a loop."""
         if is_engaged():
             return {
@@ -464,9 +471,11 @@ class PrototypeRuntime:
                 "remaining": 0,
                 "model_id": SHADOW_CATCHUP_MODEL,
                 "blocked": True,
+                "rounds_used": 0,
                 "note": "Kill switch blocks journal drain.",
             }
         capped = max(1, min(int(budget), 500))
+        capped_rounds = max(1, min(int(rounds), SHADOW_DRAIN_ROUNDS_MAX))
         candles = self.candles(symbol, limit=8000)
         as_of = candles[-1].close_time() if candles else None
         btc: list = []
@@ -480,13 +489,30 @@ class PrototypeRuntime:
             manifest_id = self.store.manifest(source, symbol, "5m").sha256[:16]
         except Exception:
             pass
-        shadow = self._journal_shadow_origins(
-            symbol, candles, btc, as_of, manifest_id, budget=capped
-        )
+        wrote = 0
+        remaining = 0
+        used = 0
+        shadow: dict[str, Any] = {
+            "wrote": 0,
+            "remaining": 0,
+            "model_id": SHADOW_CATCHUP_MODEL,
+        }
+        for _ in range(capped_rounds):
+            shadow = self._journal_shadow_origins(
+                symbol, candles, btc, as_of, manifest_id, budget=capped
+            )
+            used += 1
+            wrote += int(shadow.get("wrote") or 0)
+            remaining = int(shadow.get("remaining") or 0)
+            if wrote == 0 or remaining == 0 or int(shadow.get("wrote") or 0) == 0:
+                break
         outcomes = mature_outcomes(self.journal, candles, symbol, as_of=as_of)
         self._metrics_cache.clear()
+        shadow["wrote"] = wrote
+        shadow["remaining"] = remaining
         shadow["blocked"] = False
         shadow["budget"] = capped
+        shadow["rounds_used"] = used
         shadow["outcomes"] = outcomes
         return shadow
 

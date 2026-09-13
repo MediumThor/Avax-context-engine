@@ -12,6 +12,10 @@ from services.api.runtime import (
 )
 
 
+def _quantiles(runtime, symbol="AVAXUSDT"):
+    return [row for row in runtime.journal.list_forecasts(symbol) if row["model_id"] != SHADOW_CATCHUP_MODEL]
+
+
 def test_drain_writes_more_drift20_than_request_budget(tmp_path, monkeypatch):
     monkeypatch.setenv("AVAX_USE_FIXTURE", "1")
     reset_runtime()
@@ -49,7 +53,10 @@ def test_catchup_endpoint_and_kill_switch(tmp_path, monkeypatch):
     live = client.get("/api/v1/forecast/current", params={"symbol": "AVAXUSDT"})
     assert live.status_code == 200
     remaining = live.json()["shadow_journal"]["remaining"]
-    drained = client.post("/api/v1/journal/catchup", params={"symbol": "AVAXUSDT", "budget": 80})
+    drained = client.post(
+        "/api/v1/journal/catchup",
+        params={"symbol": "AVAXUSDT", "budget": 80, "rounds": 1},
+    )
     assert drained.status_code == 200
     body = drained.json()
     assert body["model_id"] == SHADOW_CATCHUP_MODEL
@@ -66,4 +73,32 @@ def test_catchup_endpoint_and_kill_switch(tmp_path, monkeypatch):
     )
     blocked = client.post("/api/v1/journal/catchup", params={"symbol": "AVAXUSDT"})
     assert blocked.status_code == 423
+    reset_runtime()
+
+
+def test_multi_round_drain_can_empty_without_extra_quantiles(tmp_path, monkeypatch):
+    monkeypatch.setenv("AVAX_USE_FIXTURE", "1")
+    reset_runtime()
+    runtime = PrototypeRuntime(tmp_path / "m.db", tmp_path / "j.db", use_fixture=True)
+    first = runtime.forecast("AVAXUSDT", persist=True)
+    assert first["shadow_journal"]["remaining"] > SHADOW_CATCHUP_BUDGET
+    quant_before = _quantiles(runtime)
+    sha_by_id = {row["id"]: row["sha256"] for row in runtime.journal.list_forecasts("AVAXUSDT")}
+    once = runtime.drain_shadow_journal("AVAXUSDT", budget=40, rounds=1)
+    assert once["rounds_used"] == 1
+    assert once["wrote"] <= 40
+    remaining_after_one = once["remaining"]
+    drained = runtime.drain_shadow_journal("AVAXUSDT", budget=40, rounds=3)
+    assert drained["blocked"] is False
+    assert drained["rounds_used"] >= 1
+    assert drained["wrote"] > once["wrote"] or drained["remaining"] == 0
+    assert drained["remaining"] < remaining_after_one or remaining_after_one == 0
+    after = runtime.journal.list_forecasts("AVAXUSDT")
+    assert len(_quantiles(runtime)) == len(quant_before)
+    for row in after:
+        if row["id"] in sha_by_id:
+            assert row["sha256"] == sha_by_id[row["id"]]
+        if row["model_id"] == SHADOW_CATCHUP_MODEL:
+            assert row["payload"]["horizons"][0]["p_close_above_origin"] is None
+    runtime.close()
     reset_runtime()
