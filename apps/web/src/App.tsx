@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MarketChart } from './components/MarketChart'
 import { AgentKillSwitch } from './components/AgentKillSwitch'
+import { ForecastFan } from './components/ForecastFan'
+import { ContextOverlays } from './components/ContextOverlays'
+import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { fetchKillSwitch, type KillSwitchState } from './api/killSwitch'
 import { fetchMarket } from './api/market'
-import type { MarketPayload, TimeframeState } from './api/types'
+import type { MarketPayload, StructuralZone, TimeframeState } from './api/types'
 import './styles.css'
 
 const TF_ORDER = ['1w', '1d', '4h', '1h', '15m', '5m']
@@ -40,9 +43,43 @@ export default function App() {
   const regimes = TF_ORDER.map((tf) => market?.snapshot.timeframes[tf]).filter(
     (state): state is TimeframeState => Boolean(state),
   )
-  const driftMae = market?.metrics.horizons?.['1']?.drift20.mae
-  const driftN = market?.metrics.horizons?.['1']?.sample_count
   const last = market?.candles.at(-1)
+  const overlayZones = useMemo(() => {
+    if (!market) return []
+    const seen = new Set<string>()
+    const zones: { id: string; lower: number; upper: number; role: StructuralZone['role']; strength: number; test_count: number; timeframes: string[] }[] = []
+    for (const state of Object.values(market.snapshot.timeframes)) {
+      for (const zone of [...(state.support_zones ?? []), ...(state.resistance_zones ?? [])]) {
+        if (seen.has(zone.id)) continue
+        seen.add(zone.id)
+        zones.push({
+          id: zone.id,
+          lower: zone.lower,
+          upper: zone.upper,
+          role: zone.role,
+          strength: zone.strength,
+          test_count: zone.test_count,
+          timeframes: [state.timeframe],
+        })
+      }
+    }
+    return zones
+  }, [market])
+  const accuracySlices: AccuracySlice[] = useMemo(() => {
+    const horizons = market?.metrics.horizons
+    if (!horizons) return []
+    return Object.entries(horizons).map(([h, block]) => ({
+      horizon: Number(h),
+      n: block.sample_count ?? null,
+      mae: block.drift20?.mae ?? null,
+      rmse: block.drift20?.rmse ?? null,
+      brier: null,
+      ece: null,
+      coverage: null,
+      baseline_delta:
+        block.zero?.mae != null && block.drift20?.mae != null ? block.drift20.mae - block.zero.mae : null,
+    }))
+  }, [market])
 
   function openReplay() {
     const hint = market?.replay_hint_as_of
@@ -103,6 +140,14 @@ export default function App() {
           {loading && <p className="pad muted">Loading market state…</p>}
           {error && <p className="pad killError">{error}</p>}
           {market && <MarketChart candles={market.candles} className="chart" />}
+          {market && (
+            <ContextOverlays
+              zones={overlayZones}
+              priceMin={Math.min(...market.candles.map((c) => c.low))}
+              priceMax={Math.max(...market.candles.map((c) => c.high))}
+              aria-label="Structural zones from the Context Engine snapshot"
+            />
+          )}
         </div>
         <aside className="rail">
           <section className="card">
@@ -123,19 +168,25 @@ export default function App() {
                 : market?.forecast.forecast.notes || 'Baseline drift20. No calibrated probability.'}
             </p>
             {market && (
-              <ol className="horizons">
-                {market.forecast.forecast.horizons.map((h) => (
-                  <li key={h.h}>
-                    h{h.h} drift {h.expected_cum_log_return.toFixed(4)} · p unset
-                  </li>
-                ))}
-              </ol>
+              <ForecastFan
+                horizons={market.forecast.forecast.horizons}
+                originClose={market.last_price}
+                symbol={market.symbol}
+                forecastedAt={market.as_of}
+                health={market.forecast.journaled ? 'degraded' : 'unknown'}
+                emptyReason="Quantile envelope is not drawn until q10/q50/q90 are journaled. Drift path is a point forecast, not a distribution."
+              />
             )}
-            {market?.metrics.available && driftN != null && (
-              <p className="muted">
-                Walk-forward h=1 drift MAE {driftMae?.toFixed(6)} · n={driftN} · {market.metrics.validation}
-              </p>
-            )}
+          </section>
+          <section className="card">
+            <h2>Walk-forward scores</h2>
+            <AccuracyPanel
+              slices={accuracySlices}
+              baselineName="drift20 vs zero"
+              baselineDeltaMetric="mae"
+              modelId={market?.forecast.forecast.model_id ?? 'baseline.drift20'}
+              coverageInterval="q10–q90 (not scored)"
+            />
           </section>
           <section className="card">
             <h2>Thesis</h2>

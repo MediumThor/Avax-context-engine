@@ -16,15 +16,31 @@ export interface TimeframeState {
   volatility: string
   close: number
   as_of: string
+  support_zones?: StructuralZone[]
+  resistance_zones?: StructuralZone[]
+}
+
+export interface StructuralZone {
+  id: string
+  lower: number
+  upper: number
+  role: 'support' | 'resistance' | 'mixed'
+  strength: number
+  test_count: number
 }
 
 export interface ForecastHorizon {
   h: number
   expected_cum_log_return: number
-  drift20_cum_log_return: number
-  zero_cum_log_return: number
+  drift20_cum_log_return?: number
+  zero_cum_log_return?: number
   p_close_above_origin: number | null
-  confidence_source: string
+  confidence_source?: string
+  /** Optional distribution fields. Absent until a calibrated model exists. */
+  q10_cum_return?: number
+  q50_cum_return?: number
+  q90_cum_return?: number
+  expected_cum_return?: number
 }
 
 export interface MarketPayload {
@@ -36,7 +52,18 @@ export interface MarketPayload {
   snapshot: { timeframes: Record<string, TimeframeState>; cross_market?: Record<string, unknown> }
   interpretation: string
   forecast: { forecast: { horizons: ForecastHorizon[]; model_id: string; notes: string }; journaled: boolean }
-  metrics: { available: boolean; validation?: string; horizons?: Record<string, { sample_count: number; drift20: { mae: number; signed_direction: { accuracy: number | null; sample_count: number } } }> }
+  metrics: {
+    available: boolean
+    validation?: string
+    horizons?: Record<
+      string,
+      {
+        sample_count: number
+        zero?: { mae?: number; rmse?: number }
+        drift20: { mae: number; rmse?: number; signed_direction?: { accuracy: number | null; sample_count: number } }
+      }
+    >
+  }
   candles: Candle[]
   replay: boolean
   replay_hint_as_of?: string | null
