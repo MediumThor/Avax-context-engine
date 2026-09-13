@@ -24,3 +24,8 @@
   .destBtn{flex:0 0 auto;width:100%;justify-content:flex-start;padding:10px 12px}
   .destBody .workspace{height:100%;max-height:100%}
 }
+.tfSwitch{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 8px}
+.tfSwitch button{min-height:44px;min-width:44px;padding:8px 12px;border-radius:8px;border:1px solid #242b36;background:transparent;color:#9aa5b3;font-weight:600;font-size:12px;cursor:pointer}
+.tfSwitch button[aria-pressed="true"]{background:#1d2430;color:#eef3f8;border-color:#2a3340}
+.rail button.rowTf{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:8px 0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;text-align:left}
+.rail button.rowTf[aria-pressed="true"]{outline:1px solid #2a3340;border-radius:8px}

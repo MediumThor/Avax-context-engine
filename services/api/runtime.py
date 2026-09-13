@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from packages.context_engine import ContextEngine
+from packages.context_engine.engine import TIMEFRAMES
 from packages.context_engine.indicators import ema
+from packages.context_engine.resample import resample_closed
 from packages.features import FEATURE_SCHEMA_VERSION as MTF_FEATURE_SCHEMA
 from packages.features import assemble_features
 from packages.fixtures import btc_companion, sept_2026_failed_breakout
@@ -31,6 +33,8 @@ from packages.models.outcomes import mature_outcomes
 
 SOURCE = "binance-vision"
 FEATURE_SCHEMA = "1"
+CHART_SOURCE_LIMIT = 8000
+DEFAULT_CHART_TF = "5m"
 
 
 class LiveDataUnavailable(RuntimeError):
@@ -694,8 +698,15 @@ class PrototypeRuntime:
         health["source"] = "fixture" if self.use_fixture else SOURCE
         return health
 
-    def market_payload(self, symbol: str, as_of: datetime | None = None, chart_limit: int = 1000, persist: bool | None = None) -> dict:
-        candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, 400))
+    def market_payload(
+        self,
+        symbol: str,
+        as_of: datetime | None = None,
+        chart_limit: int = 1000,
+        persist: bool | None = None,
+        chart_timeframe: str = DEFAULT_CHART_TF,
+    ) -> dict:
+        candles = self.candles(symbol, as_of=as_of, limit=max(chart_limit, CHART_SOURCE_LIMIT))
         last_close = candles[-1].close_time()
         should_persist = persist if persist is not None else as_of is None
         snap = self.snapshot(
@@ -707,6 +718,8 @@ class PrototypeRuntime:
         forecast = self.forecast(symbol, as_of=as_of or last_close, persist=should_persist, snap=snap)
         metrics = self.metrics(symbol, as_of=as_of or last_close)
         chart = _chart_rows(candles, chart_limit)
+        tf = normalize_chart_tf(chart_timeframe)
+        by_tf = _chart_by_timeframe(candles, chart_limit)
         hint = None
         if self.use_fixture:
             from packages.fixtures import bounce_start_index, sept_2026_failed_breakout
@@ -725,6 +738,8 @@ class PrototypeRuntime:
             "forecast": forecast,
             "metrics": metrics,
             "candles": chart,
+            "chart_timeframe": tf,
+            "chart_candles": by_tf,
             "replay": as_of is not None,
             "replay_hint_as_of": hint,
             "execution_enabled": False,
@@ -745,6 +760,22 @@ def _origin_stamp(value: datetime | str | None) -> str:
 
 
 _CHART_EMA_SPANS = (9, 20, 50, 100, 200)
+
+
+def normalize_chart_tf(raw: str | None) -> str:
+    if raw in TIMEFRAMES:
+        return raw
+    return DEFAULT_CHART_TF
+
+
+def _chart_by_timeframe(candles_5m, chart_limit: int) -> dict[str, list[dict[str, Any]]]:
+    """Resample closed 5m bars already truncated at as_of. Incomplete HTF buckets are dropped."""
+    out: dict[str, list[dict[str, Any]]] = {}
+    closed = [c for c in candles_5m if getattr(c, "is_closed", True)]
+    for tf, minutes in TIMEFRAMES.items():
+        series = closed if tf == DEFAULT_CHART_TF else resample_closed(closed, minutes, tf)
+        out[tf] = _chart_rows(series, chart_limit)
+    return out
 
 
 def _chart_rows(candles, chart_limit: int) -> list[dict[str, Any]]:
