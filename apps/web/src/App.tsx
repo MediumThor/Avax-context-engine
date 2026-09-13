@@ -133,7 +133,7 @@ export default function App() {
             )}
             {market?.metrics.available && driftN != null && (
               <p className="muted">
-                Walk-forward h=1 drift MAE {driftMae?.toFixed(4)} · n={driftN} · {market.metrics.validation}
+                Walk-forward h=1 drift MAE {driftMae?.toFixed(6)} · n={driftN} · {market.metrics.validation}
               </p>
             )}
           </section>

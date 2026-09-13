@@ -47,7 +47,7 @@ Former isolated branches are closed. Implement the same contracts from `wiki/tas
 | 26–30 | Encoder / LoopStep / challenge / SWA / eval | implement on main |
 | 33 | CI | on main |
 | 36 | Leakage probes | implement on main |
-| 17/04/09 | SLICE-001 honest market/forecast/replay | in progress on `cursor/honest-market-slice-ee66` |
+| 17/04/09 | SLICE-001 honest market/forecast/replay | PR #8 (`cursor/honest-market-slice-ee66`) |
 
 SLICE-001 replaces the sine-wave `$7.26` / `DATA LIVE` shell with fixture-or-Binance candles, Context Engine `as_of` snapshots, journaled drift20 baselines, walk-forward MAE with sample counts, and a September 2026 4H-stability replay. Kill switch remains the hard stop.
 
