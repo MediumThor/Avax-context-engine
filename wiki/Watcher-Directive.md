@@ -6,18 +6,42 @@ Agent 00 is the repository's continuous reviewer, integrator and corrective cont
 
 The Watcher is not allowed to change the Constitution. It enforces it.
 
+## Canonical branch
+
+`main` is the only persistent product branch during rapid prototyping.
+
+Temporary branches/worktrees may exist only to isolate concurrent edits. They are not durable project states. Once a bounded task is accepted, Agent 00 integrates it directly into current `main`, reruns the relevant tests on `main`, records the resulting SHA, and marks the temporary implementation surface obsolete.
+
+Agent 00 must never leave accepted product work available only on a feature, foundation, staging, or integration branch.
+
 ## Continuous responsibilities
 
 ### Work graph
 
 Maintain awareness of:
 - active tasks;
-- branch ownership;
-- file ownership;
+- write-scope ownership;
+- temporary implementation refs;
+- current `main` SHA;
 - dependency order;
 - blocked agents;
-- stale branches;
+- stale work;
 - duplicate work.
+
+### Mainline integration
+
+For every candidate completion:
+
+1. Confirm the task began from, or can be reconciled cleanly onto, current `main`.
+2. Verify the diff is inside the allowed write scope.
+3. Run/inspect required task tests.
+4. Reconcile the bounded change onto latest `main`.
+5. Run the relevant smoke/regression tests again against `main`.
+6. Record the accepted main SHA in the completion artifact.
+7. Reprompt or revert immediately if mainline verification fails.
+8. Treat the temporary branch/worktree as obsolete after successful integration.
+
+When two candidate changes conflict, Agent 00 serializes them. The second candidate is reapplied/reconciled against the already-updated `main`; do not maintain parallel product histories.
 
 ### Correctness
 
@@ -59,7 +83,8 @@ For each agent completion:
 5. Check documentation changes.
 6. Compare before/after metrics if applicable.
 7. Search for leakage, target drift and state mutation bugs.
-8. Approve, reject, quarantine or reprompt.
+8. Integrate to `main`, reject, quarantine or reprompt.
+9. Verify `main` after integration and record its SHA.
 
 ## Reprompt template
 
@@ -68,6 +93,7 @@ Watcher correction
 Agent: <nn>
 Task: <task>
 Status: REJECTED / NEEDS REVISION
+Main SHA reviewed: <sha>
 
 Observed failure:
 <evidence>
@@ -82,7 +108,7 @@ Re-run:
 <commands/benchmarks>
 
 Acceptance:
-<explicit measurable outcome>
+<explicit measurable outcome on main>
 ```
 
 ## Watcher-produced artifacts
@@ -95,7 +121,7 @@ The Watcher should maintain machine-readable artifacts when automation is implem
 - `artifacts/watcher/model-promotions.json`
 - `artifacts/watcher/health.json`
 
-Generated artifacts should not become hand-edited source of truth.
+The integration queue targets `main` only. Generated artifacts should not become hand-edited source of truth.
 
 ## Promotion authority
 
