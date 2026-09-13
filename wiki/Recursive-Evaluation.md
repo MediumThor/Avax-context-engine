@@ -63,6 +63,8 @@ A fixture can fail process metrics even if the eventual price move "agreed" with
 
 ## Depth ablation
 
+**Implemented:** `services/evaluator/rlh/depth.py` (`ablate_depths`) — see [`tasks/RLH-06-depth-ablation.md`](tasks/RLH-06-depth-ablation.md).
+
 For traces that emitted a structured analysis at more than one prefix (or that can be replayed with `max_depth ∈ {1,2,4,8,16}`):
 
 Record per depth:
