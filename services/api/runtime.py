@@ -323,6 +323,63 @@ class PrototypeRuntime:
             "note": "Loop reads frozen snapshot analogs and theses. Not a forecast and not confidence.",
         }
 
+    def _forecast_at_or_before(self, symbol: str, as_of: datetime | None) -> dict | None:
+        if as_of is None:
+            return self.journal.latest(symbol)
+        chosen = None
+        for row in self.journal.list_forecasts(symbol):
+            stamp = datetime.fromisoformat(str(row["forecasted_at"]).replace("Z", "+00:00"))
+            if stamp <= as_of:
+                chosen = row
+        return chosen
+
+    def run_harness_loop(
+        self,
+        symbol: str = "AVAXUSDT",
+        as_of: datetime | None = None,
+        persist: bool | None = None,
+    ) -> dict[str, Any]:
+        """Bounded loop on a journaled forecast. Does not emit a new forecast."""
+        should_persist = persist if persist is not None else as_of is None
+        stored = self._forecast_at_or_before(symbol, as_of)
+        if stored is None:
+            return {
+                "accepted": True,
+                "harness_version": "rlh-0.1.0",
+                "ran": False,
+                "reason": "no_journaled_forecast",
+                "persisted": False,
+                "note": "No journaled forecast to attach a loop to. Does not emit a forecast. Not confidence.",
+            }
+        payload = stored["payload"]
+        forecasted_at = datetime.fromisoformat(str(stored["forecasted_at"]).replace("Z", "+00:00"))
+        snap = self.snapshot(symbol, as_of=as_of or forecasted_at, persist_theses=False)
+        snapshot_id = stored.get("context_snapshot_id") or hashlib.sha256(
+            repr(snap.to_dict()).encode()
+        ).hexdigest()[:16]
+        loop = self._maybe_run_live_loop(
+            symbol=symbol,
+            payload=payload,
+            snap=snap,
+            snapshot_id=snapshot_id,
+            manifest_id=None,
+            feature_schema=stored.get("feature_schema_version") or FEATURE_SCHEMA,
+            persist=should_persist,
+        )
+        if should_persist and not loop.get("persisted") and stored.get("id"):
+            traces = self.journal.list_loop_traces(stored["id"])
+            if traces:
+                loop["persisted"] = True
+                loop["loop_id"] = traces[-1].get("id") or loop.get("loop_id")
+        return {
+            "accepted": True,
+            "harness_version": "rlh-0.1.0",
+            "forecast_id": stored["id"],
+            **loop,
+            "note": loop.get("note")
+            or "Loop reads a journaled forecast. Does not emit a new forecast. Not confidence.",
+        }
+
     def _journal_prior_origin(self, symbol: str, candles, btc, as_of, manifest_id) -> None:
         """Journal T-10 so h=1..10 can mature on the same persist without rewriting T."""
         visible = _visible_closed(candles, as_of)

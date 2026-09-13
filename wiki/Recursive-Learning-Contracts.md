@@ -200,7 +200,7 @@ See `packages/contracts/recursive/kill-switch.schema.json` and `packages/harness
 | GET | `/api/v1/agents/kill-switch` | current engage state + audit events |
 | POST | `/api/v1/agents/kill-switch` | pause predictions: sever recursive agent work and skip new forecast journal writes |
 | POST | `/api/v1/agents/kill-switch/reset` | logged resume |
-| POST | `/api/v1/loops/run` | stub runner; 423 if severed. Live persist journals a LoopTrace after the forecast row. |
+| POST | `/api/v1/loops/run` | bounded loop on the latest journaled forecast; 423 if severed. Does not emit a new forecast. Replay `as_of` does not insert a trace. |
 | GET | `/api/v1/loops/{id}` | stored LoopTrace plus `forecast_id`; 404 if missing |
 | GET | `/api/v1/theses/{id}` | frozen journaled thesis payload plus `invalidation_fingerprint`; 404 if missing |
 
@@ -208,6 +208,7 @@ See `packages/contracts/recursive/kill-switch.schema.json` and `packages/harness
 
 | method | path | purpose |
 | --- | --- | --- |
+| POST | `/api/v1/loops/run` | implemented: bounded loop on a journaled forecast; no new emit |
 | GET | `/api/v1/theses/{id}` | implemented: frozen journaled thesis + fingerprint |
 | GET | `/api/v1/loops/{id}` | implemented: stored LoopTrace + forecast_id |
 | GET | `/api/v1/loops?symbol=&from=&to=` | list traces |
