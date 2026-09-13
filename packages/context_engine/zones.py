@@ -16,7 +16,7 @@ import json
 
 from .indicators import atr as wilder_atr
 from .models import Candle, Pivot, StructuralZone
-from .structure import cluster_zones
+from .structure import cluster_zones, confirmed_pivots
 
 ZoneRole = Literal["support", "resistance", "mixed"]
 Interaction = Literal[
@@ -395,6 +395,158 @@ def spec_from_structural(
     )
 
 
+def specs_from_pivots_at_known(
+    candles: Sequence[Candle],
+    pivots: Sequence[Pivot],
+    *,
+    timeframe: str,
+    symbol: str = "AVAXUSDT",
+    tolerance_pct: float = 0.006,
+) -> list[ZoneSpec]:
+    """Cluster confirmed pivots and assign role from the close at formation known_at.
+
+    Do not use the snapshot-time close to rewrite whether a band was support or
+    resistance when it was first knowable.
+    """
+    if not candles or not pivots:
+        return []
+    clustered = cluster_zones(list(pivots), float(candles[-1].close), tolerance_pct=tolerance_pct)
+    by_price: dict[tuple[float, float], list[Pivot]] = {}
+    for pivot in pivots:
+        key = None
+        for zone in clustered:
+            if zone.lower <= pivot.price <= zone.upper:
+                key = (zone.lower, zone.upper)
+                break
+        if key is None:
+            continue
+        by_price.setdefault(key, []).append(pivot)
+    specs: list[ZoneSpec] = []
+    for zone in clustered:
+        members = by_price.get((zone.lower, zone.upper), [])
+        known_at = max((p.known_at for p in members), default=candles[-1].open_time)
+        created_at = min((p.time for p in members), default=known_at)
+        ref = None
+        for candle in candles:
+            if candle.open_time <= known_at:
+                ref = float(candle.close)
+        if ref is None:
+            ref = float(candles[0].close)
+        mid = (zone.lower + zone.upper) / 2.0
+        if mid < ref:
+            role: ZoneRole = "support"
+        elif mid > ref:
+            role = "resistance"
+        else:
+            role = "mixed"
+        spec = ZoneSpec(
+            lower=zone.lower,
+            upper=zone.upper,
+            role=role,
+            symbol=symbol,
+            timeframes=(timeframe,),
+            sources=(getattr(zone, "source", None) or "pivot_cluster",),
+            strength=max(0.0, min(1.0, zone.strength)),
+            created_at=created_at,
+            known_at=known_at,
+        )
+        if any(existing.id == spec.id for existing in specs):
+            continue
+        specs.append(spec)
+    return specs
+
+
+def structural_from_tracked(zone: TrackedZone) -> StructuralZone:
+    return StructuralZone(
+        id=zone.id,
+        lower=zone.lower,
+        upper=zone.upper,
+        role=zone.role,
+        strength=zone.strength,
+        test_count=zone.tests,
+        source="zone_lifecycle",
+        status=zone.status,
+        interaction=zone.interaction,
+        known_at=zone.known_at,
+        last_test_at=zone.last_test_at,
+        outcome=zone.outcome,
+    )
+
+
+def plateau_specs(
+    candles: Sequence[Candle],
+    *,
+    timeframe: str,
+    symbol: str = "AVAXUSDT",
+    min_run: int = 3,
+) -> list[ZoneSpec]:
+    """HTF repeated equal highs/lows become frozen ranges once the run is known."""
+    series = [c for c in candles if getattr(c, "is_closed", True)]
+    if len(series) < min_run:
+        return []
+    specs: list[ZoneSpec] = []
+
+    def add_run(kind: str, start: int, end: int) -> None:
+        if end - start < min_run:
+            return
+        price = series[start].high if kind == "high" else series[start].low
+        known_at = series[start + min_run - 1].open_time
+        created_at = series[start].open_time
+        role: ZoneRole = "resistance" if kind == "high" else "support"
+        spec = ZoneSpec(
+            lower=price,
+            upper=price,
+            role=role,
+            symbol=symbol,
+            timeframes=(timeframe,),
+            sources=("htf_plateau",),
+            strength=min(1.0, 0.25 + 0.05 * (end - start)),
+            created_at=created_at,
+            known_at=known_at,
+        )
+        if any(existing.id == spec.id for existing in specs):
+            return
+        specs.append(spec)
+
+    i = 0
+    while i < len(series):
+        j = i + 1
+        while j < len(series) and series[j].high == series[i].high:
+            j += 1
+        add_run("high", i, j)
+        i = max(i + 1, j)
+    i = 0
+    while i < len(series):
+        j = i + 1
+        while j < len(series) and series[j].low == series[i].low:
+            j += 1
+        add_run("low", i, j)
+        i = max(i + 1, j)
+    return specs
+
+
+def tracked_zones_for_bars(
+    candles: Sequence[Candle],
+    *,
+    timeframe: str,
+    left: int = 3,
+    right: int = 3,
+    config: AcceptanceConfig | None = None,
+) -> tuple[TrackedZone, ...]:
+    series = [c for c in candles if getattr(c, "is_closed", True)]
+    if len(series) < 3:
+        return ()
+    pivots = confirmed_pivots(list(series), left, right) if len(series) >= left + right + 1 else []
+    specs = specs_from_pivots_at_known(series, pivots, timeframe=timeframe, symbol=series[-1].symbol)
+    if timeframe in {"4h", "1d", "1w"}:
+        for spec in plateau_specs(series, timeframe=timeframe, symbol=series[-1].symbol):
+            if spec.id not in {item.id for item in specs}:
+                specs.append(spec)
+    if not specs:
+        return ()
+    return track_zones(series, specs, config=config).current()
+
+
 def specs_from_pivots(
     pivots: Sequence[Pivot],
     current_price: float,
@@ -478,6 +630,9 @@ class ZoneTracker:
         pending: dict[str, ZoneSpec] = getattr(self, "_pending")
         for spec in self.specs:
             if spec.id not in self._zones:
+                open_at = spec.known_at or spec.created_at
+                if open_at is not None and open_at > candle.open_time:
+                    continue
                 self._zones[spec.id] = self._open(spec, candle)
                 pending.pop(spec.id, None)
             current = self._zones[spec.id]

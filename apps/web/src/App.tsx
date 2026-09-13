@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { MarketChart } from './components/MarketChart'
 import { AgentKillSwitch } from './components/AgentKillSwitch'
 import { ForecastFan } from './components/ForecastFan'
-import { ContextOverlays } from './components/ContextOverlays'
+import { ContextOverlays, type OverlayZone } from './components/ContextOverlays'
 import { ContextEvidence } from './components/ContextEvidence'
 import { AccuracyPanel, type AccuracySlice } from './components/AccuracyPanel'
 import { LoopTraceCard } from './components/LoopTraceCard'
@@ -49,7 +49,7 @@ export default function App() {
   const overlayZones = useMemo(() => {
     if (!market) return []
     const seen = new Set<string>()
-    const zones: { id: string; lower: number; upper: number; role: StructuralZone['role']; strength: number; test_count: number; timeframes: string[] }[] = []
+    const zones: OverlayZone[] = []
     for (const state of Object.values(market.snapshot.timeframes)) {
       for (const zone of [...(state.support_zones ?? []), ...(state.resistance_zones ?? [])]) {
         if (seen.has(zone.id)) continue
@@ -61,7 +61,15 @@ export default function App() {
           role: zone.role,
           strength: zone.strength,
           test_count: zone.test_count,
+          status: zone.status,
+          known_at: zone.known_at,
           timeframes: [state.timeframe],
+          provenance: {
+            status: zone.status,
+            notes: zone.interaction
+              ? `${zone.interaction}${zone.outcome ? ` · ${zone.outcome}` : ''}. Not confidence.`
+              : 'Zone lifecycle from closed bars only. Not confidence.',
+          },
         })
       }
     }
@@ -219,6 +227,24 @@ export default function App() {
                     Invalidation ({rule.timeframe}): {rule.kind} {rule.price.toFixed(3)} — frozen at open
                   </p>
                 ))}
+              </div>
+            ))}
+          </section>
+          <section className="card">
+            <h2>Zones</h2>
+            <p className="muted">
+              Lifecycle from closed bars on each timeframe. Bounds are frozen. Status is not confidence.
+            </p>
+            {overlayZones.length === 0 && <p className="muted">No tracked zones at this as_of.</p>}
+            {overlayZones.slice(0, 8).map((zone) => (
+              <div className="row analogRow" key={zone.id}>
+                <span>
+                  {(zone.timeframes ?? []).join('/') || 'tf'} {zone.role}
+                </span>
+                <span className="muted">
+                  {zone.lower.toFixed(3)}–{zone.upper.toFixed(3)} · {zone.status ?? 'active'}
+                  {zone.provenance?.notes ? ` · ${zone.provenance.notes}` : ''}
+                </span>
               </div>
             ))}
           </section>

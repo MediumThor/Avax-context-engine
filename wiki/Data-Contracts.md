@@ -137,6 +137,8 @@ Feature snapshots are immutable model inputs. Target columns never appear in `va
 }
 ```
 
+Current snapshot rows also carry `interaction` and `outcome` from `ZoneTracker`. Role is assigned at formation `known_at`. Strength is evidence weight, not a calibrated percent.
+
 ## Hypothesis
 
 ```json

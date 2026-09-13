@@ -51,6 +51,11 @@ class StructuralZone:
     strength: float
     test_count: int
     source: str = "pivot_cluster"
+    status: str = "active"
+    interaction: str | None = None
+    known_at: datetime | None = None
+    last_test_at: datetime | None = None
+    outcome: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

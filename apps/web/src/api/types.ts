@@ -27,6 +27,11 @@ export interface StructuralZone {
   role: 'support' | 'resistance' | 'mixed'
   strength: number
   test_count: number
+  status?: string
+  interaction?: string | null
+  known_at?: string | null
+  last_test_at?: string | null
+  outcome?: string | null
 }
 
 export interface ForecastHorizon {
